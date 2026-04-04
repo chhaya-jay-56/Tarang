@@ -1,0 +1,65 @@
+.navWrapper {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.navbar {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    padding: 0.3rem 0.5rem;
+    display: flex;
+    gap: 0.2rem;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 100px;
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: pointer;
+}
+
+.navItem:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+.active:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.navLabel {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .navbar {
+        position: relative;
+        left: 0;
+        transform: none;
+        width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+    }
+}
