@@ -82,16 +82,6 @@ add_clone_stage_columns.py
 .next/
 out/
 
-# script and test audio
-push_history.ps1
-input_wav/
-
-# python tooling - not needed in repo
-.uv-cache/
-uv.lock
-skills-lock.json
-add_clone_stage_columns.py
-
-# build output
-.next/
-out/
+# AI context and planning
+Agent.md
+Plans/
