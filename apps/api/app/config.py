@@ -2,9 +2,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env from api root
-env_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
+# Load .env from workspace root (single source of truth for shared keys)
+_root_dir = Path(__file__).resolve().parent.parent.parent.parent  # Tarang/
+
+load_dotenv(dotenv_path=_root_dir / ".env")
 
 
 class Settings:
@@ -13,12 +14,16 @@ class Settings:
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", "postgresql://jay:jay123@localhost:5433/tarangdb"
     )
-    CLERK_WEBHOOK_SECRET: str = os.getenv("CLERK_WEBHOOK_SECRET", "")
+    CLERK_WEBHOOK_SECRET: str = os.getenv("CLERK_WEBHOOK_SECRET") or os.getenv(
+        "CLERK_WEBHOOK_SIGNING_SECRET", ""
+    )
     CLERK_JWKS_URL: str = os.getenv(
         "CLERK_JWKS_URL",
         "https://distinct-ram-14.clerk.accounts.dev/.well-known/jwks.json",
     )
     REDIS_URL: str = os.getenv("REDIS_URL", "")
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
     RUNPOD_API_KEY: str = os.getenv("RUNPOD_API_KEY", "")
 
     # Storage (Cloudflare R2)
@@ -30,7 +35,10 @@ class Settings:
     # Limits
     MAX_UPLOAD_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
 
-    # Replicate API Key (used for indextts-2 cloning)
+    # Replicate API Key (kept for future use)
     REPLICATE_API_TOKEN: str = os.getenv("REPLICATE_API_TOKEN", "")
+
+    # Modal OmniVoice clone endpoint (from `modal deploy modal_app.py`)
+    MODAL_CLONE_ENDPOINT: str = os.getenv("MODAL_CLONE_ENDPOINT", "")
 
 settings = Settings()

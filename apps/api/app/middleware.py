@@ -11,7 +11,7 @@ def setup_middlewares(app: FastAPI):
             "http://127.0.0.1:3000",
             "http://127.0.0.1:3001",
         ],
-        allow_origin_regex=r"https://[a-zA-Z0-9-]+\.ngrok-free\.dev",
+        allow_origin_regex=r"https://[a-zA-Z0-9-]+\.(ngrok-free\.app|ngrok-free\.dev|ngrok\.app)",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
