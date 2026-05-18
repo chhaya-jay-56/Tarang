@@ -1,9 +1,9 @@
-import os
 import logging
 from fastapi import APIRouter, Request, HTTPException, Depends
 from svix.webhooks import Webhook, WebhookVerificationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from app.config import settings
 from app.dependencies import get_db
 from app.models.user import User
 
@@ -12,7 +12,9 @@ logger = logging.getLogger("tarang.webhooks")
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
 
-@router.post("/clerk")
+@router.post("", name="clerk_webhook")
+@router.post("/", include_in_schema=False)
+@router.post("/clerk", include_in_schema=False)
 async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Handles Clerk webhook events for user sync.
@@ -22,9 +24,12 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     - user.updated  → update email
     - user.deleted  → remove from DB
     """
-    webhook_secret = os.getenv("CLERK_WEBHOOK_SECRET")
+    webhook_secret = settings.CLERK_WEBHOOK_SECRET
     if not webhook_secret:
-        raise HTTPException(status_code=500, detail="CLERK_WEBHOOK_SECRET missing from env")
+        raise HTTPException(
+            status_code=500,
+            detail="CLERK_WEBHOOK_SECRET or CLERK_WEBHOOK_SIGNING_SECRET missing from env",
+        )
 
     headers = request.headers
     svix_id = headers.get("svix-id")
