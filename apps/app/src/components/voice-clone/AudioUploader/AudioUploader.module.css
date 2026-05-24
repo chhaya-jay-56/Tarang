@@ -1,0 +1,47 @@
+.dropZone {
+  border: 1.5px dashed color-mix(in srgb, var(--border) 30%, transparent);
+  background: color-mix(in srgb, var(--background) 5%, transparent);
+  border-radius: 20px;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  min-height: 200px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropZone:hover {
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+  background: color-mix(in srgb, var(--background) 20%, transparent);
+}
+
+.iconWrapper {
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 20%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  font-size: 20px;
+  color: var(--foreground);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}

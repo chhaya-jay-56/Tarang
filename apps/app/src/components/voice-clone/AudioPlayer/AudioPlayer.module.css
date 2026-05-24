@@ -1,0 +1,125 @@
+.playerCard {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.playerInner {
+  padding: 24px 28px 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.badgeIcon {
+  font-size: 14px;
+}
+
+.headerAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.headerAction:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.actionIcon {
+  font-size: 14px;
+}
+
+.waveform {
+  width: 100%;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.timeDisplay {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.controlBtn {
+  color: var(--muted-foreground);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s ease;
+  font-size: 18px;
+}
+
+.controlBtn:hover {
+  color: var(--foreground);
+}
+
+.playBtn {
+  color: var(--foreground);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: opacity 0.1s ease;
+  font-size: 36px;
+}
+
+.playBtn:hover {
+  opacity: 0.8;
+}
+
+.playBtn:active {
+  transform: scale(0.97);
+}
+
+.playOffset {
+  margin-left: 3px;
+}
