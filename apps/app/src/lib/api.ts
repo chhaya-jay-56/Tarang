@@ -48,5 +48,9 @@ export function useApiClient() {
     [getToken]
   );
 
-  return { authFetch };
+  const getAuthToken = useCallback(async () => {
+    return await getToken();
+  }, [getToken]);
+
+  return { authFetch, getAuthToken };
 }
