@@ -1,0 +1,185 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  gap: 28px;
+  padding: 0 16px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+}
+
+/* ── Two-Panel Workspace ── */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Text Input ── */
+.textInput {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  background: color-mix(in srgb, var(--card) 50%, transparent);
+  padding: 18px 22px;
+  font-size: 14px;
+  color: var(--foreground);
+  resize: none;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.textInput::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 60%, transparent);
+}
+
+.textInput:focus {
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+/* ── Action Buttons ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (min-width: 480px) {
+  .actions {
+    flex-direction: row;
+  }
+}
+
+.actionBtn {
+  flex: 1;
+  height: 52px !important;
+  gap: 10px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  border-radius: 9999px !important;
+  border-color: color-mix(in srgb, var(--border) 40%, transparent) !important;
+  text-transform: uppercase;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: var(--foreground) !important;
+  color: var(--background) !important;
+}
+
+/* ── Close Button ── */
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.closeIcon {
+  font-size: 16px;
+}
+
+/* ── Download Button ── */
+.downloadBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.downloadBtn:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.downloadIcon {
+  font-size: 14px;
+}
+
+/* ── Empty State ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  border: 1.5px dashed color-mix(in srgb, var(--border) 30%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 30%, transparent);
+  text-align: center;
+  gap: 10px;
+  padding: 32px 24px;
+}
+
+.emptyIcon {
+  font-size: 36px;
+  opacity: 0.4;
+  margin-bottom: 4px;
+}
+
+.emptyTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
+.emptySubtitle {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  max-width: 260px;
+  line-height: 1.5;
+}
