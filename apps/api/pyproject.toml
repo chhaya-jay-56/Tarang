@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
+    "alembic>=1.18.4",
     "asyncpg>=0.31.0",
     "boto3>=1.42.89",
+    "celery>=5.4.0",
     "fastapi-users[sqlalchemy]>=15.0.5",
     "fastapi[standard]>=0.135.2",
     "httpx>=0.28.1",
@@ -17,8 +19,22 @@ dependencies = [
     "psycopg2>=2.9.11",
     "pyjwt[crypto]>=2.12.1",
     "python-dotenv>=1.2.2",
+    "redis>=5.2.1",
     "replicate>=1.0.7",
     "sqlalchemy[asyncio]>=2.0.48",
     "svix>=1.90.0",
     "uvicorn[standard]>=0.42.0",
 ]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+

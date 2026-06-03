@@ -31,7 +31,7 @@ uv pip install -r pyproject.toml
 
 # 4. Copy env vars
 cp .env.example .env
-# Fill in DATABASE_URL, CLERK_WEBHOOK_SECRET, etc.
+# Fill in DATABASE_URL, CLERK_WEBHOOK_SECRET or CLERK_WEBHOOK_SIGNING_SECRET, etc.
 ```
 
 ---
@@ -50,6 +50,24 @@ Or using uv directly:
 ```bash
 uv run uvicorn app.main:app --reload --port 8000
 ```
+
+### Clerk Webhooks with ngrok
+
+This webhook lives in the FastAPI app, so tunnel the API server, not the Next.js app:
+
+```bash
+ngrok http --url=<your-ngrok-domain> 8000
+```
+
+In Clerk, set the endpoint URL to:
+
+```text
+https://<your-ngrok-domain>/api/webhooks
+```
+
+The legacy URL `https://<your-ngrok-domain>/api/webhooks/clerk` is also accepted.
+Use the endpoint Signing Secret as either `CLERK_WEBHOOK_SECRET` or
+`CLERK_WEBHOOK_SIGNING_SECRET` in the root `.env` or `apps/api/.env`.
 
 ### Celery Worker (when configured)
 

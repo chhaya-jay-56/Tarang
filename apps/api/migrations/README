@@ -1,0 +1,23 @@
+Tarang — Alembic Migrations
+============================
+
+This directory contains Alembic migration scripts for the Tarang database.
+
+Key Commands:
+  alembic upgrade head      — Apply all pending migrations
+  alembic downgrade -1      — Rollback the last migration
+  alembic downgrade base    — Rollback ALL migrations
+  alembic current           — Show current migration version
+  alembic history           — Show migration history
+  alembic revision -m "msg" — Create a new empty migration
+
+Flow:
+  1. Edit ORM models in app/models/
+  2. Run: alembic revision --autogenerate -m "description"
+  3. Review the generated migration in alembic/versions/
+  4. Run: alembic upgrade head
+
+Directory structure:
+  alembic.ini          — Top-level config (in api/ root)
+  alembic/env.py       — Runtime config (DB connection, async setup)
+  alembic/versions/    — Migration scripts (tracked by git)

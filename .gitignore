@@ -68,20 +68,15 @@ coverage/
 # --- Misc ---
 *.local
 
-# script and test audio
-push_history.ps1
-input_wav/
-
 # python tooling - not needed in repo
 .uv-cache/
 uv.lock
 skills-lock.json
 add_clone_stage_columns.py
 
-# build output
-.next/
-out/
-
-# AI context and planning
+# --- Project docs, notes & dev assets (personal, not in repo) ---
+docs/
+sandbox/
+scripts/
 Agent.md
-Plans/
+/rules.md
