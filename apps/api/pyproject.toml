@@ -12,6 +12,7 @@ dependencies = [
     "celery>=5.4.0",
     "fastapi-users[sqlalchemy]>=15.0.5",
     "fastapi[standard]>=0.135.2",
+    "pydub>=0.25.1",
     "httpx>=0.28.1",
     "imagekitio>=5.2.0",
     "modal>=1.4.1",
@@ -24,6 +25,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.48",
     "svix>=1.90.0",
     "uvicorn[standard]>=0.42.0",
+    "slowapi>=0.1.10",
 ]
 
 [project.optional-dependencies]
