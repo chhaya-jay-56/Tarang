@@ -10,6 +10,7 @@ class CloneRequest(BaseModel):
     text: str
     target_language: str = ""  # OmniVoice language ID (e.g. "en", "hi", "zh")
     language: str = ""  # Deprecated alias — kept for backward compat
+    speed: float = 1.0  # Speaking rate (0.5=slow, 1.0=normal, 2.0=fast)
 
     @property
     def resolved_target_language(self) -> str:
