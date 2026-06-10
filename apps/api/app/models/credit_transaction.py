@@ -43,10 +43,6 @@ class CreditTransaction(Base):
 
     __table_args__ = (
         CheckConstraint("amount > 0", name="chk_transaction_amount_positive"),
-        CheckConstraint(
-            "NOT (dub_job_id IS NOT NULL AND clone_job_id IS NOT NULL)",
-            name="chk_one_job_ref",
-        ),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -55,11 +51,6 @@ class CreditTransaction(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False, index=True,
-    )
-    dub_job_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("dub_jobs.id", ondelete="SET NULL"),
-        nullable=True,
     )
     clone_job_id = Column(
         UUID(as_uuid=True),
@@ -79,7 +70,6 @@ class CreditTransaction(Base):
 
     # ── Relationships ──
     user = relationship("User", back_populates="credit_transactions")
-    dub_job = relationship("DubJob", back_populates="credit_transactions")
     clone_job = relationship("CloneJob", back_populates="credit_transactions")
 
     def __repr__(self):
