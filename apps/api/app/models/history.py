@@ -51,15 +51,10 @@ class History(Base):
         nullable=False, index=True,
     )
 
-    # ── Optional FKs to specific jobs — SET NULL if job deleted
+    # ── Optional FK to clone job — SET NULL if job deleted
     clone_job_id = Column(
         UUID(as_uuid=True),
         ForeignKey("clone_jobs.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-    dub_job_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("dub_jobs.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -77,7 +72,6 @@ class History(Base):
     # ── Relationships ──
     user = relationship("User", back_populates="history")
     clone_job = relationship("CloneJob", back_populates="history_entries")
-    dub_job = relationship("DubJob", back_populates="history_entries")
 
     def __repr__(self):
         return f"<History {self.action}>"

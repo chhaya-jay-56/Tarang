@@ -101,26 +101,23 @@ class User(Base):
 
     # ── Relationships ──
     # WHY cascade="all, delete-orphan" on some, not others:
-    #   CASCADE: When user is deleted, delete their uploads/assets/clones/history
-    #   RESTRICT (no cascade): credit_transactions + dub_jobs prevent user deletion
+    #   CASCADE: When user is deleted, delete their assets/clones/history
+    #   RESTRICT (no cascade): credit_transactions prevent user deletion
     #     if they have active jobs — this is intentional for audit safety
-    uploaded_videos = relationship(
-        "UploadedVideo", back_populates="user", cascade="all, delete-orphan"
-    )
     user_assets = relationship(
         "UserAsset", back_populates="user", cascade="all, delete-orphan"
     )
     clone_jobs = relationship(
         "CloneJob", back_populates="user", cascade="all, delete-orphan"
     )
-    # WHY no cascade on dub_jobs: ON DELETE RESTRICT — can't delete user with
-    # active dubbing jobs (they might have credits deducted)
-    dub_jobs = relationship("DubJob", back_populates="user")
     # WHY no cascade on credit_transactions: ON DELETE RESTRICT — audit trail
     # must never be accidentally deleted
     credit_transactions = relationship("CreditTransaction", back_populates="user")
     history = relationship(
         "History", back_populates="user", cascade="all, delete-orphan"
+    )
+    custom_voices = relationship(
+        "CustomVoice", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self):
