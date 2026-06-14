@@ -38,6 +38,11 @@ from app.services.storage import (
     get_download_presigned_url,
     upload_file,
 )
+from app.services.credit_service import (
+    estimate_clone_credits,
+    check_and_deduct,
+    refund_credits,
+)
 
 logger = logging.getLogger("tarang.clone_service")
 
@@ -73,6 +78,67 @@ def _get_wav_duration_ms(file_bytes: bytes) -> int | None:
     return None
 
 
+def _convert_to_wav(file_bytes: bytes, filename: str) -> bytes:
+    """Convert any audio format to 16kHz mono WAV using ffmpeg.
+
+    WHY: The model (OmniVoice) expects WAV input. Users may upload
+    MP3, OGG, FLAC, M4A, AAC, WEBM, WMA etc. We convert server-side
+    so the frontend can accept any audio format.
+
+    Returns WAV bytes. Raises ValueError if conversion fails.
+    """
+    import subprocess
+    import tempfile
+    import os
+
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "wav"
+
+    # If already WAV, check if it's valid and return as-is
+    if ext == "wav":
+        try:
+            buf = io.BytesIO(file_bytes)
+            with wave.open(buf, "rb") as wf:
+                if wf.getnframes() > 0:
+                    return file_bytes
+        except Exception:
+            pass  # Invalid WAV, try converting anyway
+
+    # Write to temp file, convert with ffmpeg
+    with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as src:
+        src.write(file_bytes)
+        src_path = src.name
+
+    out_path = src_path.rsplit(".", 1)[0] + "_converted.wav"
+
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", src_path,
+                "-ar", "16000",     # 16kHz sample rate
+                "-ac", "1",         # mono
+                "-sample_fmt", "s16",  # 16-bit PCM
+                out_path,
+            ],
+            capture_output=True,
+            timeout=60,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.decode("utf-8", errors="replace")[:500]
+            raise ValueError(f"ffmpeg conversion failed: {stderr}")
+
+        with open(out_path, "rb") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise ValueError("ffmpeg not found — required for audio conversion")
+    finally:
+        # Cleanup temp files
+        for path in [src_path, out_path]:
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+
 async def resolve_user_id(db: AsyncSession, clerk_user_id: str) -> uuid.UUID:
     """Look up User by clerk_user_id → return UUID user_id.
 
@@ -98,18 +164,27 @@ async def upload_voice_sample(
     filename: str,
     user_id: uuid.UUID,
 ) -> UserAsset:
-    """Upload WAV to R2 and create a UserAsset record.
+    """Upload audio to R2 and create a UserAsset record.
 
+    Accepts any audio format — converts to WAV via ffmpeg before storage.
     Returns the created UserAsset. Logs a History entry.
     """
+    # Convert to WAV if needed (MP3, OGG, FLAC, M4A, etc.)
+    try:
+        wav_bytes = _convert_to_wav(file_bytes, filename)
+    except ValueError as e:
+        logger.warning("Audio conversion failed for %s: %s", filename, e)
+        # Fallback: use original bytes (might still work for WAV files)
+        wav_bytes = file_bytes
+
     asset_id = uuid.uuid4()
     r2_key = f"voices/raw/{user_id}/{asset_id}.wav"
 
-    # Upload to R2
-    upload_file(file_bytes, r2_key)
+    # Upload converted WAV to R2
+    upload_file(wav_bytes, r2_key)
 
-    # Compute duration
-    duration_ms = _get_wav_duration_ms(file_bytes)
+    # Compute duration from the WAV
+    duration_ms = _get_wav_duration_ms(wav_bytes)
 
     # Create asset record
     asset = UserAsset(
@@ -148,8 +223,27 @@ async def create_clone_job(
     user_id: uuid.UUID,
     text: str,
     target_language: str = "",
+    voice_r2_key: str | None = None,
+    speed: float = 1.0,
+    voice_name: str = "",
+    cached_voice_id: str = "",
 ) -> CloneJob:
-    """Create a queued CloneJob and log History. Returns the new CloneJob."""
+    """Create a queued CloneJob and log History. Returns the new CloneJob.
+
+    voice_r2_key: The ACTUAL R2 key for the voice reference audio.
+    When a CustomVoice/PresetVoice is used, the proxy UserAsset has a
+    dummy r2_key. This param stores the real one so the pipeline can
+    download the correct reference audio.
+
+    speed: Speaking rate multiplier (0.5=slow, 1.0=normal, 2.0=fast).
+    Stored in provider_meta and forwarded to OmniVoice.
+
+    voice_name: Name of the voice (e.g. 'shreya'). If it matches a
+    pre-cached voice on the Modal worker, Whisper ASR is skipped (~8-12s saved).
+
+    cached_voice_id: UUID string for custom voices with cached .pt prompts
+    on the Modal Volume. Takes priority over voice_name for cache lookup.
+    """
     # Verify asset exists and belongs to user
     result = await db.execute(
         select(UserAsset).where(
@@ -161,7 +255,34 @@ async def create_clone_job(
     if asset is None:
         raise ValueError("Voice asset not found or not owned by user")
 
+    # ── Credit deduction ──
+    cached_voice = cached_voice_id or voice_name or ""
+    PRESET_VOICE_NAMES = {"anjali", "priya", "alex", "david"}
+    is_custom = cached_voice.lower() not in PRESET_VOICE_NAMES
+    
+    credit_cost = estimate_clone_credits(text, is_custom)
     job_id = uuid.uuid4()
+    try:
+        await check_and_deduct(
+            db,
+            user_id,
+            credit_cost,
+            f"omnivoice_clone:{text[:30]}",
+            clone_job_id=job_id,
+        )
+    except ValueError as exc:
+        raise ValueError(str(exc))
+
+    provider_meta = {
+        "endpoint": settings.MODAL_CLONE_ENDPOINT,
+        "speed": speed,
+        "voice_name": voice_name,
+        "cached_voice_id": cached_voice_id,
+    }
+    # Store the real voice R2 key so the pipeline downloads the correct audio
+    if voice_r2_key:
+        provider_meta["voice_r2_key"] = voice_r2_key
+
     job = CloneJob(
         id=job_id,
         user_id=user_id,
@@ -172,9 +293,9 @@ async def create_clone_job(
         model_name="omnivoice",
         status=CloneJobStatus.queued,
         clone_stage="queued",
-        provider_meta={
-            "endpoint": settings.MODAL_CLONE_ENDPOINT,
-        },
+        provider_meta=provider_meta,
+        credit_cost=credit_cost,
+        credits_deducted=True,
     )
     db.add(job)
 
@@ -188,6 +309,7 @@ async def create_clone_job(
             "target_language": target_language,
             "provider": "modal",
             "model": "omnivoice",
+            "credits_used": credit_cost,
         },
     ))
 
@@ -329,11 +451,26 @@ async def _fail_clone(
     job.status = CloneJobStatus.failed
     job.clone_stage = "failed"
     job.error_message = user_message
+    refunded = False
+    if job.credits_deducted and job.credit_cost:
+        await refund_credits(
+            db,
+            job.user_id,
+            job.credit_cost,
+            "clone_failed_refund",
+            clone_job_id=job.id,
+        )
+        job.credits_deducted = False
+        refunded = True
+
     db.add(History(
         user_id=job.user_id,
         clone_job_id=job.id,
         action="clone_failed",
-        metadata_={"error": raw_error or user_message},
+        metadata_={
+            "error": raw_error or user_message,
+            "credits_refunded": refunded,
+        },
     ))
     await db.commit()
     logger.error("[clone] FAILED: %s | raw: %s", user_message, raw_error)
@@ -354,11 +491,19 @@ async def run_clone_pipeline(job_id: uuid.UUID):
             logger.error("[clone] job %s vanished before pipeline started", job_id)
             return
 
-        # Get the voice asset R2 key
-        asset_result = await db.execute(
-            select(UserAsset.r2_key).where(UserAsset.id == job.voice_asset_id)
-        )
-        r2_key = asset_result.scalar_one_or_none()
+        # Get the voice reference audio R2 key.
+        # WHY voice_r2_key in provider_meta: When the voice comes from
+        # CustomVoice/PresetVoice, the proxy UserAsset has a dummy r2_key.
+        # The real key is stored in provider_meta["voice_r2_key"].
+        r2_key = None
+        if job.provider_meta and job.provider_meta.get("voice_r2_key"):
+            r2_key = job.provider_meta["voice_r2_key"]
+        else:
+            asset_result = await db.execute(
+                select(UserAsset.r2_key).where(UserAsset.id == job.voice_asset_id)
+            )
+            r2_key = asset_result.scalar_one_or_none()
+
         if not r2_key:
             await _fail_clone(db, job, "Reference voice asset not found")
             return
@@ -368,29 +513,73 @@ async def run_clone_pipeline(job_id: uuid.UUID):
             job.status = CloneJobStatus.processing
             await _set_stage(db, job, "downloading_reference")
 
-            # ── Stage 2: Download reference audio from R2 ──
-            try:
-                ref_bytes = _download_from_r2(r2_key)
-            except Exception as exc:
-                await _fail_clone(
-                    db, job,
-                    "Failed to retrieve your reference audio from storage",
-                    str(exc),
+            # ── Determine the cached_voice key for Modal ──
+            # Priority: cached_voice_id (custom voice UUID) > voice_name (preset name)
+            # WHY: Custom voices store .pt files by UUID, preset voices by name.
+            cached_voice = ""
+            if job.provider_meta:
+                cached_voice = (
+                    job.provider_meta.get("cached_voice_id")
+                    or job.provider_meta.get("voice_name")
+                    or ""
                 )
-                return
+
+            # ── Stage 2: Download reference audio from R2 ──
+            # OPTIMIZATION: Skip R2 download ONLY for preset voices.
+            # Presets always have raw audio on the Modal Volume as fallback,
+            # so the GPU can compute the .pt on first use if needed.
+            # Custom voices ALWAYS send ref_audio — the GPU tries the cached
+            # .pt first but falls back to Whisper ASR if it doesn't exist yet.
+            PRESET_VOICE_NAMES = {
+                "anjali", "priya", "alex", "david"
+            }
+            is_preset_cached = cached_voice.lower() in PRESET_VOICE_NAMES
+
+            ref_b64 = ""
+            if is_preset_cached:
+                logger.info(
+                    "[clone] Skipping R2 download — preset voice '%s'",
+                    cached_voice,
+                )
+            else:
+                try:
+                    ref_bytes = _download_from_r2(r2_key)
+                    ref_b64 = base64.b64encode(ref_bytes).decode("utf-8")
+                except Exception as exc:
+                    await _fail_clone(
+                        db, job,
+                        "Failed to retrieve your reference audio from storage",
+                        str(exc),
+                    )
+                    return
 
             # ── Stage 3: Send to Modal OmniVoice ──
             await _set_stage(db, job, "uploading_to_ai")
 
-            ref_b64 = base64.b64encode(ref_bytes).decode("utf-8")
+            # Read speed from provider_meta (default 1.0 if missing)
+            speed = 1.0
+            if job.provider_meta and job.provider_meta.get("speed"):
+                speed = float(job.provider_meta["speed"])
+
             modal_payload = {
                 "text": job.input_text,
                 "ref_audio_b64": ref_b64,
+                "speed": speed,
+                "cached_voice": cached_voice,
             }
             if job.target_language:
                 modal_payload["language"] = job.target_language
 
+            logger.info(
+                "[clone] DEBUG: cached_voice='%s', ref_b64_len=%d, provider_meta=%s",
+                cached_voice, len(ref_b64), job.provider_meta,
+            )
+
             await _set_stage(db, job, "model_loading")
+
+            headers = {}
+            if settings.MODAL_SHARED_SECRET:
+                headers["x-tarang-modal-secret"] = settings.MODAL_SHARED_SECRET
 
             async with httpx.AsyncClient(timeout=300) as client:
                 try:
@@ -398,6 +587,7 @@ async def run_clone_pipeline(job_id: uuid.UUID):
                     resp = await client.post(
                         settings.MODAL_CLONE_ENDPOINT,
                         json=modal_payload,
+                        headers=headers,
                     )
                     if resp.status_code != 200:
                         error_text = resp.text[:500]
