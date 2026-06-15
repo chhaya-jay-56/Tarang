@@ -2,12 +2,20 @@ import logging
 from fastapi import APIRouter, Request, HTTPException, Depends
 from svix.webhooks import Webhook, WebhookVerificationError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.config import settings
 from app.dependencies import get_db
 from app.models.user import User
+from app.models.credit_transaction import CreditTransaction, TxnType
 
 logger = logging.getLogger("tarang.webhooks")
+
+# ── Early-adopter config ──────────────────────────────────────────────────
+# First N users who sign up get a welcome credit grant.
+# Change these constants to adjust the promotion.
+EARLY_ADOPTER_CREDIT_AMOUNT = 1500   # credits granted on signup
+EARLY_ADOPTER_USER_CAP = 200          # first N users get the bonus
+# ──────────────────────────────────────────────────────────────────────────
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -37,7 +45,10 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     svix_signature = headers.get("svix-signature")
 
     if not svix_id or not svix_timestamp or not svix_signature:
-        logger.error(f"❌ Missing Svix headers: id={bool(svix_id)}, timestamp={bool(svix_timestamp)}, signature={bool(svix_signature)}")
+        logger.error(
+            "❌ Missing Svix headers: id=%s, timestamp=%s, signature=%s",
+            bool(svix_id), bool(svix_timestamp), bool(svix_signature),
+        )
         raise HTTPException(status_code=400, detail="Missing Svix headers")
 
     payload = await request.body()
@@ -48,13 +59,13 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         event = wh.verify(decoded_payload, headers)
     except WebhookVerificationError as e:
-        logger.error(f"❌ Signature verification failed: {e}")
+        logger.error("❌ Signature verification failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     event_type = event.get("type")
     data = event.get("data", {})
 
-    logger.info(f"📨 Webhook received: type={event_type}")
+    logger.info("📨 Webhook received: type=%s", event_type)
 
     try:
         if event_type == "user.created":
@@ -67,12 +78,12 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             await _handle_user_deleted(data, db)
 
         else:
-            logger.info(f"ℹ️ Unhandled event type: {event_type}")
+            logger.info("ℹ️ Unhandled event type: %s", event_type)
 
     except Exception as e:
         await db.rollback()
-        logger.error(f"❌ DB error during {event_type}: {e}")
-        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
+        logger.error("❌ DB error during %s: %s", event_type, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     return {"success": True}
 
@@ -98,10 +109,41 @@ async def _handle_user_created(data: dict, db: AsyncSession):
     email = _extract_primary_email(data)
     name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or None
 
-    new_user = User(clerk_user_id=clerk_user_id, email=email, name=name)
+    # Count existing users to decide early-adopter credit grant
+    user_count_result = await db.execute(select(func.count()).select_from(User))
+    current_user_count = user_count_result.scalar()
+
+    initial_credits = (
+        EARLY_ADOPTER_CREDIT_AMOUNT
+        if current_user_count < EARLY_ADOPTER_USER_CAP
+        else 0
+    )
+
+    new_user = User(
+        clerk_user_id=clerk_user_id,
+        email=email,
+        name=name,
+        credit_balance=initial_credits,
+    )
     db.add(new_user)
+    await db.flush()  # Get new_user.id before creating transaction
+
+    # Log the credit grant in the ledger (only if credits were given)
+    if initial_credits > 0:
+        txn = CreditTransaction(
+            user_id=new_user.id,
+            txn_type=TxnType.top_up,
+            amount=initial_credits,
+            balance_after=initial_credits,
+        )
+        db.add(txn)
+        logger.info(
+            "🎁 Early-adopter bonus: user=%s, credits=%s (user #%s)",
+            clerk_user_id, initial_credits, current_user_count + 1,
+        )
+
     await db.commit()
-    logger.info(f"✅ user.created — saved {clerk_user_id} ({email})")
+    logger.info("✅ user.created — saved %s (%s)", clerk_user_id, email)
 
 
 async def _handle_user_updated(data: dict, db: AsyncSession):
@@ -110,7 +152,7 @@ async def _handle_user_updated(data: dict, db: AsyncSession):
     user = result.scalar_one_or_none()
 
     if not user:
-        logger.warning(f"⚠️ user.updated — {clerk_user_id} NOT FOUND, skipping")
+        logger.warning("⚠️ user.updated — %s NOT FOUND, skipping", clerk_user_id)
         return
 
     user.email = _extract_primary_email(data)
@@ -119,21 +161,21 @@ async def _handle_user_updated(data: dict, db: AsyncSession):
         user.name = name
 
     await db.commit()
-    logger.info(f"✅ user.updated — updated {clerk_user_id}")
+    logger.info("✅ user.updated — updated %s", clerk_user_id)
 
 
 async def _handle_user_deleted(data: dict, db: AsyncSession):
     clerk_user_id = data.get("id")
     if not clerk_user_id:
-        logger.error(f"❌ user.deleted — no 'id' in payload!")
+        logger.error("❌ user.deleted — no 'id' in payload!")
         return
 
     result = await db.execute(select(User).where(User.clerk_user_id == clerk_user_id))
     user = result.scalar_one_or_none()
     if not user:
-        logger.warning(f"⚠️ user.deleted — {clerk_user_id} NOT FOUND, skipping")
+        logger.warning("⚠️ user.deleted — %s NOT FOUND, skipping", clerk_user_id)
         return
 
     await db.delete(user)
     await db.commit()
-    logger.info(f"✅ user.deleted — removed {clerk_user_id}")
+    logger.info("✅ user.deleted — removed %s", clerk_user_id)

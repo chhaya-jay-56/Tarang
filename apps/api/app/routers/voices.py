@@ -27,6 +27,7 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Request,
     UploadFile,
 )
 from fastapi.responses import Response
@@ -35,6 +36,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db, get_current_user
 from app.schemas.voice import CloneRequest
 from app.services import clone_service
+from app.models.preset_voice import PresetVoice
+from app.models.custom_voice import CustomVoice
+from app.models.user_asset import UserAsset, AssetType
+from app.services.credit_service import (
+    check_credit_sufficient,
+    estimate_clone_credits,
+)
+from app.middleware import limiter
+from sqlalchemy import select
 
 logger = logging.getLogger("tarang.voices")
 
@@ -83,16 +93,20 @@ async def upload_voice(
 # ── Trigger voice clone ─────────────────────────────────────────────────────
 
 @router.post("/{asset_id}/clone", status_code=201)
+@limiter.limit("10/minute")
 async def trigger_clone(
     asset_id: str,
-    request: CloneRequest,
+    body: CloneRequest,
+    request: Request,
     background_tasks: BackgroundTasks,
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Start a voice cloning job. Returns immediately for polling.
 
-    Returns 201 Created with job_id. Frontend polls /status for progress.
+    Accepts a UserAsset ID, CustomVoice ID, or PresetVoice ID.
+    Creates a proxy UserAsset with a UNIQUE r2_key per clone request
+    to avoid UNIQUE constraint collisions on user_assets.r2_key.
     """
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
@@ -104,13 +118,92 @@ async def trigger_clone(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid asset ID")
 
+    # ✅ CREDIT GATE — check BEFORE any DB lookups or proxy creation.
+    # Uses worst-case estimate (is_custom=True) for instant feedback.
+    # The actual atomic deduction still happens in create_clone_job().
+    worst_case_cost = estimate_clone_credits(body.text, is_custom=True)
+    try:
+        await check_credit_sufficient(db, user_id, worst_case_cost)
+    except ValueError as exc:
+        raise HTTPException(status_code=402, detail=str(exc))
+
+    # ── Resolve the voice source ──
+    # Priority: UserAsset (direct) → CustomVoice (user) → PresetVoice (platform)
+    voice_r2_key = None
+    voice_name = "voice"
+    voice_duration_ms = None
+    # cached_voice_id: UUID string for custom voices with cached .pt prompts
+    # For presets, we use the voice name; for custom, we use the UUID.
+    cached_voice_id = ""
+
+    # 1. Check if it's a direct UserAsset
+    asset_result = await db.execute(
+        select(UserAsset).where(UserAsset.id == asset_uuid, UserAsset.user_id == user_id)
+    )
+    existing_asset = asset_result.scalar_one_or_none()
+
+    if existing_asset:
+        # Direct UserAsset — use as-is (no proxy needed)
+        asset_uuid = existing_asset.id
+    else:
+        # 2. Check CustomVoice (user's own voices)
+        cv_result = await db.execute(
+            select(CustomVoice).where(
+                CustomVoice.id == asset_uuid,
+                CustomVoice.user_id == user_id,
+            )
+        )
+        custom_voice = cv_result.scalar_one_or_none()
+
+        if custom_voice:
+            voice_r2_key = custom_voice.r2_key
+            voice_name = custom_voice.name
+            voice_duration_ms = custom_voice.duration_ms
+            # Use the UUID as cached_voice — maps to /preset-voices/custom/{id}.pt
+            cached_voice_id = str(custom_voice.id)
+        else:
+            # 3. Check PresetVoice (platform voices)
+            pv_result = await db.execute(
+                select(PresetVoice).where(PresetVoice.id == asset_uuid)
+            )
+            preset_voice = pv_result.scalar_one_or_none()
+
+            if preset_voice:
+                voice_r2_key = preset_voice.r2_key
+                voice_name = preset_voice.name
+                voice_duration_ms = preset_voice.duration_ms
+            else:
+                raise HTTPException(status_code=404, detail="Voice asset not found")
+
+        # Create a proxy UserAsset with a UNIQUE r2_key per clone request.
+        # WHY unique per request: The old code reused the voice's r2_key,
+        # which hit the UNIQUE constraint on user_assets.r2_key on the 2nd
+        # clone attempt. Now each proxy gets its own key — no collisions.
+        proxy_asset_id = uuid.uuid4()
+        proxy_r2_key = f"voices/proxy/{user_id}/{proxy_asset_id}.ref"
+        proxy_asset = UserAsset(
+            id=proxy_asset_id,
+            user_id=user_id,
+            asset_type=AssetType.voice_sample,
+            r2_key=proxy_r2_key,
+            file_name=voice_name + ".wav",
+            duration_ms=voice_duration_ms,
+        )
+        db.add(proxy_asset)
+        await db.commit()
+        asset_uuid = proxy_asset_id
+
     try:
         job = await clone_service.create_clone_job(
             db=db,
             voice_asset_id=asset_uuid,
             user_id=user_id,
-            text=request.text,
-            target_language=request.resolved_target_language,
+            text=body.text,
+            target_language=body.resolved_target_language,
+            voice_r2_key=voice_r2_key,
+            speed=body.speed,
+            voice_name=voice_name,
+            cached_voice_id=cached_voice_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
