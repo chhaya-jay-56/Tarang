@@ -8,8 +8,16 @@ _root_dir = Path(__file__).resolve().parent.parent.parent.parent  # Tarang/
 load_dotenv(dotenv_path=_root_dir / ".env")
 
 
+def _csv_env(name: str, default: str = "") -> list[str]:
+    """Read a comma-separated env var into a clean list."""
+    raw = os.getenv(name, default)
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
 class Settings:
     """Typed settings loaded from environment variables."""
+
+    APP_ENV: str = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
 
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", "postgresql://jay:jay123@localhost:5433/tarangdb"
@@ -21,6 +29,21 @@ class Settings:
         "CLERK_JWKS_URL",
         "https://distinct-ram-14.clerk.accounts.dev/.well-known/jwks.json",
     )
+    CLERK_JWT_ISSUER: str = os.getenv("CLERK_JWT_ISSUER", "")
+    CLERK_JWT_AUDIENCE: str = os.getenv("CLERK_JWT_AUDIENCE", "")
+
+    CORS_ALLOWED_ORIGINS: list[str] = _csv_env(
+        "CORS_ALLOWED_ORIGINS",
+        ",".join(
+            [
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:3001",
+            ]
+        ),
+    )
+
     REDIS_URL: str = os.getenv("REDIS_URL", "")
     CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", REDIS_URL)
     CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
@@ -40,5 +63,50 @@ class Settings:
 
     # Modal OmniVoice clone endpoint (from `modal deploy modal_app.py`)
     MODAL_CLONE_ENDPOINT: str = os.getenv("MODAL_CLONE_ENDPOINT", "")
+
+    # Modal Demucs separation endpoint (from `modal deploy apps/ai_workers/demucs/modal_app.py`)
+    MODAL_DEMUCS_ENDPOINT: str = os.getenv("MODAL_DEMUCS_ENDPOINT", "")
+
+    # Modal Qwen3-TTS endpoint (from `modal deploy apps/ai_workers/qwen3_tts/modal_app.py`)
+    MODAL_QWEN3_TTS_ENDPOINT: str = os.getenv("MODAL_QWEN3_TTS_ENDPOINT", "")
+
+    # Modal OmniVoice cache voice prompt endpoint (pre-computes Whisper ASR)
+    MODAL_CACHE_VOICE_ENDPOINT: str = os.getenv("MODAL_CACHE_VOICE_ENDPOINT", "")
+
+    # Shared secret used by the API when calling public Modal web endpoints.
+    MODAL_SHARED_SECRET: str = os.getenv("MODAL_SHARED_SECRET", "")
+
+    # Dubbing pipeline API keys
+    GLADIA_API_KEY: str = os.getenv("GLADIA_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+
+    # Dubbing validation limits
+    MAX_VIDEO_DURATION_SEC: int = int(os.getenv("MAX_VIDEO_DURATION_SEC", "300"))  # 5 min
+    MAX_VIDEO_SIZE_MB: int = int(os.getenv("MAX_VIDEO_SIZE_MB", "100"))
+
+    def validate_for_runtime(self) -> list[str]:
+        """Return missing production-critical settings.
+
+        Development keeps permissive defaults so local smoke tests can import
+        the app. Staging/production should fail fast before accepting traffic.
+        """
+        required = [
+            "DATABASE_URL",
+            "CLERK_JWKS_URL",
+            "CLERK_WEBHOOK_SECRET",
+            "R2_ACCOUNT_ID",
+            "R2_BUCKET_NAME",
+            "R2_ACCESS_KEY_ID",
+            "R2_SECRET_ACCESS_KEY",
+            "MODAL_CLONE_ENDPOINT",
+            "MODAL_DEMUCS_ENDPOINT",
+        ]
+        return [name for name in required if not getattr(self, name)]
+
+    @property
+    def is_strict_env(self) -> bool:
+        return self.APP_ENV in {"production", "prod", "staging"}
+
 
 settings = Settings()

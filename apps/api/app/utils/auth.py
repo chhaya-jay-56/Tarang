@@ -28,10 +28,20 @@ def verify_clerk_token(token: str) -> dict:
             failure — callers should catch this to return a 401.
     """
     signing_key = _jwks_client.get_signing_key_from_jwt(token)
+    decode_kwargs = {}
+    if settings.CLERK_JWT_ISSUER:
+        decode_kwargs["issuer"] = settings.CLERK_JWT_ISSUER
+    if settings.CLERK_JWT_AUDIENCE:
+        decode_kwargs["audience"] = settings.CLERK_JWT_AUDIENCE
+
     payload: dict = jwt.decode(
         token,
         signing_key.key,
         algorithms=["RS256"],
-        options={"require": ["exp", "sub"]},
+        options={
+            "require": ["exp", "sub"],
+            "verify_aud": bool(settings.CLERK_JWT_AUDIENCE),
+        },
+        **decode_kwargs,
     )
     return payload
