@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { PostHogProvider, PostHogIdentifier } from "@/components/providers/PostHogProvider";
 import "./globals.css";
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: "italic",
-  variable: "--font-instrument-serif",
-});
 
 export const metadata: Metadata = {
   title: "Tarang - Voice Cloning & TTS",
@@ -22,9 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider afterSignOutUrl="/">
-      <html lang="en" className={instrumentSerif.variable}>
+      <html lang="en">
         <body className="min-h-screen antialiased bg-background text-foreground w-full overflow-x-hidden font-body">
-          {children}
+          <PostHogProvider>
+            <PostHogIdentifier />
+            {children}
+          </PostHogProvider>
         </body>
       </html>
     </ClerkProvider>
