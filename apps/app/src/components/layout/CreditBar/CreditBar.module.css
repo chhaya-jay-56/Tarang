@@ -1,0 +1,305 @@
+/* ─── Wrapper ─── */
+.wrapper {
+    position: relative;
+}
+
+/* ─── Pill (collapsed) ─── */
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 8px;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--card) 80%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+
+.pill:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+    box-shadow: 0 0 12px rgba(120, 40, 255, 0.08);
+}
+
+.creditIcon {
+    display: flex;
+    align-items: center;
+    color: var(--muted-foreground);
+    opacity: 0.6;
+}
+
+.creditAmount {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ─── Mini Progress Bar (inside pill) ─── */
+.miniBar {
+    width: 40px;
+    height: 4px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.miniBarFill {
+    height: 100%;
+    border-radius: 100px;
+    background: var(--foreground);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 2px;
+}
+
+/* ─── Plan Badge (shared) ─── */
+.planBadge,
+.planBadgeLarge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.planBadgeLarge {
+    font-size: 11px;
+    padding: 3px 10px;
+}
+
+.planFree {
+    background: color-mix(in srgb, var(--muted-foreground) 12%, transparent);
+    color: var(--muted-foreground);
+}
+
+.planStarter {
+    background: rgba(56, 139, 253, 0.12);
+    color: hsl(212 92% 62%);
+}
+
+.planPro {
+    background: linear-gradient(135deg, rgba(120, 40, 255, 0.2), rgba(153, 69, 255, 0.2));
+    color: hsl(267 100% 72%);
+}
+
+/* ─── Skeleton (loading) ─── */
+.pillSkeleton {
+    width: 140px;
+    height: 32px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--card) 80%, transparent);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+}
+
+.skeletonShimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.04) 50%,
+            transparent 100%);
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ─── Expanded Panel ─── */
+.panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 280px;
+    background: color-mix(in srgb, var(--card) 95%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+    z-index: 50;
+    animation: panelSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes panelSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.panelTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: 0.01em;
+}
+
+/* ─── Usage Section ─── */
+.usageSection {
+    margin-bottom: 20px;
+}
+
+.usageNumbers {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.usageCurrent {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--foreground);
+    font-variant-numeric: tabular-nums;
+}
+
+.usageSeparator {
+    font-size: 14px;
+    color: var(--muted-foreground);
+    opacity: 0.5;
+}
+
+.usageTotal {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ─── Usage Bar ─── */
+.usageBar {
+    width: 100%;
+    height: 6px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.usageBarFill {
+    height: 100%;
+    border-radius: 100px;
+    background: var(--foreground);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.usageBarFill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.3), transparent);
+    animation: barShine 2s linear infinite;
+}
+
+@keyframes barShine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.usageLabel {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    opacity: 0.7;
+}
+
+/* ─── Panel Actions ─── */
+.panelActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upgradeBtn {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    color: var(--foreground);
+    position: relative;
+    overflow: hidden;
+}
+
+.upgradeBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.upgradeBtn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    transform: skewX(-20deg);
+    animation: buttonShine 3s infinite;
+}
+
+@keyframes buttonShine {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 200%;
+    }
+
+    100% {
+        left: 200%;
+    }
+}
