@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
 
 type VoiceCloneStore = {
   // State
@@ -14,6 +14,7 @@ type VoiceCloneStore = {
   cloneStage: string | null;
   stageMessage: string | null;
   cloneError: string | null;
+  speed: number;
 
   // Actions
   setVoiceId: (id: string | null) => void;
@@ -26,6 +27,7 @@ type VoiceCloneStore = {
   setIsCloning: (v: boolean) => void;
   setCloneProgress: (stage: string, message: string) => void;
   setCloneError: (err: string | null) => void;
+  setSpeed: (s: number) => void;
   clear: () => void;
 };
 
@@ -42,9 +44,10 @@ const initialState = {
   cloneStage: null,
   stageMessage: null,
   cloneError: null,
+  speed: 1.0,
 };
 
-export const useVoiceCloneStore = create<VoiceCloneStore>((set) => ({
+const storeCreator: StateCreator<VoiceCloneStore> = (set) => ({
   ...initialState,
 
   setVoiceId: (id) => set({ voiceId: id }),
@@ -58,5 +61,9 @@ export const useVoiceCloneStore = create<VoiceCloneStore>((set) => ({
   setCloneProgress: (stage, message) =>
     set({ cloneStage: stage, stageMessage: message }),
   setCloneError: (err) => set({ cloneError: err }),
+  setSpeed: (s) => set({ speed: s }),
   clear: () => set(initialState),
-}));
+});
+
+export const useVoiceCloneStore = create<VoiceCloneStore>(storeCreator);
+export const useTtsStore = create<VoiceCloneStore>(storeCreator);
