@@ -2,42 +2,29 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useApiClient } from "@/lib/api";
-import { useVoiceCloneStore } from "@/stores/voiceCloneStore";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { useVoiceCloneStore as defaultStore } from "@/stores/voiceCloneStore";
 
 /**
  * Custom hook encapsulating all voice clone business logic:
- * upload, trigger clone, real-time progress, download.
+ * upload, trigger clone, poll progress, download.
  *
- * Progress strategy: Tries SSE first for instant updates.
- * Falls back to polling automatically if SSE fails to connect
- * within 5 seconds (handles CORS, ngrok, proxy issues).
+ * Progress strategy: Polling the /status endpoint every 3s.
+ * SSE was removed — it caused asyncpg connection errors due to
+ * long-lived DB sessions being cancelled on stream close.
  */
-export function useVoiceClone() {
-  const { authFetch, getAuthToken } = useApiClient();
-  const store = useVoiceCloneStore();
+export function useVoiceClone(useStoreHook = defaultStore) {
+  const { authFetch } = useApiClient();
+  const store = useStoreHook();
 
-  const eventSourceRef = useRef<EventSource | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const consecutiveFailsRef = useRef(0);
-  const usingPollingRef = useRef(false);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
       if (pollTimerRef.current) {
         clearTimeout(pollTimerRef.current);
         pollTimerRef.current = null;
-      }
-      if (sseTimeoutRef.current) {
-        clearTimeout(sseTimeoutRef.current);
-        sseTimeoutRef.current = null;
       }
     };
   }, []);
@@ -49,20 +36,11 @@ export function useVoiceClone() {
     return "Unknown error";
   };
 
-  const cleanupConnections = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
+  const cleanupPolling = useCallback(() => {
     if (pollTimerRef.current) {
       clearTimeout(pollTimerRef.current);
       pollTimerRef.current = null;
     }
-    if (sseTimeoutRef.current) {
-      clearTimeout(sseTimeoutRef.current);
-      sseTimeoutRef.current = null;
-    }
-    usingPollingRef.current = false;
   }, []);
 
   // ── File selection ──
@@ -79,9 +57,9 @@ export function useVoiceClone() {
   );
 
   const clearAll = useCallback(() => {
-    cleanupConnections();
+    cleanupPolling();
     store.clear();
-  }, [store, cleanupConnections]);
+  }, [store, cleanupPolling]);
 
   // ── Upload ──
   const upload = useCallback(async () => {
@@ -103,14 +81,15 @@ export function useVoiceClone() {
         throw new Error(msg);
       }
       store.setVoiceId(data.asset_id || data.voice_id);
+      store.setCloneError(null);
     } catch (err: unknown) {
-      alert(`Upload failed: ${getErrorMessage(err)}`);
+      store.setCloneError(`Upload failed: ${getErrorMessage(err)}`);
     } finally {
       store.setIsUploading(false);
     }
   }, [store, authFetch]);
 
-  // ── Handle incoming status data (shared by SSE + polling) ──
+  // ── Handle incoming status data ──
   const handleStatusUpdate = useCallback(
     (data: {
       status: string;
@@ -119,7 +98,7 @@ export function useVoiceClone() {
       output_url?: string;
       error_message?: string;
     }): boolean => {
-      // Returns true if terminal (should stop listening)
+      // Returns true if terminal (should stop polling)
       if (data.status === "succeeded") {
         store.setCloneProgress("completed", "Clone complete!");
         store.setClonedAudioUrl(data.output_url || null);
@@ -144,10 +123,9 @@ export function useVoiceClone() {
     [store]
   );
 
-  // ── Polling fallback ──
+  // ── Polling ──
   const startPolling = useCallback(
     (jobId: string) => {
-      usingPollingRef.current = true;
       consecutiveFailsRef.current = 0;
       const startTime = Date.now();
       const POLL_MS = 3000;
@@ -181,76 +159,10 @@ export function useVoiceClone() {
         pollTimerRef.current = setTimeout(poll, POLL_MS);
       };
 
-      // First poll is IMMEDIATE (no delay) — critical after SSE fallback
+      // First poll is immediate
       poll();
     },
     [store, authFetch, handleStatusUpdate]
-  );
-
-  // ── SSE stream with auto-fallback to polling ──
-  const startProgressTracking = useCallback(
-    (jobId: string, token: string) => {
-      // Close any existing connections
-      cleanupConnections();
-
-      let sseConnected = false;
-
-      // Try SSE first
-      try {
-        const sseUrl = `${API_BASE}/api/sse/${jobId}/stream?token=${encodeURIComponent(token)}`;
-        const es = new EventSource(sseUrl);
-        eventSourceRef.current = es;
-
-        es.onmessage = (event) => {
-          sseConnected = true;
-
-          // Cancel the fallback timeout since SSE is working
-          if (sseTimeoutRef.current) {
-            clearTimeout(sseTimeoutRef.current);
-            sseTimeoutRef.current = null;
-          }
-
-          try {
-            const data = JSON.parse(event.data);
-            const isTerminal = handleStatusUpdate(data);
-            if (isTerminal) {
-              es.close();
-              eventSourceRef.current = null;
-            }
-          } catch {
-            // Ignore malformed JSON
-          }
-        };
-
-        es.onerror = () => {
-          // If SSE never connected, the timeout fallback will handle it.
-          // If SSE was working and then failed, fall back to polling.
-          if (sseConnected) {
-            es.close();
-            eventSourceRef.current = null;
-            // SSE was working but lost connection — fall back to polling
-            startPolling(jobId);
-          }
-          // If not yet connected, let the timeout handle fallback
-        };
-
-        // Fallback: if SSE doesn't deliver an event within 5s, switch to polling
-        sseTimeoutRef.current = setTimeout(() => {
-          if (!sseConnected) {
-            // SSE failed to connect — close and fall back
-            es.close();
-            eventSourceRef.current = null;
-            console.warn("[Tarang] SSE failed to connect, falling back to polling");
-            startPolling(jobId);
-          }
-        }, 5000);
-      } catch {
-        // EventSource constructor failed — go straight to polling
-        console.warn("[Tarang] EventSource unavailable, using polling");
-        startPolling(jobId);
-      }
-    },
-    [cleanupConnections, handleStatusUpdate, startPolling]
   );
 
   // ── Clone ──
@@ -269,6 +181,7 @@ export function useVoiceClone() {
         body: JSON.stringify({
           text: store.text,
           target_language: store.targetLanguage,
+          speed: store.speed,
         }),
       });
       const data = await res.json();
@@ -277,21 +190,16 @@ export function useVoiceClone() {
       const jobId = data.job_id || data.voice_id || currentVoiceId;
       store.setJobId(jobId);
 
-      // Get auth token for SSE (EventSource can't set headers)
-      const token = await getAuthToken();
-
-      if (token) {
-        // Try SSE with auto-fallback to polling
-        startProgressTracking(jobId, token);
-      } else {
-        // No token available for SSE — go straight to polling
-        startPolling(jobId);
-      }
+      // Start polling for progress
+      startPolling(jobId);
+      
+      // Dispatch event to update credits instantly
+      window.dispatchEvent(new Event("credits:refetch"));
     } catch (err: unknown) {
       store.setCloneError(getErrorMessage(err));
       store.setIsCloning(false);
     }
-  }, [store, authFetch, getAuthToken, startProgressTracking, startPolling]);
+  }, [store, authFetch, startPolling]);
 
   // ── Download ──
   const download = useCallback(async () => {
@@ -313,18 +221,19 @@ export function useVoiceClone() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
+      store.setCloneError(null);
     } catch (err: unknown) {
-      alert("Download failed: " + getErrorMessage(err));
+      store.setCloneError(`Download failed: ${getErrorMessage(err)}`);
     }
-  }, [store.jobId, store.voiceId, authFetch]);
+  }, [store, authFetch]);
 
   // ── Retry ──
   const retry = useCallback(() => {
-    cleanupConnections();
+    cleanupPolling();
     store.setCloneError(null);
     store.setCloneProgress("", "");
     clone();
-  }, [store, cleanupConnections, clone]);
+  }, [store, cleanupPolling, clone]);
 
   return {
     // State (re-exported from store for convenience)
