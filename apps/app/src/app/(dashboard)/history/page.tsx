@@ -14,6 +14,7 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     setIsLoading(true);
@@ -37,7 +38,9 @@ export default function HistoryPage() {
   const handleDownload = useCallback(
     async (downloadUrl: string, filename?: string) => {
       try {
+        setDownloadError(null);
         const audioRes = await fetch(downloadUrl);
+        if (!audioRes.ok) throw new Error("Download URL failed");
         const blob = await audioRes.blob();
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -47,23 +50,31 @@ export default function HistoryPage() {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
-      } catch {
-        alert("Download failed");
+      } catch (err) {
+        setDownloadError(
+          err instanceof Error ? err.message : "Download failed"
+        );
       }
     },
     []
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "32px", maxWidth: "800px", margin: "0 auto", width: "100%", padding: "0 16px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "32px", maxWidth: "800px", width: "100%", padding: "0 16px", margin: "0 auto" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "var(--foreground)", letterSpacing: "0.02em" }}>
+        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "var(--foreground)", letterSpacing: "0.02em", textAlign: "left" }}>
           Voice Cloning History
         </h1>
-        <p style={{ color: "var(--muted-foreground)", fontSize: "14px" }}>
+        <p style={{ color: "var(--muted-foreground)", fontSize: "14px", textAlign: "left" }}>
           All your past voice generations appear here.
         </p>
       </div>
+
+      {downloadError && (
+        <div style={{ color: "var(--destructive)", fontSize: "14px" }}>
+          {downloadError}
+        </div>
+      )}
 
       <HistoryList
         entries={entries}
