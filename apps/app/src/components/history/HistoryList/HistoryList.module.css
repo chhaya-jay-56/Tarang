@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 80px 0;
+  min-height: 400px;
 }
 
 .spinner {
@@ -76,4 +76,36 @@
   color: #ef4444;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* ── Load More Button ── */
+.loadMoreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 60%, transparent);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+}
+
+.loadMoreBtn:hover {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--foreground) 20%, transparent);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.loadMoreIcon {
+  font-size: 16px;
 }

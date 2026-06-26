@@ -90,13 +90,6 @@ function formatDuration(ms: number | undefined | null): string {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
-function formatBytes(bytes: number | undefined): string {
-  if (!bytes) return "—";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 /* ── Component ── */
 
 interface HistoryCardProps {
@@ -112,18 +105,10 @@ export function HistoryCard({ entry, onDownload }: HistoryCardProps) {
   const isCompleted = entry.action === "clone_completed";
   const isPending = entry.action === "clone_started";
   const isFailed = entry.action === "clone_failed";
-  const isUploaded = entry.action === "uploaded";
 
   // Duration display
   const durationMs =
     meta?.cloned_duration_ms ?? meta?.duration_ms ?? (meta?.duration_seconds ? meta.duration_seconds * 1000 : null);
-
-  // Credits: static placeholder per user request
-  const creditsDisplay = isCompleted
-    ? "0"
-    : isPending
-    ? "Pending"
-    : "0";
 
   return (
     <div className={styles.card}>
@@ -139,30 +124,11 @@ export function HistoryCard({ entry, onDownload }: HistoryCardProps) {
           <span className={styles.dateRow}>{formatDate(entry.created_at)}</span>
 
           <div className={styles.metaRow}>
-            {/* Duration or File Size */}
-            {isUploaded ? (
-              <>
-                <span>
-                  <span className={styles.metaLabel}>File Size: </span>
-                  <span className={styles.metaValue}>
-                    {formatBytes(meta?.size_bytes)}
-                  </span>
-                </span>
-              </>
-            ) : (
-              <span>
-                <span className={styles.metaLabel}>Duration: </span>
-                <span className={isPending ? styles.metaPending : styles.metaValue}>
-                  {isPending ? "--:--" : formatDuration(durationMs)}
-                </span>
-              </span>
-            )}
-
-            {/* Credits */}
+            {/* Duration */}
             <span>
-              <span className={styles.metaLabel}>Credits: </span>
+              <span className={styles.metaLabel}>Duration: </span>
               <span className={isPending ? styles.metaPending : styles.metaValue}>
-                {creditsDisplay}
+                {isPending ? "--:--" : formatDuration(durationMs)}
               </span>
             </span>
           </div>

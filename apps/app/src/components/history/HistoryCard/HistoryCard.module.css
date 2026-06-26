@@ -79,7 +79,7 @@
   line-height: 1.3;
 }
 
-/* ── Meta row: duration + credits ── */
+/* ── Meta row: duration ── */
 .metaRow {
   display: flex;
   align-items: center;
