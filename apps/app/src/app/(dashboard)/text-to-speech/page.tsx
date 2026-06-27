@@ -1,35 +1,208 @@
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
+import { useRef, useCallback, useState } from "react";
+import { LuDownload, LuFileUp, LuX } from "react-icons/lu";
+import { Hatch } from "ldrs/react";
+import "ldrs/react/Hatch.css";
 import { Button } from "@/components/ui/button";
-import { RiSpeakLine } from "react-icons/ri";
+
+import { useVoiceClone } from "@/hooks/useVoiceClone";
+import { useTtsStore } from "@/stores/voiceCloneStore";
+import { AudioPlayer } from "@/components/voice-clone/AudioPlayer/AudioPlayer";
+import { ProcessingStepper } from "@/components/voice-clone/ProcessingStepper/ProcessingStepper";
+import { LanguageSelector } from "@/components/voice-clone/LanguageSelector/LanguageSelector";
+import { VoicePicker } from "@/components/voice-clone/VoicePicker/VoicePicker";
+import { SpeedControl } from "@/components/voice-clone/SpeedControl/SpeedControl";
+import { ScriptBoxInfo } from "@/components/voice-clone/ScriptBoxInfo/ScriptBoxInfo";
+import styles from "./page.module.css";
 
 export default function TextToSpeechPage() {
-  return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Text to Speech
-        </h1>
-        <p className="text-muted-foreground text-base">
-          Generate high-quality speech from text.
-        </p>
-      </div>
+  const {
+    voiceId,
+    text,
+    targetLanguage,
+    isCloning,
+    cloneStage,
+    stageMessage,
+    cloneError,
+    clonedAudioUrl,
+    clone,
+    download,
+    retry,
+    setText,
+    setTargetLanguage,
+    setVoiceId,
+    speed,
+    setSpeed,
+    consecutiveFails,
+  } = useVoiceClone(useTtsStore);
 
-      <Card className="border-dashed border-2 border-border bg-muted/30">
-        <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center gap-4 py-16">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-            <RiSpeakLine className="text-xl text-muted-foreground" />
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [scriptFileName, setScriptFileName] = useState<string | null>(null);
+
+  /** Read a .txt file and load its contents into the text area */
+  const handleScriptUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setScriptFileName(file.name);
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target?.result;
+        if (typeof content === "string") {
+          setText(content);
+        }
+      };
+      reader.readAsText(file);
+
+      // Reset the input so the same file can be re-selected
+      e.target.value = "";
+    },
+    [setText]
+  );
+
+  const clearScript = useCallback(() => {
+    setText("");
+    setScriptFileName(null);
+  }, [setText]);
+
+  return (
+    <div className={styles.page}>
+      <h1 className={styles.heading}>Text to Speech</h1>
+      <p className={styles.subtitle}>
+        Generate speech from text using preset or custom voices from your library.
+      </p>
+
+      <div className={styles.workspace}>
+        {/* ── LEFT PANEL: Input ── */}
+        <div className={styles.leftPanel}>
+          {/* Voice picker — presets + custom voices */}
+          <VoicePicker
+            onSelect={(voice) => setVoiceId(voice.id)}
+            selectedId={voiceId}
+          />
+
+          {/* Target Language */}
+          <LanguageSelector
+            value={targetLanguage}
+            onChange={setTargetLanguage}
+            label="Target Language"
+            placeholder="Select language"
+          />
+
+          {/* Script Input */}
+          <textarea
+            className={styles.textInput}
+            placeholder="Type or paste the text you want spoken..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+
+          <ScriptBoxInfo />
+
+          {/* Dynamic credit estimate */}
+          {text.trim().length > 0 && (
+            <div className={styles.creditEstimate}>
+              <span className={styles.creditEstimateIcon}>⚡</span>
+              <span>
+                ~{Math.max(1, Math.ceil(text.trim().length * 0.625)).toLocaleString()} credits
+              </span>
+            </div>
+          )}
+
+          {/* Speed Control */}
+          <SpeedControl value={speed} onChange={setSpeed} />
+
+          {/* Script file upload */}
+          <div className={styles.scriptUpload}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.srt,.vtt,.md"
+              hidden
+              onChange={handleScriptUpload}
+            />
+            <button
+              type="button"
+              className={styles.scriptUploadBtn}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <LuFileUp className={styles.scriptUploadIcon} />
+              Upload Script
+            </button>
+
+            {scriptFileName && (
+              <>
+                <span className={styles.scriptFileName}>
+                  {scriptFileName}
+                </span>
+                <button
+                  type="button"
+                  className={styles.scriptClearBtn}
+                  onClick={clearScript}
+                >
+                  <LuX />
+                </button>
+              </>
+            )}
           </div>
-          <div className="flex flex-col gap-1">
-            <h3 className="font-medium text-foreground">Coming Soon</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              This feature is currently under development. Stay tuned!
-            </p>
+
+          {/* Synthesize Button */}
+          <div className={styles.actions}>
+            <Button
+              variant="outline"
+              size="lg"
+              className={styles.synthesizeBtn}
+              disabled={!voiceId || !text || isCloning}
+              onClick={clone}
+            >
+              {isCloning && <Hatch size="20" stroke="3" speed="3.5" color="currentColor" />}
+              {isCloning ? "Synthesizing..." : "Synthesize Speech"}
+            </Button>
           </div>
-          <Button disabled variant="outline" className="mt-2">
-            Coming Soon
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* ── RIGHT PANEL: Output ── */}
+        <div className={styles.rightPanel}>
+          {/* Synthesized Audio Result */}
+          {clonedAudioUrl && (
+            <AudioPlayer
+              source={clonedAudioUrl}
+              label="Synthesized Speech"
+              headerAction={
+                <button onClick={download} className={styles.downloadBtn}>
+                  <LuDownload className={styles.downloadIcon} />
+                  Download
+                </button>
+              }
+            />
+          )}
+
+          {/* Empty State */}
+          {!clonedAudioUrl && !isCloning && !cloneError && (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>🔊</div>
+              <p className={styles.emptyTitle}>Output appears here</p>
+              <p className={styles.emptySubtitle}>
+                Select a voice, enter text, and click Synthesize Speech
+              </p>
+            </div>
+          )}
+
+          {/* Processing Stepper / Error */}
+          <ProcessingStepper
+            currentStage={cloneStage || ""}
+            stageMessage={stageMessage || ""}
+            isProcessing={isCloning}
+            error={cloneError}
+            consecutiveFails={consecutiveFails}
+            onRetry={retry}
+            mode="tts"
+          />
+        </div>
+      </div>
     </div>
   );
 }
