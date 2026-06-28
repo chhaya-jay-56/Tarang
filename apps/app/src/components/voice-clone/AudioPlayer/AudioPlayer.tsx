@@ -67,8 +67,6 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
       ws.destroy();
       if (typeof source !== "string") URL.revokeObjectURL(url);
     };
-    // source identity change = rebuild
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
 
   const togglePlay = useCallback(() => wsRef.current?.playPause(), []);

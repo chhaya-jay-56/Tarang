@@ -1,11 +1,13 @@
 "use client";
 
 import { LuCheck, LuRotateCcw } from "react-icons/lu";
+import { Hatch } from "ldrs/react";
+import "ldrs/react/Hatch.css";
 import { Button } from "@/components/ui/button";
 import styles from "./ProcessingStepper.module.css";
 
 /** Pipeline stages — order matches the backend clone pipeline */
-const STAGES = [
+const BASE_STAGES = [
   { key: "queued", label: "Starting" },
   { key: "downloading_reference", label: "Preparing" },
   { key: "uploading_to_ai", label: "Uploading" },
@@ -28,6 +30,8 @@ type ProcessingStepperProps = {
   consecutiveFails?: number;
   /** Callback for retry button */
   onRetry?: () => void;
+  /** Mode to adjust wording */
+  mode?: "clone" | "tts";
 };
 
 export function ProcessingStepper({
@@ -37,8 +41,16 @@ export function ProcessingStepper({
   error,
   consecutiveFails = 0,
   onRetry,
+  mode = "clone",
 }: ProcessingStepperProps) {
-  const activeIdx = STAGES.findIndex((s) => s.key === currentStage);
+  const stages = BASE_STAGES.map(s => {
+    if (s.key === "model_running" && mode === "tts") {
+      return { ...s, label: "Synthesizing" };
+    }
+    return s;
+  });
+
+  const activeIdx = stages.findIndex((s) => s.key === currentStage);
 
   // ── Error State ──
   if (error && !isProcessing) {
@@ -47,7 +59,7 @@ export function ProcessingStepper({
         <div className={styles.errorHeader}>
           <span className={styles.errorIcon}>✕</span>
           <div>
-            <p className={styles.errorTitle}>Clone Failed</p>
+            <p className={styles.errorTitle}>{mode === "tts" ? "TTS Failed" : "Clone Failed"}</p>
             <p className={styles.errorMessage}>{error}</p>
           </div>
         </div>
@@ -75,16 +87,13 @@ export function ProcessingStepper({
     <div className={styles.stepper}>
       {/* Header with spinner */}
       <div className={styles.header}>
-        <div className={styles.spinnerOuter}>
-          <div className={styles.spinnerTrack} />
-          <div className={styles.spinnerArc} />
-        </div>
+        <Hatch size="28" stroke="4" speed="3.5" color="currentColor" />
         <p className={styles.headerText}>{stageMessage || "Processing..."}</p>
       </div>
 
       {/* Step track */}
       <div className={styles.track}>
-        {STAGES.map((stage, idx) => {
+        {stages.map((stage, idx) => {
           const isCurrent = idx === activeIdx;
           const isCompleted = activeIdx > idx;
 
@@ -132,7 +141,7 @@ export function ProcessingStepper({
               </div>
 
               {/* Connector line */}
-              {idx < STAGES.length - 1 && (
+              {idx < stages.length - 1 && (
                 <div
                   className={`${styles.connector} ${
                     isCompleted

@@ -1,6 +1,8 @@
 "use client";
 
-import { LuX, LuUpload, LuLoader, LuDownload } from "react-icons/lu";
+import { LuX, LuUpload, LuDownload } from "react-icons/lu";
+import { Hatch } from "ldrs/react";
+import "ldrs/react/Hatch.css";
 import { Button } from "@/components/ui/button";
 
 import { useVoiceClone } from "@/hooks/useVoiceClone";
@@ -8,6 +10,8 @@ import { AudioUploader } from "@/components/voice-clone/AudioUploader/AudioUploa
 import { AudioPlayer } from "@/components/voice-clone/AudioPlayer/AudioPlayer";
 import { ProcessingStepper } from "@/components/voice-clone/ProcessingStepper/ProcessingStepper";
 import { LanguageSelector } from "@/components/voice-clone/LanguageSelector/LanguageSelector";
+import { SpeedControl } from "@/components/voice-clone/SpeedControl/SpeedControl";
+import { ScriptBoxInfo } from "@/components/voice-clone/ScriptBoxInfo/ScriptBoxInfo";
 import styles from "./page.module.css";
 
 export default function InstantVoiceClonePage() {
@@ -30,6 +34,8 @@ export default function InstantVoiceClonePage() {
     retry,
     setText,
     setTargetLanguage,
+    speed,
+    setSpeed,
     consecutiveFails,
   } = useVoiceClone();
 
@@ -71,6 +77,21 @@ export default function InstantVoiceClonePage() {
             onChange={(e) => setText(e.target.value)}
           />
 
+          {/* Dynamic credit estimate */}
+          {text.trim().length > 0 && (
+            <div className={styles.creditEstimate}>
+              <span className={styles.creditEstimateIcon}>⚡</span>
+              <span>
+                ~{(Math.max(1, Math.ceil(text.trim().length * 0.625)) + 190).toLocaleString()} credits
+              </span>
+            </div>
+          )}
+
+          <ScriptBoxInfo />
+
+          {/* Speed Control */}
+          <SpeedControl value={speed} onChange={setSpeed} />
+
           {/* Action Buttons */}
           <div className={styles.actions}>
             <Button
@@ -81,7 +102,7 @@ export default function InstantVoiceClonePage() {
               onClick={upload}
             >
               {isUploading ? (
-                <LuLoader className="text-lg animate-spin" />
+                <Hatch size="20" stroke="3" speed="3.5" color="currentColor" />
               ) : (
                 <LuUpload className="text-lg" />
               )}
@@ -99,7 +120,7 @@ export default function InstantVoiceClonePage() {
               disabled={!voiceId || !text || isCloning}
               onClick={clone}
             >
-              {isCloning && <LuLoader className="text-lg animate-spin" />}
+              {isCloning && <Hatch size="20" stroke="3" speed="3.5" color="currentColor" />}
               {isCloning ? "Cloning..." : "Clone Voice"}
             </Button>
           </div>

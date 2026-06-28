@@ -8,6 +8,10 @@ type AudioUploaderProps = {
   onFileSelect: (file: File) => void;
 };
 
+/**
+ * Drag-and-drop audio upload zone.
+ * Accepts ALL audio formats — the backend converts to WAV before processing.
+ */
 export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,11 +49,11 @@ export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
       </div>
       <div>
         <p className={styles.title}>Add or drop your audio files here</p>
-        <p className={styles.subtitle}>Supports WAV only</p>
+        <p className={styles.subtitle}>WAV, MP3, OGG, FLAC, M4A, AAC, WEBM, WMA</p>
       </div>
       <input
         type="file"
-        accept=".wav"
+        accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aac,.webm,.wma"
         className="hidden"
         ref={fileInputRef}
         onChange={handleFileChange}
