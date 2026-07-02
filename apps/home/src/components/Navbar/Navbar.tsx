@@ -1,41 +1,188 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import ShinyText from "@/components/ShinyText/ShinyText";
 import styles from "./Navbar.module.css";
 
-interface NavbarProps {
-  activeTab?: string;
-  setActiveTab?: (tab: string) => void;
-}
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 
-const Navbar = ({ activeTab, setActiveTab }: NavbarProps) => {
-  const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'creations', label: 'Creations' },
-    { id: 'features', label: 'Features' },
-    { id: 'feedback', label: 'Feedback' },
-  ];
+const PRODUCT_ITEMS = [
+  {
+    title: "Text to Speech",
+    desc: "Generate clean voice from scripts",
+  },
+  {
+    title: "Voice Cloning",
+    desc: "Create a replica of your voice",
+  },
+  {
+    title: "Voice Separation",
+    desc: "Extract vocals from noisy or mixed audio",
+  },
+  {
+    title: "Voice Library",
+    desc: "Browse hundreds of AI voices",
+  },
+  {
+    title: "Voice Creation",
+    desc: "Fine-tune every detail of a voice",
+  },
+];
+
+const NAV_LINKS = [
+  { id: "product", label: "Product", hasDropdown: true },
+  { id: "how-it-works", label: "How it Works", hasDropdown: false },
+  { id: "contact", label: "Contact", hasDropdown: false },
+];
+
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    setScrolled(window.scrollY > 20);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      e.preventDefault();
+      const section = document.getElementById(id);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+      setMobileMenuOpen(false);
+      setDropdownOpen(false);
+    },
+    []
+  );
 
   return (
-    <div className={`${styles.navWrapper} fade-in-up`} style={{ animationDelay: '0.2s' }}>
-      <nav className={styles.navbar}>
-        {navItems.map((item) => {
-          const isActive = activeTab === item.label;
-          return (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveTab?.(item.label);
-              }}
-            >
-              <span className={styles.navLabel}>{item.label}</span>
-            </a>
-          );
-        })}
-      </nav>
-    </div>
+    <header
+      className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}
+      id="navbar"
+    >
+      <div className={styles.inner}>
+        {/* Logo */}
+        <div className={styles.leftSection}>
+          <a href="#home" className={styles.logo} onClick={(e) => handleNavClick(e, "home")}>
+            <ShinyText
+              text="Tarang"
+              disabled={false}
+              speed={3}
+              className={styles.logoText}
+            />
+            <span className={styles.betaBadge}>β</span>
+          </a>
+        </div>
+
+        {/* Desktop Nav Links */}
+        <nav className={styles.navLinks}>
+          {NAV_LINKS.map((link) =>
+            link.hasDropdown ? (
+              <div
+                key={link.id}
+                className={styles.dropdownWrapper}
+                onMouseEnter={() => setDropdownOpen(true)}
+                onMouseLeave={() => setDropdownOpen(false)}
+              >
+                <a
+                  href={`#${link.id}`}
+                  className={styles.navLink}
+                  onClick={(e) => handleNavClick(e, link.id)}
+                >
+                  {link.label}
+                  <svg
+                    className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ""}`}
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 4.5L6 7.5L9 4.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+
+                {/* Dropdown */}
+                <div
+                  className={`${styles.dropdown} ${dropdownOpen ? styles.dropdownVisible : ""}`}
+                >
+                  <div className={styles.dropdownGrid}>
+                    {PRODUCT_ITEMS.map((item) => (
+                      <div key={item.title} className={styles.dropdownItem}>
+                        <span className={styles.dropdownItemTitle}>
+                          {item.title}
+                        </span>
+                        <span className={styles.dropdownItemDesc}>
+                          {item.desc}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                className={styles.navLink}
+                onClick={(e) => handleNavClick(e, link.id)}
+              >
+                {link.label}
+              </a>
+            )
+          )}
+        </nav>
+
+        {/* CTA */}
+        <div className={styles.cta}>
+          <a href={APP_URL} className={styles.ctaButton}>
+            Get Started &rarr;
+          </a>
+        </div>
+
+        {/* Mobile Hamburger */}
+        <button
+          className={`${styles.hamburger} ${mobileMenuOpen ? styles.hamburgerOpen : ""}`}
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ""}`}
+      >
+        {NAV_LINKS.map((link) => (
+          <a
+            key={link.id}
+            href={`#${link.id}`}
+            className={styles.mobileNavLink}
+            onClick={(e) => handleNavClick(e, link.id)}
+          >
+            {link.label}
+          </a>
+        ))}
+        <a href={APP_URL} className={styles.mobileCta}>
+          Get Started &rarr;
+        </a>
+      </div>
+    </header>
   );
 };
 

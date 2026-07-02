@@ -183,24 +183,25 @@ const Ribbons = ({
 
     const mouse = new Vec3();
     function updateMouse(e: MouseEvent | TouchEvent) {
-      let x, y;
-      const rect = container!.getBoundingClientRect();
+      let x: number, y: number;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
       if ('changedTouches' in e && e.changedTouches.length) {
         x = e.changedTouches[0].clientX - rect.left;
         y = e.changedTouches[0].clientY - rect.top;
-      } else if ('clientX' in e) {
+      } else if (e instanceof MouseEvent) {
         x = e.clientX - rect.left;
         y = e.clientY - rect.top;
       } else {
         return;
       }
-      const width = container!.clientWidth;
-      const height = container!.clientHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
       mouse.set((x / width) * 2 - 1, (y / height) * -2 + 1, 0);
     }
-    container.addEventListener('mousemove', updateMouse);
-    container.addEventListener('touchstart', updateMouse);
-    container.addEventListener('touchmove', updateMouse);
+    window.addEventListener('mousemove', updateMouse);
+    window.addEventListener('touchstart', updateMouse);
+    window.addEventListener('touchmove', updateMouse);
 
     const tmp = new Vec3();
     let frameId: number;
@@ -237,12 +238,12 @@ const Ribbons = ({
 
     return () => {
       window.removeEventListener('resize', resize);
-      container.removeEventListener('mousemove', updateMouse);
-      container.removeEventListener('touchstart', updateMouse);
-      container.removeEventListener('touchmove', updateMouse);
+      window.removeEventListener('mousemove', updateMouse);
+      window.removeEventListener('touchstart', updateMouse);
+      window.removeEventListener('touchmove', updateMouse);
       cancelAnimationFrame(frameId);
-      if (gl.canvas && gl.canvas.parentNode === container) {
-        container.removeChild(gl.canvas);
+      if (gl.canvas && gl.canvas.parentNode) {
+        gl.canvas.parentNode.removeChild(gl.canvas);
       }
     };
   }, [

@@ -4,7 +4,7 @@ import "../index.css";
 
 export const metadata: Metadata = {
   title: "Tarang",
-  description: "Dub > Sub — Bring real emotion to your voice and your favorite shows, without losing the context.",
+  description: "Voice > Text — Bring real emotion to your voice, without losing the context.",
 };
 
 export default function RootLayout({
@@ -14,12 +14,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          href="https://fonts.cdnfonts.com/css/agrandir"
-          rel="stylesheet"
-        />
-      </head>
       <body>
         {children}
       </body>
