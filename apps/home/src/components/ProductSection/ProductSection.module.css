@@ -1,0 +1,419 @@
+/* ─── Section ─── */
+.section {
+    position: relative;
+    z-index: 10;
+    padding: 8rem 5% 6rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ─── Header ─── */
+.badge {
+    display: inline-block;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-purple);
+    border: 1px solid rgba(120, 40, 255, 0.3);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.heading {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.05;
+    margin-bottom: 1.25rem;
+}
+
+.headingAccent {
+    color: var(--accent-purple);
+    font-style: italic;
+}
+
+.subtitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 3.5rem;
+}
+
+/* ─── Grid ─── */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.grid .card:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+/* ─── Card ─── */
+.card {
+    background: #0a0a0d;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card:hover {
+    border-color: rgba(120, 40, 255, 0.25);
+    box-shadow: 0 0 40px rgba(120, 40, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.cardNumber {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--accent-purple);
+    background: rgba(120, 40, 255, 0.15);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.cardDesc {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    max-width: 400px;
+}
+
+/* ─── Credit Cost Tag ─── */
+.creditTag {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.7rem;
+    color: var(--accent-purple);
+    background: rgba(120, 40, 255, 0.1);
+    border-radius: 100px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+/* ─── Card Visual ─── */
+.cardVisual {
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Inner Card Container */
+.innerCard {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ─── TTS Code Block ─── */
+.codeBlock {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    flex: 1;
+}
+
+.codeLine {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.15rem 0;
+}
+
+.lineNum {
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.2);
+    min-width: 1.5rem;
+}
+
+.codeText {
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.cursor {
+    color: var(--accent-purple);
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ─── Shared Player Component ─── */
+.playerContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.miniPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.miniPlayBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.playerWaveform {
+    flex: 1;
+    min-width: 0;
+}
+
+.playerDuration {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+}
+
+/* ─── Separation Layout ─── */
+.separationLayout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.sepCardBox {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.sepHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sepDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.sepTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+
+.sepBranch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+.branchSvg {
+    width: 100%;
+    height: 80px;
+    overflow: visible;
+}
+
+.sepRight {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1.5;
+}
+
+/* ─── Library Visual ─── */
+.libraryVisual {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.voiceChip {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.65rem 1rem;
+    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.voiceChip:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.voiceAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+.voiceInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.voiceName {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.voiceType {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 400;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* ─── Creation Visual (Sliders) ─── */
+.creationVisual {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.slider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sliderLabel {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    min-width: 50px;
+}
+
+.sliderTrack {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+    position: relative;
+}
+
+.sliderFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-purple), #e040fb);
+    border-radius: 100px;
+}
+
+.sliderThumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(120, 40, 255, 0.5);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .grid .card:nth-child(3) {
+        grid-column: 1;
+    }
+
+    .separationLayout {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sepBranch {
+        transform: rotate(90deg);
+        height: 40px;
+        width: 40px;
+        margin: 0.5rem 0;
+    }
+}

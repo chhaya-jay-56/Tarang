@@ -1,0 +1,557 @@
+/* ─── Section Layout ─── */
+.section {
+    position: relative;
+    z-index: 10;
+    padding: 6rem 5% 8rem;
+    background-color: var(--bg-color);
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ─── Header ─── */
+.header {
+    text-align: center;
+    margin-bottom: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.badge {
+    display: inline-block;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-purple);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.heading {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.05;
+    margin-bottom: 1rem;
+}
+
+.blueAccent {
+    color: var(--accent-purple);
+    font-style: italic;
+    font-weight: 400;
+}
+
+.subtitle {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 500px;
+    line-height: 1.5;
+}
+
+.headerButtons {
+    display: flex;
+    gap: 1rem;
+}
+
+.tryBtn {
+    display: inline-block;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    background: var(--accent-purple);
+    padding: 0.8rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+.tryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.demoBtn {
+    display: inline-block;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: transparent;
+    padding: 0.8rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: background 0.2s ease;
+}
+
+.demoBtn:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Flowchart ─── */
+.flowchart {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.connectorContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+}
+
+.connectorSvg {
+    opacity: 0.5;
+}
+
+.dashedLine {
+    animation: dashMove 1s linear infinite;
+}
+
+@keyframes dashMove {
+    to {
+        stroke-dashoffset: -8;
+    }
+}
+
+/* Row 1: Source Inputs */
+.sourcesRow {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+    padding-bottom: 3.5rem;
+}
+
+.sourceCard {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    flex: 1;
+    max-width: 240px;
+}
+
+.sourceIcon {
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+}
+
+.sourceTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.pillBadge {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent-purple);
+    color: #ffffff;
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 1.2rem;
+    border-radius: 100px;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    white-space: nowrap;
+}
+
+/* Row 2: Target Audience tags */
+.audienceRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.audienceTag {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Row 3: Dashed User Input Blocks */
+.inputsRow {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.inputBox {
+    background: var(--card-bg);
+    border: 1.5px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+    max-width: 400px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.inputBox:hover {
+    border-color: var(--accent-purple);
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.inputBoxIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.inputBoxContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.inputBoxTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.inputBoxSub {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* Row 4: Tarang Engine */
+.engineBox {
+    background: linear-gradient(180deg, rgba(5,5,8,1) 0%, rgba(10,15,30,0.8) 100%);
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    border-radius: 24px;
+    padding: 3.5rem 2rem 2rem;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.15), inset 0 0 20px rgba(37, 99, 235, 0.05);
+    margin-top: 2rem;
+}
+
+.engineBadge {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+    border: 1px solid rgba(96, 165, 250, 0.5);
+    border-radius: 100px;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.engineBadgeIcon {
+    display: flex;
+    align-items: center;
+    color: #60a5fa;
+}
+
+.engineGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.engineCard {
+    background: rgba(5, 5, 8, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.engineCardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.engineCardNumber {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    color: var(--bg-color);
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.engineCardTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.engineCardDesc {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex-grow: 1;
+}
+
+.engineTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.engineTag {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+}
+
+/* Card highlight bars */
+.engineCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.stepBlue::before { background: #3b82f6; }
+.stepPurple::before { background: #8b5cf6; }
+.stepOrange::before { background: #f97316; }
+.stepGreen::before { background: #10b981; }
+
+.engineBottomRow {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    border-top: 1px solid var(--card-border);
+    padding-top: 1.5rem;
+}
+
+.engineTechPill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+}
+
+/* Row 5: Output Results */
+.outputsRow {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.outputPill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    border-radius: 100px;
+}
+
+.pillGreen {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+.pillBlue {
+    background: rgba(37, 99, 235, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    color: #60a5fa;
+}
+
+/* Row 6: Bottom Does Card */
+.doesCard {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    margin-top: 4rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.doesTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.doesPillsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.doesPill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    padding: 0.5rem 1.25rem;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.doesPillIcon {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+    .sourcesRow {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding-bottom: 3.5rem;
+    }
+    
+    .sourceCard {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .audienceRow {
+        gap: 0.5rem;
+    }
+
+    .inputsRow {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .inputBox {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .engineBox {
+        padding: 3rem 1.5rem 1.5rem;
+    }
+
+    .engineGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .engineCard {
+        max-width: none;
+    }
+
+    .engineBottomRow {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .outputsRow {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .outputPill {
+        width: 100%;
+        max-width: 320px;
+        justify-content: center;
+    }
+
+    .doesPillsGrid {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+}
