@@ -80,3 +80,21 @@ sandbox/
 scripts/
 Agent.md
 /rules.md
+
+# --- Dev assets & samples (belongs in cloud storage, not repo) ---
+VoicesForLibrary/
+assets/
+
+# --- AI agent tooling (personal dev) ---
+.agents/
+
+# --- One-off test scripts at wrong level ---
+apps/test_sep.py
+
+# --- Sentry wizard test pages (not for production) ---
+**/sentry-example-page/
+**/sentry-example-api/
+
+# --- Test / build artifacts ---
+*.log
+**/.pytest_cache/
