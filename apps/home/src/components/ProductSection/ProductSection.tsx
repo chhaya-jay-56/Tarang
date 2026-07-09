@@ -64,6 +64,11 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
 
   useEffect(() => {
     let isMounted = true;
+
+    // Clear container to prevent double-initialization DOM issues in Strict Mode / HMR
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
     
     import("wavesurfer.js").then((WaveSurferModule) => {
       if (!isMounted || !containerRef.current) return;
@@ -93,12 +98,17 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
     return () => {
       isMounted = false;
       if (wsRef.current) {
+        const ws = wsRef.current;
+        wsRef.current = null; // Clear ref BEFORE destroy to stop animation loop
         try {
-          wsRef.current.destroy();
+          ws.destroy();
         } catch (e) {
           // ignore DOM errors during fast-refresh
         }
-        wsRef.current = null;
+      }
+      // Clean up the DOM node manually to prevent React 'removeChild' errors
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
     };
   }, [color, seed, height]);
@@ -109,7 +119,13 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
     const animate = () => {
       progress += 0.003;
       if (progress > 1) progress = 0;
-      if (wsRef.current) wsRef.current.seekTo(progress);
+      if (wsRef.current) {
+        try {
+          wsRef.current.seekTo(progress);
+        } catch(e) {
+          // ignore errors on destroyed instances
+        }
+      }
       animationFrame = requestAnimationFrame(animate);
     };
     animationFrame = requestAnimationFrame(animate);
@@ -201,61 +217,53 @@ const SeparationVisual = () => (
 
 const LibraryVisual = () => {
   const voices = [
-    { name: "Priya", type: "Female", color: "#ff6b6b", status: "retrieved" },
-    { name: "Alex", type: "Male", color: "#7828ff", status: "synced" },
-    { name: "Anjali", type: "Female", color: "#4ecdc4", status: "queued" },
+    { name: "Priya", type: "Female · Warm", color: "#ff6b6b", bg: "rgba(255, 107, 107, 0.1)" },
+    { name: "Alex", type: "Male · Deep", color: "#7828ff", bg: "rgba(120, 40, 255, 0.1)" },
+    { name: "Anjali", type: "Female · Calm", color: "#4ecdc4", bg: "rgba(78, 205, 196, 0.1)" },
   ];
 
   return (
-    <div className={styles.mcLayout}>
-      <div className={styles.mcCore}>
-        <div className={styles.mcCoreInner}>Voice<br/>Engine</div>
-      </div>
-      
-      {voices.map((v, i) => (
-        <div key={v.name} className={`${styles.mcNode} ${styles[`mcNode${i}`]}`}>
-          <div className={styles.mcNodeDot} style={{ background: v.color }}>
-             {/* Small animated pulse */}
-             <div className={styles.mcNodePulse} style={{ background: v.color }}></div>
+    <div className={styles.libraryVisual}>
+      {voices.map((v) => (
+        <div key={v.name} className={styles.voiceChip}>
+          <div className={styles.voiceAvatar} style={{ background: v.color }}>
+            {v.name[0]}
           </div>
-          <div className={styles.mcNodeInfo}>
-            <span className={styles.mcNodeName}>{v.name}</span>
-            <span className={styles.mcNodeType}>{v.type} · {v.status}</span>
+          <div className={styles.voiceInfo}>
+            <span className={styles.voiceName}>{v.name}</span>
+            <span className={styles.voiceType}>{v.type}</span>
           </div>
-          {/* Connector line (handled via css before/after) */}
         </div>
       ))}
     </div>
   );
 };
 
-const CreationVisual = () => {
-  const nodes = [
-    { name: "Pitch Control", val: "+2.4 tones", color: "#e040fb", status: "active" },
-    { name: "Pacing", val: "1.2x spd", color: "#9945ff", status: "active" },
-    { name: "Timbre", val: "Warmth", color: "#f97316", status: "tuning" },
-  ];
-
-  return (
-    <div className={styles.mcLayout}>
-      <div className={styles.mcCore}>
-        <div className={styles.mcCoreInner}>Params<br/>Core</div>
+const CreationVisual = () => (
+  <div className={styles.creationVisual}>
+    <div className={styles.slider}>
+      <span className={styles.sliderLabel}>Pitch</span>
+      <div className={styles.sliderTrack}>
+        <div className={styles.sliderFill} style={{ width: "65%" }} />
+        <div className={styles.sliderThumb} style={{ left: "65%" }} />
       </div>
-      
-      {nodes.map((n, i) => (
-        <div key={n.name} className={`${styles.mcNode} ${styles[`mcNode${i}`]}`}>
-          <div className={styles.mcNodeDot} style={{ background: n.color }}>
-             <div className={styles.mcNodePulse} style={{ background: n.color }}></div>
-          </div>
-          <div className={styles.mcNodeInfo}>
-            <span className={styles.mcNodeName}>{n.name}</span>
-            <span className={styles.mcNodeType}>{n.val} · {n.status}</span>
-          </div>
-        </div>
-      ))}
     </div>
-  );
-};
+    <div className={styles.slider}>
+      <span className={styles.sliderLabel}>Speed</span>
+      <div className={styles.sliderTrack}>
+        <div className={styles.sliderFill} style={{ width: "45%" }} />
+        <div className={styles.sliderThumb} style={{ left: "45%" }} />
+      </div>
+    </div>
+    <div className={styles.slider}>
+      <span className={styles.sliderLabel}>Tone</span>
+      <div className={styles.sliderTrack}>
+        <div className={styles.sliderFill} style={{ width: "80%" }} />
+        <div className={styles.sliderThumb} style={{ left: "80%" }} />
+      </div>
+    </div>
+  </div>
+);
 
 const visualMap: Record<string, React.FC> = {
   tts: TTSVisual,
@@ -305,21 +313,7 @@ const ProductSection = () => {
           })}
         </div>
 
-        <div className={`reveal ${styles.ecosystemHeader}`}>
-          <div className={styles.badgeWrapper}>
-            <span className={styles.badge}>✨ Clone once. Speak Forever</span>
-          </div>
-          <h2 className={styles.heading}>
-            Voice that evolves. <br /> Not just speaks.
-          </h2>
-          <p className={styles.subtitle}>
-            Give your characters a voice that adapts to every context. Seamlessly browse, fine-tune, and connect voices over time.
-          </p>
-          <div className={styles.ecosystemCtaWrapper}>
-            <a href="https://docs.tarang.ai" className={styles.ecosystemBtnOutline}>Read the Docs</a>
-            <a href="https://app.tarang.ai" className={styles.ecosystemBtnSolid}>Sign Up &rarr;</a>
-          </div>
-        </div>
+
 
         <div className={styles.grid}>
           {FEATURES.slice(3).map((feat, i) => {
