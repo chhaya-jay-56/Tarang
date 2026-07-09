@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Deploys to Vercel (Project: tarang-home)
-  outputFileTracingRoot: __dirname,
 };
 
 export default withSentryConfig(nextConfig, {
