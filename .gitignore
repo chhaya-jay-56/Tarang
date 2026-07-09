@@ -83,7 +83,7 @@ Agent.md
 
 # --- Dev assets & samples (belongs in cloud storage, not repo) ---
 VoicesForLibrary/
-assets/
+/assets/
 
 # --- AI agent tooling (personal dev) ---
 .agents/
