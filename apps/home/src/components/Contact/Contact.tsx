@@ -23,60 +23,29 @@ const Contact = () => {
             </p>
 
             <div className={styles.contactMethods}>
-              <div className={styles.method}>
+              <a href="mailto:jaychhaya3489@gmail.com" className={styles.method}>
                 <span className={styles.methodIcon}>✉️</span>
                 <div>
                   <span className={styles.methodLabel}>Email</span>
-                  <span className={styles.methodValue}>hello@tarang.ai</span>
+                  <span className={styles.methodValue}>jaychhaya3489@gmail.com</span>
                 </div>
-              </div>
+              </a>
+              
+              <a href="https://www.linkedin.com/in/jaychhaya56" target="_blank" rel="noopener noreferrer" className={styles.method}>
+                <span className={styles.methodIcon}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                    <rect x="2" y="9" width="4" height="12"></rect>
+                    <circle cx="4" cy="4" r="2"></circle>
+                  </svg>
+                </span>
+                <div>
+                  <span className={styles.methodLabel}>LinkedIn</span>
+                  <span className={styles.methodValue}>Connect with Jay</span>
+                </div>
+              </a>
             </div>
           </div>
-
-          <form
-            className={`${styles.form} reveal reveal-delay-2`}
-            onSubmit={(e) => e.preventDefault()}
-            suppressHydrationWarning
-          >
-            <div className={styles.formGroup}>
-              <label htmlFor="contact-name" className={styles.label}>
-                Name
-              </label>
-              <input
-                id="contact-name"
-                type="text"
-                className={styles.input}
-                placeholder="Your name"
-                suppressHydrationWarning
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="contact-email" className={styles.label}>
-                Email
-              </label>
-              <input
-                id="contact-email"
-                type="email"
-                className={styles.input}
-                placeholder="you@email.com"
-                suppressHydrationWarning
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="contact-message" className={styles.label}>
-                Message
-              </label>
-              <textarea
-                id="contact-message"
-                className={styles.textarea}
-                placeholder="Tell us what you're building..."
-                rows={5}
-              />
-            </div>
-            <button type="submit" className={styles.submitBtn} suppressHydrationWarning>
-              Send Message &rarr;
-            </button>
-          </form>
         </div>
       </div>
     </section>

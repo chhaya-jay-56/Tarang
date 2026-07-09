@@ -555,3 +555,182 @@
         margin: 0 auto;
     }
 }
+
+@media (max-width: 768px) {
+    .section {
+        padding: 4rem 5% 5rem;
+    }
+
+    .header {
+        margin-bottom: 3rem;
+    }
+
+    .heading {
+        font-size: clamp(2rem, 7vw, 3rem);
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .sourcesRow {
+        padding-bottom: 3rem;
+    }
+
+    .sourceCard {
+        padding: 1rem 1.5rem;
+    }
+
+    .pillBadge {
+        font-size: 0.68rem;
+        padding: 0.3rem 1rem;
+    }
+
+    .audienceTag {
+        font-size: 0.75rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .inputBox {
+        padding: 1.25rem;
+    }
+
+    .engineBox {
+        border-radius: 18px;
+    }
+
+    .doesCard {
+        padding: 2rem 1.5rem;
+        border-radius: 18px;
+        margin-top: 3rem;
+    }
+
+    .doesTitle {
+        font-size: 1.05rem;
+    }
+
+    .doesPill {
+        font-size: 0.8rem;
+        padding: 0.4rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section {
+        padding: 3rem 4% 4rem;
+    }
+
+    .header {
+        margin-bottom: 2rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.8rem;
+    }
+
+    .heading {
+        font-size: clamp(1.75rem, 8vw, 2.25rem);
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .sourceCard {
+        max-width: none;
+        padding: 0.9rem 1.25rem;
+    }
+
+    .sourceTitle {
+        font-size: 0.82rem;
+    }
+
+    .pillBadge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.8rem;
+    }
+
+    .audienceTag {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.8rem;
+    }
+
+    .inputBox {
+        max-width: none;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .inputBoxIcon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+
+    .inputBoxTitle {
+        font-size: 0.85rem;
+    }
+
+    .inputBoxSub {
+        font-size: 0.72rem;
+    }
+
+    .engineBox {
+        padding: 2.5rem 1rem 1.25rem;
+        border-radius: 14px;
+    }
+
+    .engineBadge {
+        font-size: 0.75rem;
+        padding: 0.4rem 1.2rem;
+    }
+
+    .engineCardTitle {
+        font-size: 0.82rem;
+    }
+
+    .engineCardDesc {
+        font-size: 0.72rem;
+    }
+
+    .engineTag {
+        font-size: 0.6rem;
+    }
+
+    .engineTechPill {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.8rem;
+    }
+
+    .outputPill {
+        max-width: none;
+        font-size: 0.8rem;
+        padding: 0.5rem 1.25rem;
+    }
+
+    .doesCard {
+        padding: 1.5rem 1rem;
+        border-radius: 14px;
+        margin-top: 2.5rem;
+    }
+
+    .doesTitle {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .doesPillsGrid {
+        max-width: none;
+    }
+
+    .doesPill {
+        font-size: 0.78rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .connectorContainer {
+        height: 36px;
+    }
+}

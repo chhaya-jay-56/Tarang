@@ -327,3 +327,54 @@
         display: none;
     }
 }
+
+@media (max-width: 768px) {
+    .inner {
+        padding: 0.85rem 1.5rem;
+    }
+
+    .logoText {
+        font-size: 1.5rem;
+    }
+
+    .mobileNavLink {
+        font-size: 0.95rem;
+        padding: 0.65rem 0;
+    }
+
+    .mobileCta {
+        font-size: 0.95rem;
+        padding: 0.75rem 1.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .inner {
+        padding: 0.75rem 1rem;
+    }
+
+    .logoText {
+        font-size: 1.35rem;
+    }
+
+    .betaBadge {
+        font-size: 0.85rem;
+    }
+
+    .mobileMenu {
+        padding: 0.75rem 1.25rem 1.5rem;
+    }
+
+    .mobileMenuOpen {
+        padding: 0.75rem 1.25rem 1.5rem;
+    }
+
+    .mobileNavLink {
+        font-size: 0.9rem;
+    }
+
+    .mobileCta {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.5rem;
+    }
+}

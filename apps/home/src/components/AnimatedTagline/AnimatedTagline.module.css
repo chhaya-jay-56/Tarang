@@ -1,0 +1,52 @@
+.tagline {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 0.35em;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    text-align: center;
+}
+
+.word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: wordReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wordReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+    .tagline {
+        font-size: clamp(0.95rem, 3.5vw, 1.2rem);
+        margin-bottom: 2rem;
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .tagline {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+}

@@ -417,3 +417,93 @@
         margin: 0.5rem 0;
     }
 }
+
+@media (max-width: 768px) {
+    .section {
+        padding: 5rem 5% 4rem;
+    }
+
+    .heading {
+        font-size: clamp(2rem, 7vw, 3rem);
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .card {
+        padding: 1.25rem;
+    }
+
+    .cardDesc {
+        font-size: 0.82rem;
+    }
+
+    .libraryVisual {
+        gap: 0.5rem;
+    }
+
+    .voiceChip {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section {
+        padding: 3.5rem 4% 3rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.8rem;
+    }
+
+    .heading {
+        font-size: clamp(1.75rem, 8vw, 2.5rem);
+        margin-bottom: 1rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .grid {
+        gap: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .cardTitle {
+        font-size: 1rem;
+    }
+
+    .cardDesc {
+        font-size: 0.8rem;
+        max-width: none;
+    }
+
+    .voiceAvatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+
+    .voiceName {
+        font-size: 0.8rem;
+    }
+
+    .voiceType {
+        font-size: 0.65rem;
+    }
+
+    .sliderLabel {
+        font-size: 0.75rem;
+        min-width: 40px;
+    }
+}

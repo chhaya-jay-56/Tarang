@@ -264,3 +264,27 @@ body {
     white-space: nowrap;
     border-width: 0;
 }
+
+/* ─── Mobile Global Defaults ─── */
+@media (max-width: 768px) {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .primary-btn {
+        font-size: 0.95rem;
+        padding: 1rem 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .primary-btn {
+        font-size: 0.9rem;
+        padding: 0.9rem 1.75rem;
+    }
+
+    .fade-in-up {
+        animation-duration: 0.8s;
+    }
+}
+

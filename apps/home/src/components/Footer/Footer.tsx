@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./Footer.module.css";
 
 const FOOTER_LINKS = [
@@ -23,7 +24,16 @@ const Footer = () => {
       <div className={styles.container}>
         <div className={styles.top}>
           <div className={styles.brand}>
-            <span className={styles.logo}>Tarang</span>
+            <div className={styles.logoContainer}>
+              <Image 
+                src="/assets/Logo_v1.jpeg" 
+                alt="Tarang Logo" 
+                width={36} 
+                height={36} 
+                className={styles.logoImage} 
+              />
+              <span className={styles.logo}>Tarang</span>
+            </div>
             <p className={styles.tagline}>
               Powerful voice AI built for creators.
             </p>
