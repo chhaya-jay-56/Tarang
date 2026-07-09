@@ -41,6 +41,17 @@
     gap: 1rem;
 }
 
+.logoSvg {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover .logoSvg {
+    transform: scale(1.05);
+}
+
 .sidebarToggle {
     background: transparent;
     border: none;
@@ -259,18 +270,19 @@
     display: none;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 1rem 2rem 2rem;
+    padding: 0 2rem;
     background: rgba(5, 5, 5, 0.98);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid transparent;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.4s ease;
+    transition: max-height 0.4s ease, padding 0.4s ease, border-bottom 0.4s ease;
 }
 
 .mobileMenuOpen {
     max-height: 400px;
     padding: 1rem 2rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .mobileNavLink {

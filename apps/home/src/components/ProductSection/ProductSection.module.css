@@ -48,6 +48,63 @@
     margin-bottom: 3.5rem;
 }
 
+.ecosystemHeader {
+    text-align: center;
+    margin: 6rem auto 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ecosystemHeader .subtitle {
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+.ecosystemCtaWrapper {
+    display: none; /* Hide on desktop as per request if needed, or show? The user said 'gets tated button only for mobile'. Let's hide it on desktop. */
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.ecosystemBtnOutline {
+    text-decoration: none;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1.5rem;
+    border-radius: 100px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ecosystemBtnOutline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ecosystemBtnSolid {
+    text-decoration: none;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+    background: linear-gradient(135deg, #e35d40, #c44026);
+    padding: 0.75rem 1.5rem;
+    border-radius: 100px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(227, 93, 64, 0.3);
+}
+
+.ecosystemBtnSolid:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(227, 93, 64, 0.5);
+}
+
 /* ─── Grid ─── */
 .grid {
     display: grid;
@@ -266,7 +323,7 @@
     color: var(--text-primary);
 }
 
-.sepBranch {
+.sepBranchDesktop {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -280,6 +337,21 @@
     overflow: visible;
 }
 
+.sepBranchMobile {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.branchSvgMobile {
+    width: 24px;
+    height: 40px;
+    overflow: visible;
+}
+
 .sepRight {
     display: flex;
     flex-direction: column;
@@ -287,113 +359,122 @@
     flex: 1.5;
 }
 
-/* ─── Library Visual ─── */
-.libraryVisual {
-    display: flex;
-    gap: 0.75rem;
+/* ─── MemContext Inspired Node Layout ─── */
+.mcLayout {
+    position: relative;
     width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-}
-
-.voiceChip {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 0.65rem 1rem;
-    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
-    cursor: pointer;
-}
-
-.voiceChip:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.voiceAvatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Agrandir', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #fff;
+    background: radial-gradient(circle at center, rgba(120, 40, 255, 0.05) 0%, transparent 70%);
 }
 
-.voiceInfo {
-    display: flex;
-    flex-direction: column;
-}
-
-.voiceName {
-    font-family: 'Agrandir', sans-serif;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-primary);
-}
-
-.voiceType {
-    font-family: 'Agrandir', sans-serif;
-    font-weight: 400;
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-}
-
-/* ─── Creation Visual (Sliders) ─── */
-.creationVisual {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-}
-
-.slider {
+.mcCore {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    background: rgba(12, 12, 14, 0.8);
+    border: 1px solid rgba(120, 40, 255, 0.3);
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
+    box-shadow: 0 0 30px rgba(120, 40, 255, 0.15), inset 0 0 10px rgba(120, 40, 255, 0.1);
+    z-index: 2;
+    transform: rotate(45deg); /* Isometric feel */
 }
 
-.sliderLabel {
+.mcCoreInner {
+    transform: rotate(-45deg);
     font-family: 'Agrandir', sans-serif;
-    font-weight: 500;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    min-width: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    line-height: 1.2;
 }
 
-.sliderTrack {
-    flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 100px;
+.mcNode {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(25, 25, 28, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    z-index: 3;
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.mcNode:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.mcNodeDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     position: relative;
 }
 
-.sliderFill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-purple), #e040fb);
-    border-radius: 100px;
-}
-
-.sliderThumb {
+.mcNodePulse {
     position: absolute;
     top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
-    width: 14px;
-    height: 14px;
-    background: #fff;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    box-shadow: 0 0 8px rgba(120, 40, 255, 0.5);
+    animation: pulse 2s infinite;
+    opacity: 0.5;
 }
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+
+.mcNodeInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.mcNodeName {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mcNodeType {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Connectors */
+.mcNode::before {
+    content: '';
+    position: absolute;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    z-index: -1;
+}
+
+/* Positioning */
+.mcNode0 { top: 15%; left: 5%; }
+.mcNode0::before { width: 40px; height: 1px; right: -40px; top: 50%; }
+
+.mcNode1 { bottom: 15%; left: 15%; }
+.mcNode1::before { width: 30px; height: 1px; right: -30px; top: -10px; transform: rotate(-30deg); transform-origin: left center;}
+
+.mcNode2 { top: 30%; right: 5%; }
+.mcNode2::before { width: 50px; height: 1px; left: -50px; top: 50%; }
 
 /* ─── Responsive ─── */
 @media (max-width: 900px) {
@@ -410,11 +491,17 @@
         gap: 1.5rem;
     }
 
-    .sepBranch {
-        transform: rotate(90deg);
-        height: 40px;
-        width: 40px;
+    .sepBranchDesktop {
+        display: none;
+    }
+    
+    .sepBranchMobile {
+        display: flex;
         margin: 0.5rem 0;
+    }
+    
+    .ecosystemCtaWrapper {
+        display: flex;
     }
 }
 

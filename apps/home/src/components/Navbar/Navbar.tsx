@@ -71,6 +71,7 @@ const Navbar = () => {
         {/* Logo */}
         <div className={styles.leftSection}>
           <a href="#home" className={styles.logo} onClick={(e) => handleNavClick(e, "home")}>
+            <img src="/Logo.svg" alt="Tarang Logo" className={styles.logoSvg} />
             <ShinyText
               text="Tarang"
               disabled={false}

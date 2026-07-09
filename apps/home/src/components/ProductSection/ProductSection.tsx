@@ -163,11 +163,19 @@ const SeparationVisual = () => (
        <WaveformPlayer seed={3} color="#7828ff" height={24} />
     </div>
     
-    {/* Branching SVG */}
-    <div className={styles.sepBranch}>
+    {/* Branching SVG Desktop */}
+    <div className={styles.sepBranchDesktop}>
       <svg viewBox="0 0 40 80" fill="none" className={styles.branchSvg}>
          <path d="M 0 40 L 10 40 C 20 40 20 15 30 15 L 40 15" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
          <path d="M 0 40 L 10 40 C 20 40 20 65 30 65 L 40 65" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
+      </svg>
+    </div>
+
+    {/* Branching SVG Mobile */}
+    <div className={styles.sepBranchMobile}>
+      <svg viewBox="0 0 24 40" fill="none" className={styles.branchSvgMobile}>
+         <path d="M 12 0 L 12 40" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
+         <path d="M 6 34 L 12 40 L 18 34" stroke="rgba(255,255,255,0.2)" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
 
@@ -193,53 +201,61 @@ const SeparationVisual = () => (
 
 const LibraryVisual = () => {
   const voices = [
-    { name: "Priya", type: "Female · Warm", color: "#ff6b6b", bg: "rgba(255, 107, 107, 0.1)" },
-    { name: "Alex", type: "Male · Deep", color: "#7828ff", bg: "rgba(120, 40, 255, 0.1)" },
-    { name: "Anjali", type: "Female · Calm", color: "#4ecdc4", bg: "rgba(78, 205, 196, 0.1)" },
+    { name: "Priya", type: "Female", color: "#ff6b6b", status: "retrieved" },
+    { name: "Alex", type: "Male", color: "#7828ff", status: "synced" },
+    { name: "Anjali", type: "Female", color: "#4ecdc4", status: "queued" },
   ];
 
   return (
-    <div className={styles.libraryVisual}>
-      {voices.map((v) => (
-        <div key={v.name} className={styles.voiceChip}>
-          <div className={styles.voiceAvatar} style={{ background: v.color }}>
-            {v.name[0]}
+    <div className={styles.mcLayout}>
+      <div className={styles.mcCore}>
+        <div className={styles.mcCoreInner}>Voice<br/>Engine</div>
+      </div>
+      
+      {voices.map((v, i) => (
+        <div key={v.name} className={`${styles.mcNode} ${styles[`mcNode${i}`]}`}>
+          <div className={styles.mcNodeDot} style={{ background: v.color }}>
+             {/* Small animated pulse */}
+             <div className={styles.mcNodePulse} style={{ background: v.color }}></div>
           </div>
-          <div className={styles.voiceInfo}>
-            <span className={styles.voiceName}>{v.name}</span>
-            <span className={styles.voiceType}>{v.type}</span>
+          <div className={styles.mcNodeInfo}>
+            <span className={styles.mcNodeName}>{v.name}</span>
+            <span className={styles.mcNodeType}>{v.type} · {v.status}</span>
           </div>
+          {/* Connector line (handled via css before/after) */}
         </div>
       ))}
     </div>
   );
 };
 
-const CreationVisual = () => (
-  <div className={styles.creationVisual}>
-    <div className={styles.slider}>
-      <span className={styles.sliderLabel}>Pitch</span>
-      <div className={styles.sliderTrack}>
-        <div className={styles.sliderFill} style={{ width: "65%" }} />
-        <div className={styles.sliderThumb} style={{ left: "65%" }} />
+const CreationVisual = () => {
+  const nodes = [
+    { name: "Pitch Control", val: "+2.4 tones", color: "#e040fb", status: "active" },
+    { name: "Pacing", val: "1.2x spd", color: "#9945ff", status: "active" },
+    { name: "Timbre", val: "Warmth", color: "#f97316", status: "tuning" },
+  ];
+
+  return (
+    <div className={styles.mcLayout}>
+      <div className={styles.mcCore}>
+        <div className={styles.mcCoreInner}>Params<br/>Core</div>
       </div>
+      
+      {nodes.map((n, i) => (
+        <div key={n.name} className={`${styles.mcNode} ${styles[`mcNode${i}`]}`}>
+          <div className={styles.mcNodeDot} style={{ background: n.color }}>
+             <div className={styles.mcNodePulse} style={{ background: n.color }}></div>
+          </div>
+          <div className={styles.mcNodeInfo}>
+            <span className={styles.mcNodeName}>{n.name}</span>
+            <span className={styles.mcNodeType}>{n.val} · {n.status}</span>
+          </div>
+        </div>
+      ))}
     </div>
-    <div className={styles.slider}>
-      <span className={styles.sliderLabel}>Speed</span>
-      <div className={styles.sliderTrack}>
-        <div className={styles.sliderFill} style={{ width: "45%" }} />
-        <div className={styles.sliderThumb} style={{ left: "45%" }} />
-      </div>
-    </div>
-    <div className={styles.slider}>
-      <span className={styles.sliderLabel}>Tone</span>
-      <div className={styles.sliderTrack}>
-        <div className={styles.sliderFill} style={{ width: "80%" }} />
-        <div className={styles.sliderThumb} style={{ left: "80%" }} />
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const visualMap: Record<string, React.FC> = {
   tts: TTSVisual,
@@ -269,7 +285,44 @@ const ProductSection = () => {
         </div>
 
         <div className={styles.grid}>
-          {FEATURES.map((feat, i) => {
+          {FEATURES.slice(0, 3).map((feat, i) => {
+            const Visual = visualMap[feat.visual];
+            return (
+              <div
+                key={feat.number}
+                className={`${styles.card} reveal reveal-delay-${i + 1}`}
+              >
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardNumber}>{feat.number}</span>
+                  <h3 className={styles.cardTitle}>{feat.title}</h3>
+                </div>
+                <p className={styles.cardDesc}>{feat.desc}</p>
+                <div className={styles.cardVisual}>
+                  {Visual && <Visual />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={`reveal ${styles.ecosystemHeader}`}>
+          <div className={styles.badgeWrapper}>
+            <span className={styles.badge}>✨ Clone once. Speak Forever</span>
+          </div>
+          <h2 className={styles.heading}>
+            Voice that evolves. <br /> Not just speaks.
+          </h2>
+          <p className={styles.subtitle}>
+            Give your characters a voice that adapts to every context. Seamlessly browse, fine-tune, and connect voices over time.
+          </p>
+          <div className={styles.ecosystemCtaWrapper}>
+            <a href="https://docs.tarang.ai" className={styles.ecosystemBtnOutline}>Read the Docs</a>
+            <a href="https://app.tarang.ai" className={styles.ecosystemBtnSolid}>Sign Up &rarr;</a>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
+          {FEATURES.slice(3).map((feat, i) => {
             const Visual = visualMap[feat.visual];
             return (
               <div

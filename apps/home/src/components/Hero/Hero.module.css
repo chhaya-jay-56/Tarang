@@ -17,6 +17,20 @@
     align-items: center;
 }
 
+.mobileSparkleBadge {
+    display: none;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
 .heroTitle {
     font-family: 'Instrument Serif', serif;
     font-size: clamp(4rem, 12vw, 9rem);
@@ -44,6 +58,34 @@
     transition: text-shadow 0.3s ease;
 }
 
+/* ─── CTA Button ─── */
+.ctaWrapper {
+    margin-top: 2rem;
+    display: none; /* Hidden on desktop */
+    justify-content: center;
+}
+
+.ctaButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #000;
+    background: #fff;
+    padding: 0.8rem 2rem;
+    border-radius: 100px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 255, 255, 0.2);
+}
+
 /* ─── Responsive: Tablet ─── */
 @media (max-width: 900px) {
     .heroTitle {
@@ -53,6 +95,14 @@
     .arrow {
         transform: translateY(-3%);
         font-size: clamp(2rem, 5vw, 3rem);
+    }
+    
+    .ctaWrapper {
+        display: flex;
+    }
+    
+    .mobileSparkleBadge {
+        display: inline-block;
     }
 }
 
