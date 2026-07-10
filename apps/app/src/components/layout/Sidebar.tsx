@@ -69,8 +69,8 @@ export function Sidebar() {
           <span
             onClick={isCollapsed ? toggleCollapse : undefined}
             className={cn(
-              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-brand italic font-normal tracking-tight text-foreground transition-all duration-300 text-2xl",
-              isCollapsed ? "opacity-0 invisible lg:hidden" : "opacity-100 visible"
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-brand italic font-normal tracking-tight text-foreground transition-all duration-500 ease-in-out text-2xl whitespace-nowrap",
+              isCollapsed ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100 delay-150"
             )}>
             Tarang
           </span>

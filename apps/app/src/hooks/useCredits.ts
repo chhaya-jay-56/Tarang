@@ -10,7 +10,7 @@ interface CreditData {
 }
 
 const PLAN_TOTALS: Record<string, number> = {
-  free: 500,
+  free: 1500,
   starter: 10_000,
   premium: 30_000,
 };
@@ -86,7 +86,7 @@ export function useCredits() {
   return {
     credits: data?.creditBalance ?? 0,
     planType: data?.planType ?? "free",
-    totalCredits: data?.planCreditsTotal ?? 500,
+    totalCredits: data?.planCreditsTotal ?? 1500,
     isLoading,
     error,
     refetch: () => fetchCredits(true),
