@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { Analytics } from "@vercel/analytics/next";
 import { PostHogProvider, PostHogIdentifier } from "@/components/providers/PostHogProvider";
 import "./globals.css";
 
@@ -22,6 +23,7 @@ export default function RootLayout({
             <PostHogIdentifier />
             {children}
           </PostHogProvider>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
