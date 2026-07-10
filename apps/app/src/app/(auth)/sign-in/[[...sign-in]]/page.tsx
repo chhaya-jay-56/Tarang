@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 
 export default function SignInPage() {
   return (
@@ -6,6 +7,7 @@ export default function SignInPage() {
       routing="path"
       path="/sign-in"
       appearance={{
+        baseTheme: dark,
         elements: {
           cardBox: "shadow-none border border-border bg-card",
           headerTitle: "text-foreground",

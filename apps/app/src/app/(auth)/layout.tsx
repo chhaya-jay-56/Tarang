@@ -6,8 +6,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4 sm:p-8">
-      <div className="flex w-full max-w-[1050px] overflow-hidden rounded-[2.5rem] bg-white dark:bg-zinc-900 shadow-2xl ring-1 ring-zinc-200/50 dark:ring-zinc-800 animate-in fade-in zoom-in-95 duration-700 ease-out">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-background p-4 sm:p-8">
+      <div className="flex w-full max-w-[1050px] overflow-hidden rounded-[2.5rem] bg-card shadow-2xl ring-1 ring-border animate-in fade-in zoom-in-95 duration-700 ease-out">
         
         {/* Left Side: Image and Branding inside a rounded container */}
         <div className="hidden lg:flex w-[45%] flex-col p-3">

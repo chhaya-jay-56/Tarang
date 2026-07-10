@@ -1,4 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 
 export default function SignUpPage() {
   return (
@@ -6,6 +7,7 @@ export default function SignUpPage() {
       routing="path"
       path="/sign-up"
       appearance={{
+        baseTheme: dark,
         elements: {
           cardBox: "shadow-none border border-border bg-card",
           headerTitle: "text-foreground",
