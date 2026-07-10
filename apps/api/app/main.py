@@ -1,4 +1,6 @@
 import logging
+import signal
+import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -21,6 +23,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tarang")
 
 
+# ── Graceful shutdown flag ──────────────────────────────────────────────────
+# Per 12-graceful-shutdown.md: health check must return 503 during shutdown
+# so Cloud Run's load balancer stops routing new traffic before drain begins.
+_is_shutting_down = False
+
+
+def get_shutdown_flag() -> bool:
+    """Check if the server is shutting down. Used by health router."""
+    return _is_shutting_down
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup/shutdown lifecycle.
@@ -28,6 +41,8 @@ async def lifespan(app: FastAPI):
     IMPORTANT: Schema is now managed by Alembic, NOT by create_all().
     Run `alembic upgrade head` before starting the server.
     """
+    global _is_shutting_down
+
     missing_settings = settings.validate_for_runtime()
     if missing_settings and settings.is_strict_env:
         raise RuntimeError(
@@ -38,6 +53,21 @@ async def lifespan(app: FastAPI):
             "Tarang API starting with missing optional/dev settings: %s",
             ", ".join(missing_settings),
         )
+
+    # Register SIGTERM handler for graceful shutdown (Cloud Run sends this)
+    loop = asyncio.get_running_loop()
+
+    def _handle_sigterm(*args):
+        global _is_shutting_down
+        _is_shutting_down = True
+        logger.info("🛑 SIGTERM received — health check now returns 503")
+
+    try:
+        loop.add_signal_handler(signal.SIGTERM, _handle_sigterm)
+        loop.add_signal_handler(signal.SIGINT, _handle_sigterm)
+    except NotImplementedError:
+        # Windows doesn't support add_signal_handler — skip in dev
+        logger.info("Signal handlers not available (Windows dev), skipping")
 
     logger.info("🚀 Tarang API starting — schema managed by Alembic")
     yield

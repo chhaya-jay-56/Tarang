@@ -10,6 +10,7 @@ const Header = () => {
     <header className={styles.header}>
       <div className={`${styles.brand} fade-in-up`} style={{ animationDelay: '0.1s' }}>
         <div className={styles.logoContainer}>
+          <img src="/Logo.svg" alt="Tarang Logo" className={styles.logoSvg} />
           <ShinyText text="Tarang" disabled={false} speed={3} className={styles.brandName} />
         </div>
         <div className={styles.betaLogoContainer}>

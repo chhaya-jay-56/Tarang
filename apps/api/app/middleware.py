@@ -6,13 +6,15 @@
 # MIDDLEWARE STACK (execution order):
 #   1. CORS — handles preflight and cross-origin headers
 #   2. Security Headers — injects X-Frame-Options, CSP, HSTS, etc.
-#   3. Rate Limiting — per-IP global throttle (per-route limits in routers)
+#   3. Shared Secret — verifies X-Tarang-Secret header (Cloud Run protection)
+#   4. Rate Limiting — per-IP global throttle (per-route limits in routers)
 # ─────────────────────────────────────────────────────────────────────────────
 
 import logging
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -23,9 +25,79 @@ from app.config import settings
 logger = logging.getLogger("tarang.middleware")
 
 # ── Rate Limiter (shared instance — import in routers for per-route limits) ──
-# Uses in-memory storage by default. For multi-worker production,
-# switch to Redis: Limiter(key_func=..., storage_uri=settings.REDIS_URL)
+# Uses in-memory storage by default. Acceptable for single-worker Cloud Run.
+# For multi-instance production, switch to Redis: storage_uri=settings.REDIS_URL
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
+
+# ── Per-user rate limiting key function ──────────────────────────────────────
+# WHY: Per-IP alone doesn't stop one authenticated user from bursting 500
+# parallel requests before credit deduction catches up (race condition).
+# This ties rate limits to Clerk user ID when available.
+
+def get_user_or_ip(request: Request) -> str:
+    """Rate limit key: use Clerk user ID if authenticated, fall back to IP."""
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth.removeprefix("Bearer ").strip()
+        try:
+            from app.utils.auth import verify_clerk_token
+            payload = verify_clerk_token(token)
+            user_id = payload.get("sub", "")
+            if user_id:
+                return f"user:{user_id}"
+        except Exception:
+            pass
+    return get_remote_address(request)
+
+
+# ── Shared Secret Middleware ─────────────────────────────────────────────────
+# Per deployment plan: protects the *.run.app URL from unauthorized access.
+# Only Vercel server routes and Clerk webhooks should be calling Cloud Run.
+
+class SharedSecretMiddleware(BaseHTTPMiddleware):
+    """Verify X-Tarang-Secret header on non-public routes.
+
+    Protects the Cloud Run URL from scrapers and bots.
+    Clerk JWT remains the real auth layer — this is a speed bump.
+    """
+
+    # Routes that skip shared secret check (health probes + webhooks)
+    PUBLIC_PATHS = frozenset({
+        "/health",
+        "/health/deep",
+        "/api/webhooks",
+        "/api/webhooks/",
+        "/api/webhooks/clerk",
+    })
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        expected = settings.CLOUD_RUN_SHARED_SECRET
+        if not expected:
+            # No secret configured = dev mode, skip check
+            return await call_next(request)
+
+        # Health checks and webhooks skip secret check
+        if request.url.path in self.PUBLIC_PATHS:
+            return await call_next(request)
+
+        # OPTIONS preflight requests skip auth (CORS handles these)
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
+        actual = request.headers.get("X-Tarang-Secret", "")
+        if actual != expected:
+            logger.warning(
+                "🚫 Rejected request without valid shared secret: %s %s",
+                request.method,
+                request.url.path,
+            )
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Forbidden"},
+            )
+
+        return await call_next(request)
 
 
 # ── Security Headers Middleware ──────────────────────────────────────────────
@@ -61,12 +133,15 @@ def setup_middlewares(app: FastAPI):
         allow_origin_regex=r"https://[a-zA-Z0-9-]+\.(ngrok-free\.app|ngrok-free\.dev|ngrok\.app)",
         allow_credentials=True,
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
     )
 
     # 2. Security Headers
     app.add_middleware(SecurityHeadersMiddleware)
 
-    # 3. Rate Limiting (slowapi)
+    # 3. Shared Secret (Cloud Run URL protection)
+    app.add_middleware(SharedSecretMiddleware)
+
+    # 4. Rate Limiting (slowapi)
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

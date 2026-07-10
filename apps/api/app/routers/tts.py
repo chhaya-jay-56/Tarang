@@ -22,7 +22,7 @@ from app.schemas.tts import (
 )
 from app.services import clone_service
 from app.services import tts_service
-from app.middleware import limiter
+from app.middleware import limiter, get_user_or_ip
 
 logger = logging.getLogger("tarang.tts")
 
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/api/tts", tags=["tts"])
 # ── TTS Generate (saved voice) ──────────────────────────────────────────────
 
 @router.post("/generate")
-@limiter.limit("10/minute")
+@limiter.limit("10/minute", key_func=get_user_or_ip)
 async def generate_tts(
     request: Request,
     body: TTSGenerateRequest,
@@ -76,7 +76,7 @@ async def generate_tts(
 # ── Clone via Qwen3-TTS ─────────────────────────────────────────────────────
 
 @router.post("/clone")
-@limiter.limit("10/minute")
+@limiter.limit("10/minute", key_func=get_user_or_ip)
 async def clone_tts(
     request: Request,
     body: TTSCloneRequest,

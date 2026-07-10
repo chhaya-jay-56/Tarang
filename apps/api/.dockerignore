@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.git/
+.uv-cache/
+*.pyc
+*.log
+tests/
+pytest.log
+skills-lock.json
+uv.lock

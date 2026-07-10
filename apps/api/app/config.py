@@ -76,6 +76,11 @@ class Settings:
     # Shared secret used by the API when calling public Modal web endpoints.
     MODAL_SHARED_SECRET: str = os.getenv("MODAL_SHARED_SECRET", "")
 
+    # Shared secret between Vercel frontend and Cloud Run backend.
+    # Protects the *.run.app URL from unauthorized direct access.
+    # Set to empty string in development (disables the check).
+    CLOUD_RUN_SHARED_SECRET: str = os.getenv("CLOUD_RUN_SHARED_SECRET", "")
+
     # Dubbing pipeline API keys
     GLADIA_API_KEY: str = os.getenv("GLADIA_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

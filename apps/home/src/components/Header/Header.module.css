@@ -25,6 +25,18 @@
     letter-spacing: 0.02em;
 }
 
+.logoContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logoSvg {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
 .betaLogoContainer {
     position: relative;
     display: flex;

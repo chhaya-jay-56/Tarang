@@ -31,7 +31,7 @@ from app.services.credit_service import (
 )
 from app.services.demucs_service import separate_audio, DemucsError
 from app.services.storage import upload_file, get_download_presigned_url
-from app.middleware import limiter
+from app.middleware import limiter, get_user_or_ip
 
 logger = logging.getLogger("tarang.separation_router")
 
@@ -99,7 +99,7 @@ async def _refund_separation(
 
 
 @router.post("/separate")
-@limiter.limit("10/minute")
+@limiter.limit("10/minute", key_func=get_user_or_ip)
 async def trigger_separation(
     request: Request,
     file: UploadFile = File(..., description="Audio file (WAV) to separate"),
@@ -260,7 +260,7 @@ async def download_stem(
 #   Files are temporary — presigned URLs expire in 1 hour.
 
 @router.post("/separate-direct")
-@limiter.limit("10/minute")
+@limiter.limit("10/minute", key_func=get_user_or_ip)
 async def separate_direct(
     request: Request,
     file: UploadFile = File(..., description="Audio file to separate into stems"),

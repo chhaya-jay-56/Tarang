@@ -25,10 +25,19 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 def health_check():
-    """Shallow liveness probe — used by Railway/load balancers.
+    """Shallow liveness probe — used by Cloud Run / load balancers.
 
-    Returns immediately with no dependency checks.
+    Returns 503 during graceful shutdown so the LB stops routing
+    new traffic before connection draining begins.
+    Per 12-graceful-shutdown.md §4.
     """
+    from app.main import get_shutdown_flag
+    if get_shutdown_flag():
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"status": "shutting_down", "service": "tarang-backend"},
+        )
     return {"status": "ok", "service": "tarang-backend"}
 
 

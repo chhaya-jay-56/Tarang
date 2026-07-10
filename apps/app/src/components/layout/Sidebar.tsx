@@ -50,28 +50,36 @@ export function Sidebar() {
       )}>
         {/* Brand Name & Toggle */}
         <div className={cn(
-          "flex items-center justify-between mb-8",
+          "flex items-center justify-between mb-8 relative",
           isCollapsed ? "px-3 lg:justify-center lg:px-0" : "px-3"
         )}>
+          {/* Logo on the left */}
+          <img 
+            src="/Logo.svg" 
+            alt="Tarang Logo" 
+            className={cn(
+              "h-9 w-auto shrink-0 transition-transform duration-200 hover:scale-105", 
+              isCollapsed && "lg:cursor-pointer"
+            )}
+            onClick={isCollapsed ? toggleCollapse : undefined}
+            title={isCollapsed ? "Expand sidebar" : undefined}
+          />
+
+          {/* Text in the absolute center (hidden when collapsed) */}
           <span
             onClick={isCollapsed ? toggleCollapse : undefined}
             className={cn(
-              "font-brand italic font-normal tracking-tight text-foreground transition-all duration-300",
-              isCollapsed ? "text-2xl lg:text-xl lg:cursor-pointer lg:hover:text-primary" : "text-2xl"
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-brand italic font-normal tracking-tight text-foreground transition-all duration-300 text-2xl",
+              isCollapsed ? "opacity-0 invisible lg:hidden" : "opacity-100 visible"
             )}>
-            {isCollapsed ? (
-              <>
-                <span className="lg:hidden">Tarang</span>
-                <span className="hidden lg:inline" title="Expand sidebar">T</span>
-              </>
-            ) : (
-              "Tarang"
-            )}
+            Tarang
           </span>
+
+          {/* Toggle Button on the right */}
           {!isCollapsed && (
             <button
               onClick={toggleCollapse}
-              className="hidden lg:flex p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="hidden lg:flex p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors relative z-10"
               title="Close sidebar"
             >
               <LuPanelLeftClose className="text-lg" />

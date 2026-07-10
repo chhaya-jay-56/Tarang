@@ -43,7 +43,7 @@ from app.services.credit_service import (
     check_credit_sufficient,
     estimate_clone_credits,
 )
-from app.middleware import limiter
+from app.middleware import limiter, get_user_or_ip
 from sqlalchemy import select
 
 logger = logging.getLogger("tarang.voices")
@@ -93,7 +93,7 @@ async def upload_voice(
 # ── Trigger voice clone ─────────────────────────────────────────────────────
 
 @router.post("/{asset_id}/clone", status_code=201)
-@limiter.limit("10/minute")
+@limiter.limit("10/minute", key_func=get_user_or_ip)
 async def trigger_clone(
     asset_id: str,
     body: CloneRequest,

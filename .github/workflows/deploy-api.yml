@@ -1,0 +1,111 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# WHY THIS FILE EXISTS:
+# Auto-deploys the FastAPI backend to Google Cloud Run when code
+# in apps/api/ changes on the main branch. Works like Vercel for the
+# backend — push to main → auto deploy.
+#
+# FLOW:
+#   Push to main (apps/api/** changed)
+#   → Authenticate with GCP via service account key
+#   → Build Docker image and push to Artifact Registry
+#   → Deploy new image to Cloud Run (preserves existing env vars)
+#
+# FIRST-TIME SETUP (one-time manual steps):
+#   1. Create GCP project + enable APIs (see agent.md Phase 2)
+#   2. Create Artifact Registry repo
+#   3. Create a service account with these roles:
+#      - Cloud Run Admin
+#      - Artifact Registry Writer
+#      - Service Account User
+#   4. Create a JSON key for the service account
+#   5. Add the JSON key as GitHub secret: GCP_SA_KEY
+#   6. Set env vars on Cloud Run via gcloud CLI (one-time, preserved on redeploy)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Deploy API to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: tarang-prod
+  REGION: us-central1
+  SERVICE: tarang-api
+  REGISTRY: us-central1-docker.pkg.dev
+  REPO: tarang-repo
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    # Only run on the main repo (not forks)
+    if: github.repository_owner == 'chhaya-jay-56'
+
+    permissions:
+      contents: read
+
+    steps:
+      # ── Checkout code ──
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Authenticate with GCP ──
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # ── Set up gcloud CLI ──
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # ── Configure Docker to push to Artifact Registry ──
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      # ── Build Docker image ──
+      # Uses git SHA as tag for traceability (which commit is deployed?)
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:latest \
+            apps/api/
+
+      # ── Push to Artifact Registry ──
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:latest
+
+      # ── Deploy to Cloud Run ──
+      # NOTE: env vars are NOT set here — they're set once via gcloud CLI
+      # and preserved across deploys. Only the image is updated.
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ github.sha }}
+          flags: |
+            --concurrency=30
+            --timeout=300
+            --memory=512Mi
+            --cpu=1
+            --min-instances=0
+            --max-instances=3
+            --execution-environment=gen2
+            --port=8080
+
+      # ── Output the URL ──
+      - name: Show deployed URL
+        run: |
+          echo "✅ Deployed to: ${{ steps.deploy.outputs.url }}"
+          echo "📦 Image: ${{ env.SERVICE }}:${{ github.sha }}"

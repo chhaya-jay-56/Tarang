@@ -26,7 +26,7 @@ const Footer = () => {
           <div className={styles.brand}>
             <div className={styles.logoContainer}>
               <Image 
-                src="/assets/Logo_v1.jpeg" 
+                src="/Logo.svg" 
                 alt="Tarang Logo" 
                 width={36} 
                 height={36} 

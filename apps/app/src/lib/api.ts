@@ -28,7 +28,7 @@ export function useApiClient() {
 
       const headers: Record<string, string> = {
         Authorization: `Bearer ${token}`,
-        "ngrok-skip-browser-warning": "true",
+        "X-Tarang-Secret": process.env.NEXT_PUBLIC_TARANG_SECRET || "",
         ...options.headers as Record<string, string>,
       };
 
