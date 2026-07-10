@@ -29,6 +29,7 @@ on:
     branches: [main]
     paths:
       - 'apps/api/**'
+      - '.github/workflows/deploy-api.yml'
 
   # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
