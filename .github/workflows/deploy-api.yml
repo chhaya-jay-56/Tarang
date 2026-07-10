@@ -35,7 +35,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: tarang-prod
+  PROJECT_ID: tarang-501911
   REGION: us-central1
   SERVICE: tarang-api
   REGISTRY: us-central1-docker.pkg.dev
