@@ -31,7 +31,6 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       /* ── Session Replay ── */
       session_recording: {
         maskAllInputs: true,
-        maskTextContent: false,
       },
 
       /* ── Performance ── */

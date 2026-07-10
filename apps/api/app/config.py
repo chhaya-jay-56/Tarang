@@ -19,15 +19,13 @@ class Settings:
 
     APP_ENV: str = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
 
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql://jay:jay123@localhost:5433/tarangdb"
-    )
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     CLERK_WEBHOOK_SECRET: str = os.getenv("CLERK_WEBHOOK_SECRET") or os.getenv(
         "CLERK_WEBHOOK_SIGNING_SECRET", ""
     )
     CLERK_JWKS_URL: str = os.getenv(
         "CLERK_JWKS_URL",
-        "https://distinct-ram-14.clerk.accounts.dev/.well-known/jwks.json",
+        "https://clerk.trytarang.app/.well-known/jwks.json",
     )
     CLERK_JWT_ISSUER: str = os.getenv("CLERK_JWT_ISSUER", "")
     CLERK_JWT_AUDIENCE: str = os.getenv("CLERK_JWT_AUDIENCE", "")
