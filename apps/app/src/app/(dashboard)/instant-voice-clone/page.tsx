@@ -12,6 +12,7 @@ import { ProcessingStepper } from "@/components/voice-clone/ProcessingStepper/Pr
 import { LanguageSelector } from "@/components/voice-clone/LanguageSelector/LanguageSelector";
 import { SpeedControl } from "@/components/voice-clone/SpeedControl/SpeedControl";
 import { ScriptBoxInfo } from "@/components/voice-clone/ScriptBoxInfo/ScriptBoxInfo";
+import { CopyPromptButton } from "@/components/voice-clone/CopyPromptButton/CopyPromptButton";
 import styles from "./page.module.css";
 
 export default function InstantVoiceClonePage() {
@@ -87,7 +88,10 @@ export default function InstantVoiceClonePage() {
             </div>
           )}
 
-          <ScriptBoxInfo />
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+            <ScriptBoxInfo />
+            <CopyPromptButton />
+          </div>
 
           {/* Speed Control */}
           <SpeedControl value={speed} onChange={setSpeed} />
