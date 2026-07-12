@@ -6,31 +6,19 @@ import "ldrs/react/Hatch.css";
 import { Button } from "@/components/ui/button";
 import styles from "./ProcessingStepper.module.css";
 
-/** Pipeline stages — order matches the backend clone pipeline */
-const BASE_STAGES = [
-  { key: "queued", label: "Starting" },
-  { key: "downloading_reference", label: "Preparing" },
-  { key: "uploading_to_ai", label: "Uploading" },
-  { key: "model_loading", label: "Loading" },
-  { key: "model_running", label: "Cloning" },
-  { key: "saving_to_storage", label: "Saving" },
-  { key: "completed", label: "Done" },
-] as const;
+const VISUAL_STAGES = [
+  { id: "starting", label: "Starting", keys: ["queued", "downloading_reference", "uploading_to_ai", "model_loading"] },
+  { id: "running", label: "Cloning", keys: ["model_running"] },
+  { id: "saving", label: "Saving", keys: ["saving_to_storage", "completed"] },
+];
 
 type ProcessingStepperProps = {
-  /** Current pipeline stage key from the backend */
   currentStage: string;
-  /** Human-readable message for the current stage */
   stageMessage: string;
-  /** Whether clone is actively processing */
   isProcessing: boolean;
-  /** Error message if clone failed */
   error: string | null;
-  /** Number of consecutive poll failures (for connection warning) */
   consecutiveFails?: number;
-  /** Callback for retry button */
   onRetry?: () => void;
-  /** Mode to adjust wording */
   mode?: "clone" | "tts";
 };
 
@@ -43,14 +31,17 @@ export function ProcessingStepper({
   onRetry,
   mode = "clone",
 }: ProcessingStepperProps) {
-  const stages = BASE_STAGES.map(s => {
-    if (s.key === "model_running" && mode === "tts") {
+  
+  const stages = VISUAL_STAGES.map(s => {
+    if (s.id === "running" && mode === "tts") {
       return { ...s, label: "Synthesizing" };
     }
     return s;
   });
 
-  const activeIdx = stages.findIndex((s) => s.key === currentStage);
+  const activeIdx = stages.findIndex((s) => s.keys.includes(currentStage));
+  const safeActiveIdx = activeIdx === -1 ? 0 : activeIdx;
+  const isCompletedFinal = currentStage === "completed";
 
   // ── Error State ──
   if (error && !isProcessing) {
@@ -94,11 +85,11 @@ export function ProcessingStepper({
       {/* Step track */}
       <div className={styles.track}>
         {stages.map((stage, idx) => {
-          const isCurrent = idx === activeIdx;
-          const isCompleted = activeIdx > idx;
+          const isCurrent = idx === safeActiveIdx && !isCompletedFinal;
+          const isCompleted = safeActiveIdx > idx || isCompletedFinal;
 
           return (
-            <div key={stage.key} className={styles.step}>
+            <div key={stage.id} className={styles.step}>
               <div className={styles.stepContent}>
                 {/* Dot */}
                 <div

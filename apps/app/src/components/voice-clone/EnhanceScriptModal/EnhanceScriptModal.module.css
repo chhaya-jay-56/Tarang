@@ -275,59 +275,106 @@
   
   .centerArrow {
     flex-direction: row;
-    transform: rotate(90deg);
-    margin: 16px 0;
+    margin: 12px 0;
   }
 
+  .arrowCircle {
+    transform: rotate(90deg);
+  }
+  
   .arrowText {
-    transform: rotate(-90deg);
+    display: none; /* Hide text on mobile for cleaner look */
   }
 }
 
 @media (max-width: 640px) {
   .overlay {
-    padding: 1rem;
+    padding: 0;
+    align-items: flex-end; /* Bottom sheet style */
   }
 
   .modal {
-    padding: 1rem 1.2rem;
-    max-height: 95vh;
+    padding: 24px 20px;
+    max-height: 85vh;
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    background-color: #09090b;
+  }
+
+  .closeButton {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+    text-align: left; /* Left align for professional feel */
   }
 
   .title {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
   }
   
   .subtitle {
     font-size: 0.8rem;
+    line-height: 1.4;
   }
 
-  .infoPills {
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .featuresPill {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-    width: 100%;
-    justify-content: center;
-  }
-  
   .comparisonContainer {
     gap: 0;
+    margin-bottom: 1rem;
   }
   
   .panel {
-    padding: 1rem;
+    padding: 12px;
+    border-radius: 12px;
   }
   
+  .panelHeader {
+    margin-bottom: 0.5rem;
+  }
+
+  .panelTitle {
+    font-size: 0.85rem;
+  }
+  
+  .textareaWrapper {
+    margin-bottom: 0.75rem;
+  }
+
   .textarea {
-    height: 120px;
+    height: 80px; /* Much smaller textarea */
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .downsidesBox, .benefitsBox {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .boxTitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .list li {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
   }
   
   .centerArrow {
-    margin: 12px 0;
+    margin: 8px 0;
+    justify-content: center;
+  }
+  
+  .arrowCircle {
+    width: 28px;
+    height: 28px;
   }
 }
 
