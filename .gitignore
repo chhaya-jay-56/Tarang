@@ -79,6 +79,7 @@ docs/
 sandbox/
 scripts/
 Agent.md
+example.md
 /rules.md
 
 # --- Dev assets & samples (belongs in cloud storage, not repo) ---
