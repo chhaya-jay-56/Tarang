@@ -123,3 +123,28 @@
 .playOffset {
   margin-left: 3px;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .playerInner {
+    padding: 16px 16px 14px;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
+  .badge {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  
+  .controlGroup {
+    gap: 16px;
+  }
+  
+  .playBtn {
+    font-size: 32px;
+  }
+}
+

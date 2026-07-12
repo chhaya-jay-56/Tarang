@@ -99,3 +99,56 @@
   gap: 12px;
   flex-shrink: 0;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .topBar {
+    padding: 0 12px;
+    height: 48px;
+  }
+
+  .leftSection {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pathSection {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pathLink {
+    font-size: 12px;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pathCurrent {
+    font-size: 12px;
+    max-width: 100px;
+  }
+
+  .separator {
+    margin: 0 4px;
+  }
+
+  .planBadge {
+    padding: 1px 6px;
+    font-size: 9px;
+  }
+
+  .rightSection {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pathLink {
+    max-width: 50px;
+  }
+
+  .pathCurrent {
+    max-width: 70px;
+  }
+}

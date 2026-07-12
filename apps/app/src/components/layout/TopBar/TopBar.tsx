@@ -49,6 +49,7 @@ export function TopBar() {
       <div className={styles.leftSection}>
         {/* Mobile Sidebar Toggle */}
         <button 
+          suppressHydrationWarning
           className="lg:hidden p-2 -ml-2 mr-2 text-muted-foreground hover:text-foreground transition-colors"
           onClick={toggleSidebar}
           aria-label="Toggle Menu"

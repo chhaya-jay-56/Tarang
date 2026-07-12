@@ -128,18 +128,22 @@
 .separateBtn {
   height: 52px !important;
   gap: 10px !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
   border-radius: 9999px !important;
+  background: color-mix(in srgb, var(--card) 100%, transparent) !important;
+  color: var(--foreground) !important;
+  border: 1px solid color-mix(in srgb, var(--border) 100%, transparent) !important;
   text-transform: uppercase;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .separateBtn:hover:not(:disabled) {
   background: var(--foreground) !important;
   color: var(--background) !important;
+  border-color: var(--foreground) !important;
 }
 
 /* ── Processing State ── */
@@ -377,7 +381,6 @@
   font-size: 16px;
 }
 
-/* ── New Separation Button ── */
 .newSeparationBtn {
   height: 44px !important;
   gap: 8px !important;
@@ -385,6 +388,44 @@
   font-weight: 600 !important;
   letter-spacing: 0.06em !important;
   border-radius: 9999px !important;
+  background: color-mix(in srgb, var(--card) 100%, transparent) !important;
+  color: var(--foreground) !important;
+  border: 1px solid color-mix(in srgb, var(--border) 100%, transparent) !important;
   text-transform: uppercase;
+  transition: all 0.2s ease !important;
   margin-top: 4px;
 }
+
+.newSeparationBtn:hover {
+  background: var(--foreground) !important;
+  color: var(--background) !important;
+  border-color: var(--foreground) !important;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .dropZone {
+    padding: 24px 16px;
+    min-height: 160px;
+    gap: 10px;
+  }
+  
+  .separateBtn {
+    height: 44px !important;
+    font-size: 12px !important;
+  }
+  
+  .processingCard {
+    padding: 32px 20px;
+  }
+  
+  .resultsCard {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+  
+  .warningBanner {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

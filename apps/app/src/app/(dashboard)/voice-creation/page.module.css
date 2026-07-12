@@ -258,16 +258,19 @@
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
   border-radius: 9999px !important;
-  border-color: color-mix(in srgb, var(--border) 40%, transparent) !important;
+  background: color-mix(in srgb, var(--card) 100%, transparent) !important;
+  color: var(--foreground) !important;
+  border: 1px solid color-mix(in srgb, var(--border) 100%, transparent) !important;
   text-transform: uppercase;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   margin-top: 4px;
 }
 
 .createBtn:hover:not(:disabled) {
   background: var(--foreground) !important;
   color: var(--background) !important;
+  border-color: var(--foreground) !important;
 }
 
 /* ── Success state ── */
@@ -309,3 +312,28 @@
   font-size: 13px;
   color: var(--muted-foreground);
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .formCard {
+    padding: 20px;
+    border-radius: 16px;
+    gap: 16px;
+  }
+  
+  .dropZone {
+    padding: 24px 16px;
+    min-height: 140px;
+  }
+  
+  .createBtn {
+    height: 44px !important;
+    font-size: 12px !important;
+  }
+  
+  .successCard {
+    padding: 32px 20px;
+    min-height: 240px;
+  }
+}
+

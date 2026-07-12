@@ -109,3 +109,28 @@
 .loadMoreIcon {
   font-size: 16px;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .emptyWrapper {
+    min-height: 250px;
+    padding: 24px 16px;
+  }
+  
+  .emptyIconCircle {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .emptyIcon {
+    font-size: 16px;
+  }
+  
+  .emptyTitle {
+    font-size: 14px;
+  }
+  
+  .emptySubtitle {
+    font-size: 12px;
+  }
+}

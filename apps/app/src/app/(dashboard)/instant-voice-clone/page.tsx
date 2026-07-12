@@ -86,9 +86,9 @@ export default function InstantVoiceClonePage() {
 
           {/* Dynamic credit estimate */}
           {text.trim().length > 0 && (
-            <div className={styles.creditEstimate}>
+            <div className={styles.creditEstimate} style={{ minWidth: 0 }}>
               <span className={styles.creditEstimateIcon}>⚡</span>
-              <span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 ~{(Math.max(1, Math.ceil(text.trim().length * 0.625)) + 190).toLocaleString()} credits
               </span>
             </div>

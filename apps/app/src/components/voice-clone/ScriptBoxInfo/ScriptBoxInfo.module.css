@@ -107,3 +107,13 @@
     transform: translateY(0);
   }
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .card {
+    width: calc(100vw - 32px);
+    max-width: 300px;
+    left: 0;
+  }
+}
+

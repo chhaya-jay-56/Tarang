@@ -131,3 +131,23 @@
   color: var(--destructive);
   font-size: 13px;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .createNavBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .emptyState {
+    min-height: 160px;
+    padding: 24px 16px;
+  }
+}
+

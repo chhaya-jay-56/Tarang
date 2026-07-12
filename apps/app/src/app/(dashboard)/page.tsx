@@ -16,24 +16,24 @@ import { MdOutlineVideoSettings } from "react-icons/md";
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6 sm:gap-10">
       {/* Welcome */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Welcome to <span className="font-brand italic font-normal tracking-normal text-4xl ml-1">Tarang</span>
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Welcome to <span className="font-brand italic font-normal tracking-normal text-2xl sm:text-4xl ml-1">Tarang</span>
         </h1>
-        <p className="text-muted-foreground text-base max-w-lg">
+        <p className="text-muted-foreground text-sm sm:text-base max-w-lg">
           Your all-in-one platform for instant voice cloning and text-to-speech generation.
         </p>
       </div>
 
       {/* Products */}
-      <section className="flex flex-col gap-5">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+      <section className="flex flex-col gap-4 sm:gap-5">
+        <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
           Products
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {/* IVC Card */}
           <Card className="group hover:border-primary/30 transition-all">
             <CardHeader>

@@ -223,3 +223,48 @@
   justify-content: flex-end;
   margin-top: 16px;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .stepper {
+    padding: 20px 16px 16px;
+  }
+  
+  .header {
+    margin-bottom: 20px;
+  }
+  
+  .dot {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+  
+  .dotCurrent::after {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .stepLabel {
+    font-size: 9px;
+    max-width: 54px;
+  }
+  
+  .connector {
+    min-width: 8px;
+    margin-top: 9px;
+  }
+}
+
+@media (max-width: 360px) {
+  .track {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+}
+

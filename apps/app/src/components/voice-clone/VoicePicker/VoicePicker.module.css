@@ -131,3 +131,18 @@
   display: flex;
   align-items: center;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .dropdown {
+    position: fixed;
+    top: 50%;
+    left: 16px;
+    right: 16px;
+    transform: translateY(-50%);
+    width: auto;
+    max-height: 60vh;
+    box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.5);
+  }
+}
+

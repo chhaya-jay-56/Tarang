@@ -192,19 +192,22 @@
   width: 100%;
   height: 52px !important;
   gap: 10px !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
   border-radius: 9999px !important;
-  border-color: color-mix(in srgb, var(--border) 40%, transparent) !important;
+  background: color-mix(in srgb, var(--card) 100%, transparent) !important;
+  color: var(--foreground) !important;
+  border: 1px solid color-mix(in srgb, var(--border) 100%, transparent) !important;
   text-transform: uppercase;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .synthesizeBtn:hover:not(:disabled) {
   background: var(--foreground) !important;
   color: var(--background) !important;
+  border-color: var(--foreground) !important;
 }
 
 /* ── Download Button ── */
@@ -266,3 +269,45 @@
   max-width: 260px;
   line-height: 1.5;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .page {
+    gap: 20px;
+  }
+  
+  .heading {
+    font-size: 18px;
+  }
+  
+  .subtitle {
+    margin-top: -8px;
+  }
+  
+  .textInput {
+    padding: 14px 16px;
+    padding-bottom: 24px;
+    min-height: 100px;
+  }
+  
+  .synthesizeBtn {
+    height: 44px !important;
+    font-size: 11px !important;
+  }
+  
+  .emptyState {
+    min-height: 200px;
+    padding: 24px 16px;
+  }
+  
+  .emptyIcon {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scriptUpload {
+    flex-wrap: wrap;
+  }
+}
+

@@ -160,3 +160,26 @@
   background: color-mix(in srgb, var(--destructive) 10%, transparent);
   border-color: color-mix(in srgb, var(--destructive) 20%, transparent);
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  .cardInner {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .name {
+    font-size: 13px;
+  }
+  
+  .playBtn, .deleteBtn {
+    width: 30px;
+    height: 30px;
+  }
+}
+

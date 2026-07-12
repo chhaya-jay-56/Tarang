@@ -276,9 +276,58 @@
   .centerArrow {
     flex-direction: row;
     transform: rotate(90deg);
+    margin: 16px 0;
   }
 
   .arrowText {
     transform: rotate(-90deg);
   }
 }
+
+@media (max-width: 640px) {
+  .overlay {
+    padding: 1rem;
+  }
+
+  .modal {
+    padding: 1rem 1.2rem;
+    max-height: 95vh;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+  
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .infoPills {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .featuresPill {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .comparisonContainer {
+    gap: 0;
+  }
+  
+  .panel {
+    padding: 1rem;
+  }
+  
+  .textarea {
+    height: 120px;
+  }
+  
+  .centerArrow {
+    margin: 12px 0;
+  }
+}
+

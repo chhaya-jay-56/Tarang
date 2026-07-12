@@ -303,3 +303,30 @@
         left: 200%;
     }
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+    .pill {
+        gap: 6px;
+        padding: 4px 10px 4px 6px;
+    }
+
+    .creditAmount {
+        font-size: 12px;
+    }
+
+    .panel {
+        position: fixed;
+        top: 56px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+    }
+}
+
+@media (max-width: 400px) {
+    .miniBar {
+        display: none;
+    }
+}
