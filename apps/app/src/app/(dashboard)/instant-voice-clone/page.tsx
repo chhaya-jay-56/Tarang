@@ -119,8 +119,8 @@ export default function InstantVoiceClonePage() {
               {voiceId
                 ? "Uploaded"
                 : isUploading
-                ? "Uploading..."
-                : "Upload Audio"}
+                  ? "Uploading..."
+                  : "Upload Audio"}
             </Button>
 
             <Button

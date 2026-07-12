@@ -209,27 +209,27 @@
   .page {
     gap: 20px;
   }
-  
+
   .heading {
     font-size: 18px;
   }
-  
+
   .textInput {
     padding: 14px 16px;
     padding-bottom: 24px;
     min-height: 100px;
   }
-  
+
   .actionBtn {
     height: 48px !important;
     font-size: 12px !important;
   }
-  
+
   .emptyState {
     min-height: 200px;
     padding: 24px 16px;
   }
-  
+
   .emptyIcon {
     font-size: 28px;
   }
@@ -240,5 +240,3 @@
     flex-direction: column;
   }
 }
-
-

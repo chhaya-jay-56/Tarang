@@ -68,6 +68,9 @@
 .step {
   display: flex;
   align-items: flex-start;
+}
+
+.step:not(:last-child) {
   flex: 1;
 }
 
@@ -76,7 +79,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  min-width: 64px;
 }
 
 /* ── Step Dot ── */

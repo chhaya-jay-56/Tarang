@@ -120,8 +120,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-2px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Script Upload ── */
@@ -275,31 +282,31 @@
   .page {
     gap: 20px;
   }
-  
+
   .heading {
     font-size: 18px;
   }
-  
+
   .subtitle {
     margin-top: -8px;
   }
-  
+
   .textInput {
     padding: 14px 16px;
     padding-bottom: 24px;
     min-height: 100px;
   }
-  
+
   .synthesizeBtn {
     height: 44px !important;
     font-size: 11px !important;
   }
-  
+
   .emptyState {
     min-height: 200px;
     padding: 24px 16px;
   }
-  
+
   .emptyIcon {
     font-size: 28px;
   }
@@ -310,4 +317,3 @@
     flex-wrap: wrap;
   }
 }
-
