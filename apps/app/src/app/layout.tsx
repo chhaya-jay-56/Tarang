@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider appearance={{ baseTheme: dark }} afterSignOutUrl="/">
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className="min-h-screen antialiased bg-background text-foreground w-full overflow-x-hidden font-body">
           <PostHogProvider>
             <PostHogIdentifier />

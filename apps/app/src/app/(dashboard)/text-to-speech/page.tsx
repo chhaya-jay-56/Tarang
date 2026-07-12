@@ -94,12 +94,18 @@ export default function TextToSpeechPage() {
           />
 
           {/* Script Input */}
-          <textarea
-            className={styles.textInput}
-            placeholder="Type or paste the text you want spoken..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
+          <div className={styles.textareaWrapper}>
+            <textarea
+              className={styles.textInput}
+              placeholder="Type or paste the text you want spoken..."
+              value={text}
+              maxLength={1500}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <div className={styles.charCounter}>
+              {text.length} / 1500
+            </div>
+          </div>
 
           <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginTop: "4px" }}>
             <ScriptBoxInfo />
@@ -121,14 +127,14 @@ export default function TextToSpeechPage() {
 
           {/* Script file upload */}
           <div className={styles.scriptUpload}>
-            <input
+            <input suppressHydrationWarning
               ref={fileInputRef}
               type="file"
               accept=".txt,.srt,.vtt,.md"
               hidden
               onChange={handleScriptUpload}
             />
-            <button
+            <button suppressHydrationWarning
               type="button"
               className={styles.scriptUploadBtn}
               onClick={() => fileInputRef.current?.click()}
@@ -142,7 +148,7 @@ export default function TextToSpeechPage() {
                 <span className={styles.scriptFileName}>
                   {scriptFileName}
                 </span>
-                <button
+                <button suppressHydrationWarning
                   type="button"
                   className={styles.scriptClearBtn}
                   onClick={clearScript}
@@ -176,7 +182,7 @@ export default function TextToSpeechPage() {
               source={clonedAudioUrl}
               label="Synthesized Speech"
               headerAction={
-                <button onClick={download} className={styles.downloadBtn}>
+                <button suppressHydrationWarning onClick={download} className={styles.downloadBtn}>
                   <LuDownload className={styles.downloadIcon} />
                   Download
                 </button>

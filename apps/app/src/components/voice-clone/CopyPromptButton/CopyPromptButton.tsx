@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { LuCopy, LuCheck } from "react-icons/lu";
+import { useState, useEffect } from "react";
+import { LuCopy, LuCheck, LuInfo } from "react-icons/lu";
+import { EnhanceScriptModal } from "../EnhanceScriptModal/EnhanceScriptModal";
 import styles from "./CopyPromptButton.module.css";
 
 const PROMPT_TEXT = `Act as an expert dialogue writer for voice acting. I am going to give you a Target Emotion and a Rough Script at the bottom of this prompt. 
@@ -40,6 +41,25 @@ Rough Script/Idea:
 export function CopyPromptButton() {
   const [isVisible, setIsVisible] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if we should auto-show the modal
+    const shownCountStr = localStorage.getItem("tarang_enhance_modal_shown_count");
+    const shownCount = shownCountStr ? parseInt(shownCountStr, 10) : 0;
+    
+    const sessionShown = sessionStorage.getItem("tarang_enhance_modal_session_shown");
+    
+    if (shownCount < 3 && !sessionShown) {
+      // Auto show after a small delay
+      const timer = setTimeout(() => {
+        setIsModalOpen(true);
+        localStorage.setItem("tarang_enhance_modal_shown_count", (shownCount + 1).toString());
+        sessionStorage.setItem("tarang_enhance_modal_session_shown", "true");
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -53,28 +73,46 @@ export function CopyPromptButton() {
 
   return (
     <div className={styles.wrapper}>
-      <button
-        type="button"
-        className={styles.trigger}
+      <div 
+        className={styles.buttonGroup}
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
-        onFocus={() => setIsVisible(true)}
-        onBlur={() => setIsVisible(false)}
-        onClick={handleCopy}
       >
-        {copied ? (
-          <LuCheck className={styles.triggerIcon} />
-        ) : (
-          <LuCopy className={styles.triggerIcon} />
-        )}
-        {copied ? "Copied!" : "Copy Prompt"}
-      </button>
+        <button suppressHydrationWarning
+          type="button"
+          className={`${styles.trigger} ${styles.glowingWhite}`}
+          onFocus={() => setIsVisible(true)}
+          onBlur={() => setIsVisible(false)}
+          onClick={handleCopy}
+        >
+          {copied ? (
+            <LuCheck className={styles.triggerIcon} />
+          ) : (
+            <LuCopy className={styles.triggerIcon} />
+          )}
+          {copied ? "Copied!" : "Copy Prompt"}
+        </button>
+
+        <button suppressHydrationWarning 
+          type="button"
+          className={styles.infoButton}
+          onClick={() => setIsModalOpen(true)}
+          title="See how to enhance your script"
+        >
+          <LuInfo className={styles.infoIcon} />
+        </button>
+      </div>
 
       {isVisible && !copied && (
         <div className={styles.card}>
-          Paste this prompt into GPT, GEMINI, or CLAUDE with your script to get an optimized script for synthesization.
+          Paste this prompt into <strong>GPT</strong>, <strong>GEMINI</strong>, or <strong>CLAUDE</strong> with your script to get an <em>highly optimized script</em> for <strong>perfect voice synthesization</strong>.
         </div>
       )}
+
+      <EnhanceScriptModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 }

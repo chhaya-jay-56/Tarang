@@ -91,7 +91,7 @@ export function LanguageSelector({
     <div className={styles.selectorWrapper}>
       <span className={styles.label}>{label}</span>
       <div className={styles.dropdownContainer} ref={containerRef}>
-        <button
+        <button suppressHydrationWarning
           type="button"
           className={styles.trigger}
           onClick={handleToggle}
@@ -122,7 +122,7 @@ export function LanguageSelector({
             <div className={styles.listContainer}>
               {/* Auto-detect option */}
               {!search && (
-                <button
+                <button suppressHydrationWarning
                   type="button"
                   className={`${styles.option} ${!value ? styles.optionSelected : ""}`}
                   onClick={() => { onChange(""); setIsOpen(false); }}
@@ -139,7 +139,7 @@ export function LanguageSelector({
                 <>
                   <div className={styles.groupLabel}>Popular</div>
                   {filteredPopular.map((lang) => (
-                    <button
+                    <button suppressHydrationWarning
                       key={`pop-${lang.id}`}
                       type="button"
                       className={`${styles.option} ${value === lang.id ? styles.optionSelected : ""}`}
@@ -161,7 +161,7 @@ export function LanguageSelector({
                 <>
                   <div className={styles.groupLabel}>All Languages</div>
                   {filteredOther.map((lang) => (
-                    <button
+                    <button suppressHydrationWarning
                       key={`all-${lang.id}`}
                       type="button"
                       className={`${styles.option} ${value === lang.id ? styles.optionSelected : ""}`}

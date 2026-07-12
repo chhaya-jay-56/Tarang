@@ -78,6 +78,7 @@ export function Sidebar() {
           {/* Toggle Button on the right */}
           {!isCollapsed && (
             <button
+              suppressHydrationWarning
               onClick={toggleCollapse}
               className="hidden lg:flex p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors relative z-10"
               title="Close sidebar"

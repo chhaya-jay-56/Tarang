@@ -61,7 +61,6 @@ export function useVoiceLibrary() {
       // Add new voice to list and clear form
       store.setVoices([data, ...store.voices]);
       store.clearCreateForm();
-      window.dispatchEvent(new Event("credits:refetch"));
       return data;
     } catch (err) {
       store.setError(err instanceof Error ? err.message : "Failed to create voice");

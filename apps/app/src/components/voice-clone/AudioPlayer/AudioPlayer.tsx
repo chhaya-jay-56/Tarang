@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useId } from "react";
 import { LuMusic } from "react-icons/lu";
 import { FaPlay, FaPause, FaBackward, FaForward } from "react-icons/fa6";
 import WaveSurfer from "wavesurfer.js";
@@ -22,6 +22,7 @@ function formatTime(seconds: number) {
 }
 
 export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
+  const playerId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WaveSurfer | null>(null);
 
@@ -56,7 +57,10 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
       barHeight: 1.2,
     });
 
-    ws.on("play", () => setIsPlaying(true));
+    ws.on("play", () => {
+      setIsPlaying(true);
+      window.dispatchEvent(new CustomEvent("tarang:audioPlay", { detail: { id: playerId } }));
+    });
     ws.on("pause", () => setIsPlaying(false));
     ws.on("timeupdate", (t) => setCurrentTime(t));
     ws.on("ready", (d) => setDuration(d));
@@ -67,7 +71,20 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
       ws.destroy();
       if (typeof source !== "string") URL.revokeObjectURL(url);
     };
-  }, [source]);
+  }, [source, playerId]);
+
+  // ── Listen for other players playing ──
+  useEffect(() => {
+    const handleGlobalPlay = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail.id !== playerId && wsRef.current?.isPlaying()) {
+        wsRef.current.pause();
+      }
+    };
+    
+    window.addEventListener("tarang:audioPlay", handleGlobalPlay);
+    return () => window.removeEventListener("tarang:audioPlay", handleGlobalPlay);
+  }, [playerId]);
 
   const togglePlay = useCallback(() => wsRef.current?.playPause(), []);
   const jumpBack = useCallback(() => wsRef.current?.skip(-5), []);

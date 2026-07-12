@@ -49,6 +49,11 @@
 }
 
 /* ── Text Input ── */
+.textareaWrapper {
+  position: relative;
+  width: 100%;
+}
+
 .textInput {
   width: 100%;
   min-height: 140px;
@@ -56,6 +61,7 @@
   border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
   background: color-mix(in srgb, var(--card) 50%, transparent);
   padding: 18px 22px;
+  padding-bottom: 28px;
   font-size: 14px;
   color: var(--foreground);
   resize: none;
@@ -64,6 +70,15 @@
   font-family: inherit;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   line-height: 1.6;
+}
+
+.charCounter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  pointer-events: none;
 }
 
 .textInput::placeholder {

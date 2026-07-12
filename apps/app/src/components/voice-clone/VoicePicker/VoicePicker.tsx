@@ -69,7 +69,7 @@ export function VoicePicker({ onSelect, selectedId }: VoicePickerProps) {
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
-      <button
+      <button suppressHydrationWarning
         type="button"
         className={styles.trigger}
         onClick={handleOpen}
@@ -101,7 +101,7 @@ export function VoicePicker({ onSelect, selectedId }: VoicePickerProps) {
                 <>
                   <div className={styles.groupLabel}>Your Voices</div>
                   {customVoices.map((voice) => (
-                    <button
+                    <button suppressHydrationWarning
                       key={voice.id}
                       type="button"
                       className={`${styles.option} ${selectedId === voice.id ? styles.optionSelected : ""}`}
@@ -123,7 +123,7 @@ export function VoicePicker({ onSelect, selectedId }: VoicePickerProps) {
                 <>
                   <div className={styles.groupLabel}>Pre-built</div>
                   {presetVoices.map((voice) => (
-                    <button
+                    <button suppressHydrationWarning
                       key={voice.id}
                       type="button"
                       className={`${styles.option} ${selectedId === voice.id ? styles.optionSelected : ""}`}

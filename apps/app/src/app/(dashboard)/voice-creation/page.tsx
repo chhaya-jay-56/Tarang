@@ -145,7 +145,7 @@ export default function VoiceCreationPage() {
                 Reference Audio <span className={styles.required}>*</span>
               </label>
               <p className={styles.fieldHint}>
-                Upload a clear audio sample of the voice. Minimum 10 seconds recommended.
+                Upload a clear audio sample of the 30 Second , 2 minute maximum limit
               </p>
 
               {createFile ? (
@@ -195,6 +195,9 @@ export default function VoiceCreationPage() {
             )}
 
             {/* Submit */}
+            <p className={styles.fieldHint} style={{ textAlign: "center", marginBottom: "1rem" }}>
+              Created voice will be available in the Text-to-Speech section for use.
+            </p>
             <Button
               variant="outline"
               size="lg"

@@ -13,7 +13,7 @@ export function ScriptBoxInfo() {
 
   return (
     <div className={styles.wrapper}>
-      <button
+      <button suppressHydrationWarning
         type="button"
         className={styles.trigger}
         onMouseEnter={() => setIsVisible(true)}

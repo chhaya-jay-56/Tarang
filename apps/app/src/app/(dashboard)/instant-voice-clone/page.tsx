@@ -71,12 +71,18 @@ export default function InstantVoiceClonePage() {
           />
 
           {/* Script Input */}
-          <textarea
-            className={styles.textInput}
-            placeholder="Enter the text you want the cloned voice to speak..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
+          <div className={styles.textareaWrapper}>
+            <textarea
+              className={styles.textInput}
+              placeholder="Enter the text you want the cloned voice to speak..."
+              value={text}
+              maxLength={1500}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <div className={styles.charCounter}>
+              {text.length} / 1500
+            </div>
+          </div>
 
           {/* Dynamic credit estimate */}
           {text.trim().length > 0 && (

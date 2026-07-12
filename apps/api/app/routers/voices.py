@@ -118,14 +118,7 @@ async def trigger_clone(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid asset ID")
 
-    # ✅ CREDIT GATE — check BEFORE any DB lookups or proxy creation.
-    # Uses worst-case estimate (is_custom=True) for instant feedback.
-    # The actual atomic deduction still happens in create_clone_job().
-    worst_case_cost = estimate_clone_credits(body.text, is_custom=True)
-    try:
-        await check_credit_sufficient(db, user_id, worst_case_cost)
-    except ValueError as exc:
-        raise HTTPException(status_code=402, detail=str(exc))
+    # We will do the exact credit check AFTER resolving the voice source.
 
     # ── Resolve the voice source ──
     # Priority: UserAsset (direct) → CustomVoice (user) → PresetVoice (platform)
@@ -192,6 +185,14 @@ async def trigger_clone(
         db.add(proxy_asset)
         await db.commit()
         asset_uuid = proxy_asset_id
+
+    # ✅ CREDIT GATE — check exact required credits based on voice type
+    is_custom_voice = (cached_voice_id != "") or existing_asset is not None
+    exact_cost = estimate_clone_credits(body.text, is_custom=is_custom_voice)
+    try:
+        await check_credit_sufficient(db, user_id, exact_cost)
+    except ValueError as exc:
+        raise HTTPException(status_code=402, detail=str(exc))
 
     try:
         job = await clone_service.create_clone_job(
