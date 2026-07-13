@@ -15,10 +15,5 @@ AI-powered audio platform — text-to-speech, voice cloning, and audio separatio
 
 ### Built with
 
-FastAPI · Next.js · PostgreSQL · Modal · Cloudflare R2 · Clerk
+FastAPI · Next.js · PostgreSQL · Modal · Cloudflare · Clerk
 
----
-
-### License
-
-Proprietary — all rights reserved.

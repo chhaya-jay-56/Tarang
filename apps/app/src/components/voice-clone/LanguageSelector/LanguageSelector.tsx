@@ -4,10 +4,12 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { LuChevronDown, LuCheck } from "react-icons/lu";
 import styles from "./LanguageSelector.module.css";
 import { POPULAR_LANGUAGES, ALL_LANGUAGES, type Language } from "./languages";
+import { PRESET_SCRIPTS } from "./scriptTranslations";
 
 type LanguageSelectorProps = {
   value: string;
   onChange: (languageId: string) => void;
+  onLanguageScriptChange?: (script: string | null) => void;
   label?: string;
   placeholder?: string;
 };
@@ -15,6 +17,7 @@ type LanguageSelectorProps = {
 export function LanguageSelector({
   value,
   onChange,
+  onLanguageScriptChange,
   label = "Target Language",
   placeholder = "Auto-detect (optional)",
 }: LanguageSelectorProps) {
@@ -49,10 +52,15 @@ export function LanguageSelector({
   const handleSelect = useCallback(
     (lang: Language) => {
       onChange(lang.id);
+      // Auto-fill preset translated script if available
+      if (onLanguageScriptChange) {
+        const script = PRESET_SCRIPTS[lang.id] ?? null;
+        onLanguageScriptChange(script);
+      }
       setIsOpen(false);
       setSearch("");
     },
-    [onChange]
+    [onChange, onLanguageScriptChange]
   );
 
   // Find selected language name
@@ -114,7 +122,7 @@ export function LanguageSelector({
                 ref={searchRef}
                 type="text"
                 className={styles.searchInput}
-                placeholder="Search 646 languages..."
+                placeholder="Every language you speak, we speak too"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />

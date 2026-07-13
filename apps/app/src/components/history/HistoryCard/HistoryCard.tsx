@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import {
   LuCircleCheck,
   LuCirclePlay,
@@ -7,6 +8,8 @@ import {
   LuUpload,
   LuDownload,
 } from "react-icons/lu";
+import { FaPlay, FaPause } from "react-icons/fa6";
+import { useGlobalAudio } from "@/hooks/useGlobalAudio";
 import styles from "./HistoryCard.module.css";
 
 /* ── Types ── */
@@ -106,6 +109,15 @@ export function HistoryCard({ entry, onDownload }: HistoryCardProps) {
   const isPending = entry.action === "clone_started";
   const isFailed = entry.action === "clone_failed";
 
+  const { play, isPlayingUrl } = useGlobalAudio();
+  const isPlaying = entry.download_url ? isPlayingUrl(entry.download_url) : false;
+
+  const handlePlay = useCallback(() => {
+    if (entry.download_url) {
+      play(entry.download_url);
+    }
+  }, [entry.download_url, play]);
+
   // Duration display
   const durationMs =
     meta?.cloned_duration_ms ?? meta?.duration_ms ?? (meta?.duration_seconds ? meta.duration_seconds * 1000 : null);
@@ -140,22 +152,32 @@ export function HistoryCard({ entry, onDownload }: HistoryCardProps) {
         </div>
       </div>
 
-      {/* Download button — only for completed clones */}
+      {/* Actions: Play + Download — only for completed clones */}
       <div className={styles.rightSection}>
         {isCompleted && entry.download_url && (
-          <button
-            type="button"
-            onClick={() =>
-              onDownload(
-                entry.download_url!,
-                `${meta?.original_filename || "voice"}_cloned.wav`
-              )
-            }
-            className={styles.downloadBtn}
-          >
-            <LuDownload className={styles.downloadIcon} />
-            Download
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handlePlay}
+              className={styles.playBtn}
+              title={isPlaying ? "Pause" : "Preview output"}
+            >
+              {isPlaying ? <FaPause /> : <FaPlay className={styles.playOffset} />}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                onDownload(
+                  entry.download_url!,
+                  `${meta?.original_filename || "voice"}_cloned.wav`
+                )
+              }
+              className={styles.downloadBtn}
+            >
+              <LuDownload className={styles.downloadIcon} />
+              Download
+            </button>
+          </>
         )}
       </div>
     </div>

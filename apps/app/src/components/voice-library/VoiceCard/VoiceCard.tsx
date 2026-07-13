@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useCallback } from "react";
 import { FaPlay, FaPause } from "react-icons/fa6";
 import { LuTrash2 } from "react-icons/lu";
 import { HiOutlineStar } from "react-icons/hi2";
+import { useGlobalAudio } from "@/hooks/useGlobalAudio";
 import styles from "./VoiceCard.module.css";
 
 type VoiceCardProps = {
@@ -29,26 +30,14 @@ export function VoiceCard({
   onSelect,
   isSelected = false,
 }: VoiceCardProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { play, isPlayingUrl } = useGlobalAudio();
+  const isPlaying = audioUrl ? isPlayingUrl(audioUrl) : false;
 
   const togglePlay = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!audioUrl) return;
-
-    if (!audioRef.current) {
-      audioRef.current = new Audio(audioUrl);
-      audioRef.current.onended = () => setIsPlaying(false);
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
-    }
-  }, [audioUrl, isPlaying]);
+    play(audioUrl);
+  }, [audioUrl, play]);
 
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();

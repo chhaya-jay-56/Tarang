@@ -103,12 +103,37 @@
   color: #f59e0b;
 }
 
-/* ── Right section: download button ── */
+/* ── Right section: play + download ── */
 .rightSection {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+}
+
+.playBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid #3b82f6;
+  background: color-mix(in srgb, #3b82f6 10%, transparent);
+  color: #3b82f6;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.playBtn:hover {
+  background: color-mix(in srgb, #3b82f6 25%, transparent);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+}
+
+.playOffset {
+  margin-left: 2px;
 }
 
 .downloadBtn {

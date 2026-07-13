@@ -18,6 +18,7 @@ export function useVoiceClone(useStoreHook = defaultStore) {
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const consecutiveFailsRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
@@ -25,6 +26,11 @@ export function useVoiceClone(useStoreHook = defaultStore) {
       if (pollTimerRef.current) {
         clearTimeout(pollTimerRef.current);
         pollTimerRef.current = null;
+      }
+      // Abort any in-flight poll fetch so it can't write stale data
+      if (abortRef.current) {
+        abortRef.current.abort();
+        abortRef.current = null;
       }
     };
   }, []);
@@ -40,6 +46,10 @@ export function useVoiceClone(useStoreHook = defaultStore) {
     if (pollTimerRef.current) {
       clearTimeout(pollTimerRef.current);
       pollTimerRef.current = null;
+    }
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
     }
   }, []);
 
@@ -126,12 +136,24 @@ export function useVoiceClone(useStoreHook = defaultStore) {
   // ── Polling ──
   const startPolling = useCallback(
     (jobId: string) => {
+      // Kill any previous poll loop before starting a new one
+      if (pollTimerRef.current) {
+        clearTimeout(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      const { signal } = abortRef.current;
+
       consecutiveFailsRef.current = 0;
       const startTime = Date.now();
       const POLL_MS = 3000;
       const TIMEOUT_MS = 5 * 60 * 1000;
 
       const poll = async () => {
+        // Bail out if this poll loop was aborted (component unmounted)
+        if (signal.aborted) return;
+
         if (Date.now() - startTime > TIMEOUT_MS) {
           store.setCloneError("Clone is taking too long. Please try again.");
           store.setIsCloning(false);
@@ -139,13 +161,19 @@ export function useVoiceClone(useStoreHook = defaultStore) {
         }
 
         try {
-          const statusRes = await authFetch(`/api/voices/${jobId}/status`);
+          const statusRes = await authFetch(
+            `/api/voices/${jobId}/status`,
+            { signal }
+          );
           const statusData = await statusRes.json();
           consecutiveFailsRef.current = 0;
 
           const isTerminal = handleStatusUpdate(statusData);
           if (isTerminal) return;
-        } catch {
+        } catch (err: unknown) {
+          // If aborted (navigation), exit silently
+          if (err instanceof DOMException && err.name === "AbortError") return;
+
           consecutiveFailsRef.current += 1;
           if (consecutiveFailsRef.current >= 5) {
             store.setCloneError(
@@ -156,6 +184,8 @@ export function useVoiceClone(useStoreHook = defaultStore) {
           }
         }
 
+        // Don't schedule next tick if aborted between await and here
+        if (signal.aborted) return;
         pollTimerRef.current = setTimeout(poll, POLL_MS);
       };
 
@@ -164,6 +194,16 @@ export function useVoiceClone(useStoreHook = defaultStore) {
     },
     [store, authFetch, handleStatusUpdate]
   );
+
+  // ── Resume polling on remount ──
+  // If the user navigated away mid-job and came back, restart polling
+  useEffect(() => {
+    if (store.isCloning && store.jobId && !pollTimerRef.current) {
+      startPolling(store.jobId);
+    }
+    // Only run on mount (startPolling is stable via useCallback)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Clone ──
   const clone = useCallback(async () => {

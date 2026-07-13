@@ -66,6 +66,9 @@ export default function InstantVoiceClonePage() {
           <LanguageSelector
             value={targetLanguage}
             onChange={setTargetLanguage}
+            onLanguageScriptChange={(script) => {
+              if (script) setText(script);
+            }}
             label="Target Language"
             placeholder="Select language"
           />

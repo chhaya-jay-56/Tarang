@@ -61,6 +61,7 @@
 .track {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
   gap: 0;
   padding: 0 4px;
 }
