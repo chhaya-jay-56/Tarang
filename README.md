@@ -1,6 +1,6 @@
 # Tarang
 
-AI-powered audio platform — text-to-speech, voice cloning, and audio separation.
+AI-Powered audio platform — text-to-speech, voice cloning, and audio separation.
 
 ---
 
