@@ -66,9 +66,7 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
     let isMounted = true;
 
     // Clear container to prevent double-initialization DOM issues in Strict Mode / HMR
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
+    // React 19 handles this properly, manual DOM mutation causes removeChild errors
     
     import("wavesurfer.js").then((WaveSurferModule) => {
       if (!isMounted || !containerRef.current) return;
@@ -105,10 +103,6 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
         } catch (e) {
           // ignore DOM errors during fast-refresh
         }
-      }
-      // Clean up the DOM node manually to prevent React 'removeChild' errors
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
       }
     };
   }, [color, seed, height]);

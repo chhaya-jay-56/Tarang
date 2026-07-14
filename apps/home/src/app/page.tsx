@@ -4,6 +4,7 @@ import Background from "@/components/Background/Background";
 import Navbar from "@/components/Navbar/Navbar";
 import Hero from "@/components/Hero/Hero";
 import ProductSection from "@/components/ProductSection/ProductSection";
+import SupportedLanguages from "@/components/SupportedLanguages/SupportedLanguages";
 import HowItWorks from "@/components/HowItWorks/HowItWorks";
 import Contact from "@/components/Contact/Contact";
 import Footer from "@/components/Footer/Footer";
@@ -17,9 +18,11 @@ export default function HomePage() {
         <Hero />
       </div>
       <ProductSection />
+      <SupportedLanguages />
       <HowItWorks />
       <Contact />
       <Footer />
     </>
   );
 }
+

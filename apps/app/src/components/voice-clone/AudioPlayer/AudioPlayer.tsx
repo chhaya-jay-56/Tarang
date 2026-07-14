@@ -63,7 +63,12 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
     });
     ws.on("pause", () => setIsPlaying(false));
     ws.on("timeupdate", (t) => setCurrentTime(t));
-    ws.on("ready", (d) => setDuration(d));
+    // Use decoded AudioBuffer duration (PCM-based, always accurate)
+    // instead of container metadata which is often wrong for WebM blobs from MediaRecorder
+    ws.on("ready", () => {
+      const decoded = ws.getDecodedData();
+      setDuration(decoded ? decoded.duration : ws.getDuration());
+    });
 
     wsRef.current = ws;
 

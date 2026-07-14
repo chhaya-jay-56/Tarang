@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
-import { LuDownload, LuFileUp, LuX } from "react-icons/lu";
+import { useCallback } from "react";
+import { LuDownload } from "react-icons/lu";
 import { Hatch } from "ldrs/react";
 import "ldrs/react/Hatch.css";
 import { Button } from "@/components/ui/button";
@@ -38,36 +38,7 @@ export default function TextToSpeechPage() {
     consecutiveFails,
   } = useVoiceClone(useTtsStore);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [scriptFileName, setScriptFileName] = useState<string | null>(null);
 
-  /** Read a .txt file and load its contents into the text area */
-  const handleScriptUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      setScriptFileName(file.name);
-
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const content = ev.target?.result;
-        if (typeof content === "string") {
-          setText(content);
-        }
-      };
-      reader.readAsText(file);
-
-      // Reset the input so the same file can be re-selected
-      e.target.value = "";
-    },
-    [setText]
-  );
-
-  const clearScript = useCallback(() => {
-    setText("");
-    setScriptFileName(null);
-  }, [setText]);
 
   return (
     <div className={styles.page}>
@@ -128,39 +99,7 @@ export default function TextToSpeechPage() {
           {/* Speed Control */}
           <SpeedControl value={speed} onChange={setSpeed} />
 
-          {/* Script file upload */}
-          <div className={styles.scriptUpload}>
-            <input suppressHydrationWarning
-              ref={fileInputRef}
-              type="file"
-              accept=".txt,.srt,.vtt,.md"
-              hidden
-              onChange={handleScriptUpload}
-            />
-            <button suppressHydrationWarning
-              type="button"
-              className={styles.scriptUploadBtn}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <LuFileUp className={styles.scriptUploadIcon} />
-              Upload Script
-            </button>
 
-            {scriptFileName && (
-              <>
-                <span className={styles.scriptFileName}>
-                  {scriptFileName}
-                </span>
-                <button suppressHydrationWarning
-                  type="button"
-                  className={styles.scriptClearBtn}
-                  onClick={clearScript}
-                >
-                  <LuX />
-                </button>
-              </>
-            )}
-          </div>
 
           {/* Synthesize Button */}
           <div className={styles.actions}>

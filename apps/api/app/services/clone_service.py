@@ -52,9 +52,9 @@ logger = logging.getLogger("tarang.clone_service")
 STAGE_MESSAGES = {
     "queued": "Starting clone...",
     "downloading_reference": "Preparing reference audio...",
-    "uploading_to_ai": "Sending to OmniVoice...",
+    "uploading_to_ai": "Sending to AI...",
     "model_loading": "Loading AI model...",
-    "model_running": "Cloning your voice...",
+    "model_running": "Running model...",
     "downloading_output": "Processing output...",
     "saving_to_storage": "Saving cloned audio...",
     "completed": "Clone complete!",

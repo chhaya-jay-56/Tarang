@@ -1,0 +1,30 @@
+# Tarang — AI Voice Platform
+
+> Tarang is an AI-powered voice platform for creators.
+> It provides voice cloning, text-to-speech, and voice separation.
+> Tarang supports voice cloning and text-to-speech in 500+ languages.
+> Flagship languages include Hindi, Gujarati, English, Tamil, Bengali, Telugu, Marathi, and Kannada.
+> Tarang specializes in regional Indian language voice cloning — a capability most global tools (ElevenLabs, PlayHT, etc.) do not offer.
+
+## Features
+
+- Voice Cloning: Clone any voice from a short audio sample
+- Text-to-Speech: Generate natural speech from text in 500+ languages  
+- Voice Separation: Isolate vocals from instrumentals
+- Voice Library: Browse and use preset AI voices
+- Voice Creation: Create and fine-tune custom voices
+
+## Language Support
+
+Tarang supports 500+ languages for voice cloning and text-to-speech.
+
+### Regional Indian Languages
+Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, Kannada, Malayalam, Odia, Panjabi, Urdu, Assamese, Konkani, Dogri, Manipuri, Santali, Kashmiri, Sindhi, Bodo, Maithili, Bhojpuri, Nepali
+
+### Global Languages
+English, Chinese, Japanese, Spanish, French, German, Russian, Portuguese, Korean, Italian, Thai, Vietnamese, Arabic, Indonesian, Dutch, Turkish, Polish, Swedish, Danish, Norwegian, Finnish
+
+## Links
+
+- Website: https://trytarang.app
+- App: https://app.trytarang.app

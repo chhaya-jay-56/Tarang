@@ -68,7 +68,7 @@ const Footer = () => {
             &copy; {currentYear} Tarang. All rights reserved.
           </span>
           <span className={styles.madeBy}>
-            Made by <a href="https://www.linkedin.com/in/jaychhaya56" target="_blank" rel="noopener noreferrer" className={styles.jayLink}>Jay</a>
+            <span className={styles.craftedText}>Crafted by</span> <a href="https://www.linkedin.com/in/jaychhaya56" target="_blank" rel="noopener noreferrer" className={styles.jayLink}>Jay</a>
           </span>
         </div>
       </div>

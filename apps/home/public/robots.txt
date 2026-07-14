@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# AI crawler-readable summary available at /llms.txt
+# Sitemap: https://trytarang.app/sitemap.xml

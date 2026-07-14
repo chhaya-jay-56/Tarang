@@ -1,0 +1,272 @@
+/* ─── Supported Languages Section ─── */
+.section {
+    position: relative;
+    z-index: 10;
+    padding: 6rem 5%;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.badge {
+    display: inline-block;
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-color);
+    border: 1px solid rgba(120, 40, 255, 0.3);
+    background: rgba(120, 40, 255, 0.08);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+}
+
+.heading {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin-bottom: 0.75rem;
+}
+
+.headingAccent {
+    background: linear-gradient(135deg, var(--accent-color), #e040fb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.5;
+}
+
+/* ─── Indian Languages Callout ─── */
+.callout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(120, 40, 255, 0.08);
+    border: 1px solid rgba(120, 40, 255, 0.2);
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 2.5rem;
+}
+
+.calloutIcon {
+    font-size: 1rem;
+}
+
+/* ─── Popular Languages Grid ─── */
+.popularGrid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.langChip {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.langChip:hover {
+    background: rgba(120, 40, 255, 0.12);
+    border-color: rgba(120, 40, 255, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* ─── Expandable Full List ─── */
+.expandable {
+    margin-top: 1rem;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+}
+
+.expandable summary {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: color 0.2s ease;
+    user-select: none;
+}
+
+.expandable summary::-webkit-details-marker {
+    display: none;
+}
+
+.expandable summary:hover {
+    color: var(--text-primary);
+}
+
+.expandableArrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.expandable[open] .expandableArrow {
+    transform: rotate(180deg);
+}
+
+.allLangsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0 1.5rem 1.5rem;
+    justify-content: center;
+}
+
+.allLangTag {
+    font-family: 'Agrandir', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+/* ─── FAQ Section ─── */
+.faqSection {
+    margin-top: 3.5rem;
+    text-align: left;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.faqTitle {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.faqItem {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.faqItem:last-child {
+    border-bottom: none;
+}
+
+.faqItem summary {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 1.1rem 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    transition: color 0.2s ease;
+}
+
+.faqItem summary::-webkit-details-marker {
+    display: none;
+}
+
+.faqItem summary:hover {
+    color: var(--text-primary);
+}
+
+.faqArrow {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.faqItem[open] .faqArrow {
+    transform: rotate(180deg);
+}
+
+.faqAnswer {
+    font-family: 'Agrandir', sans-serif;
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding: 0 0 1.1rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .section {
+        padding: 4rem 5%;
+    }
+
+    .callout {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .faqItem summary {
+        font-size: 0.82rem;
+    }
+
+    .faqAnswer {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section {
+        padding: 3rem 4%;
+    }
+
+    .popularGrid {
+        gap: 0.4rem;
+    }
+
+    .langChip {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.7rem;
+    }
+}

@@ -195,8 +195,11 @@ export default function VoiceCreationPage() {
             )}
 
             {/* Submit */}
-            <p className={styles.fieldHint} style={{ textAlign: "center", marginBottom: "1rem" }}>
+            <p className={styles.fieldHint} style={{ textAlign: "center", marginBottom: "0.25rem" }}>
               Created voice will be available in the Text-to-Speech section for use.
+            </p>
+            <p className={styles.fieldHint} style={{ textAlign: "center", marginBottom: "1rem" }}>
+              <span style={{ color: "var(--foreground)", fontWeight: 600 }}>⚡ 250 credits</span> will be used for each voice creation.
             </p>
             <Button
               variant="outline"
