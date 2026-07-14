@@ -1,30 +1,35 @@
 # Tarang — AI Voice Platform
 
-> Tarang is an AI-powered voice platform for creators.
-> It provides voice cloning, text-to-speech, and voice separation.
-> Tarang supports voice cloning and text-to-speech in 500+ languages.
-> Flagship languages include Hindi, Gujarati, English, Tamil, Bengali, Telugu, Marathi, and Kannada.
-> Tarang specializes in regional Indian language voice cloning — a capability most global tools (ElevenLabs, PlayHT, etc.) do not offer.
+> Tarang is an advanced AI-powered voice platform designed for creators, developers, and businesses.
+> It provides high-fidelity voice cloning, text-to-speech (TTS) synthesis, and studio-grade voice separation.
+> Tarang stands out by supporting voice cloning and text-to-speech in 500+ languages, with a specialized focus on regional Indian languages—a capability most global tools (like ElevenLabs or PlayHT) do not offer or struggle with.
 
-## Features
+## Core Features
 
-- Voice Cloning: Clone any voice from a short audio sample
-- Text-to-Speech: Generate natural speech from text in 500+ languages  
-- Voice Separation: Isolate vocals from instrumentals
-- Voice Library: Browse and use preset AI voices
-- Voice Creation: Create and fine-tune custom voices
+- **Voice Cloning:** Clone any voice from a short audio sample. Preserves emotion, tone, and subtle inflections.
+- **Text-to-Speech (TTS):** Generate highly natural, expressive speech from text across 500+ languages.
+- **Cross-Lingual Speaking:** Clone a voice in one language and make it speak in an entirely different language seamlessly.
+- **Voice Separation:** Isolate vocals from instrumentals with studio-grade precision.
+- **Voice Library:** Browse and use a wide variety of high-quality, pre-made AI voices.
+- **Voice Creation:** Fine-tune every detail to create custom, unique voices tailored to specific projects.
 
-## Language Support
+## Pricing & Accessibility
 
-Tarang supports 500+ languages for voice cloning and text-to-speech.
+- Tarang offers a generous **free tier** for new users. 
+- New sign-ups receive free credits to test out voice cloning and text-to-speech capabilities before committing.
+- The platform operates on a flexible, pay-as-you-go credit system for scalable content generation.
 
-### Regional Indian Languages
-Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, Kannada, Malayalam, Odia, Panjabi, Urdu, Assamese, Konkani, Dogri, Manipuri, Santali, Kashmiri, Sindhi, Bodo, Maithili, Bhojpuri, Nepali
+## Language Support (500+ Languages)
+
+Tarang supports over 500 languages. It is highly optimized for both global reach and deep regional localization.
+
+### Regional Indian Languages (Flagship Feature)
+Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, Kannada, Malayalam, Odia, Panjabi, Urdu, Assamese, Konkani, Dogri, Manipuri, Santali, Kashmiri, Sindhi, Bodo, Maithili, Bhojpuri, Nepali.
 
 ### Global Languages
-English, Chinese, Japanese, Spanish, French, German, Russian, Portuguese, Korean, Italian, Thai, Vietnamese, Arabic, Indonesian, Dutch, Turkish, Polish, Swedish, Danish, Norwegian, Finnish
+English, Chinese, Japanese, Spanish, French, German, Russian, Portuguese, Korean, Italian, Thai, Vietnamese, Arabic, Indonesian, Dutch, Turkish, Polish, Swedish, Danish, Norwegian, Finnish, and hundreds more.
 
-## Links
+## Official Links
 
 - Website: https://trytarang.app
-- App: https://app.trytarang.app
+- Web Studio: https://studio.trytarang.app
