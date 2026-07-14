@@ -17,10 +17,17 @@ export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"upload" | "record">("upload");
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
-        onFileSelect(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file.size > MAX_FILE_SIZE) {
+          alert("File size exceeds the 10 MB limit.");
+          return;
+        }
+        onFileSelect(file);
       }
     },
     [onFileSelect]
@@ -32,6 +39,10 @@ export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         const droppedFile = e.dataTransfer.files[0];
         if (droppedFile.type.includes("audio")) {
+          if (droppedFile.size > MAX_FILE_SIZE) {
+            alert("File size exceeds the 10 MB limit.");
+            return;
+          }
           onFileSelect(droppedFile);
         }
       }
@@ -69,7 +80,7 @@ export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
         </div>
         <div>
           <p className={styles.title}>Add or drop your audio files here</p>
-          <p className={styles.subtitle}>WAV, MP3, OGG, FLAC, M4A, AAC, WEBM, WMA</p>
+          <p className={styles.subtitle}>WAV, MP3, OGG, FLAC, M4A, AAC, WEBM, WMA (Max 10 MB)</p>
         </div>
         <input
           type="file"
