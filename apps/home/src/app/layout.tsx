@@ -5,13 +5,21 @@ import "../index.css";
 const SITE_URL = "https://trytarang.app";
 
 export const metadata: Metadata = {
-  title: "Voice Cloning in 500+ Languages | Tarang — AI Voice Platform",
+  title: "Tarang | AI Voice Cloning in 500+ Languages",
   description:
     "Tarang supports voice cloning and text-to-speech in 500+ languages including Hindi, English, Gujarati, Tamil, Bengali, Marathi, and more. Clone your voice and speak any language instantly.",
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
+  icons: {
+    icon: [
+      { url: '/Logo.svg', type: 'image/svg+xml' }
+    ],
+    apple: [
+      { url: '/Logo.svg', type: 'image/svg+xml' }
+    ]
+  },
   openGraph: {
-    title: "Voice Cloning in 500+ Languages | Tarang",
+    title: "Tarang | AI Voice Cloning in 500+ Languages",
     description:
       "AI voice cloning & text-to-speech in 500+ languages. Regional Indian languages included.",
     url: SITE_URL,
@@ -21,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarang — AI Voice Cloning in 500+ Languages",
+    title: "Tarang | AI Voice Cloning in 500+ Languages",
     description:
       "Clone your voice in Hindi, Gujarati, Tamil, English, and 500+ more languages.",
   },
@@ -36,6 +44,25 @@ const POPULAR_LANG_NAMES = [
   "Swedish", "Danish", "Norwegian", "Finnish", "Bengali", "Tamil",
   "Telugu", "Urdu", "Gujarati", "Marathi", "Kannada", "Malayalam",
 ];
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Tarang",
+  url: SITE_URL,
+  logo: `${SITE_URL}/Logo.svg`,
+  description: "AI Voice Platform for multi-language voice cloning and text-to-speech.",
+  sameAs: [
+    "https://trytarang.app"
+  ]
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Tarang",
+  url: SITE_URL,
+};
 
 const softwareAppSchema = {
   "@context": "https://schema.org",
@@ -124,7 +151,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([softwareAppSchema, faqSchema, itemListSchema]),
+            __html: JSON.stringify([organizationSchema, webSiteSchema, softwareAppSchema, faqSchema, itemListSchema]),
           }}
         />
       </head>
