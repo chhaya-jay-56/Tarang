@@ -126,7 +126,8 @@ async def create_voice(
     # ── Credit deduction ──
     try:
         await check_and_deduct(
-            db, user_id, CREDITS_VOICE_CREATION, f"voice_creation:{name[:30]}"
+            db, user_id, CREDITS_VOICE_CREATION, f"voice_creation:{name[:30]}",
+            service_type="voice_creation",
         )
     except ValueError as exc:
         raise ValueError(str(exc))
@@ -216,7 +217,8 @@ async def save_voice_from_clone(
     # ── Credit deduction ──
     try:
         await check_and_deduct(
-            db, user_id, CREDITS_VOICE_CREATION, f"voice_creation_from_clone:{name[:30]}"
+            db, user_id, CREDITS_VOICE_CREATION, f"voice_creation_from_clone:{name[:30]}",
+            service_type="voice_creation",
         )
     except ValueError as exc:
         raise ValueError(str(exc))

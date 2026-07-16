@@ -269,6 +269,7 @@ async def create_clone_job(
             credit_cost,
             f"omnivoice_clone:{text[:30]}",
             clone_job_id=job_id,
+            service_type="clone",
         )
     except ValueError as exc:
         raise ValueError(str(exc))

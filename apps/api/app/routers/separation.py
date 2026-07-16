@@ -79,6 +79,7 @@ async def _charge_separation(
         user_id,
         credit_cost,
         f"voice_separation:{filename or 'audio'}",
+        service_type="separation",
     )
     await db.commit()
     return credit_cost, duration_seconds

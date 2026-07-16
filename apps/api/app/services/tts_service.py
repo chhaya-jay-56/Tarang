@@ -132,7 +132,7 @@ async def generate_tts(
 
     # ── Atomic credit deduction (pre-charge based on text length) ──
     try:
-        await check_and_deduct(db, user_id, credit_cost, f"tts_generate:{text[:50]}")
+        await check_and_deduct(db, user_id, credit_cost, f"tts_generate:{text[:50]}", service_type="tts")
     except ValueError as exc:
         raise ValueError(str(exc))
 
@@ -243,7 +243,7 @@ async def generate_clone(
     # ── Credit deduction (pre-charge based on text length) ──
     credit_cost = estimate_tts_credits(text)
     try:
-        await check_and_deduct(db, user_id, credit_cost, f"tts_clone:{text[:50]}")
+        await check_and_deduct(db, user_id, credit_cost, f"tts_clone:{text[:50]}", service_type="tts")
     except ValueError as exc:
         raise ValueError(str(exc))
 

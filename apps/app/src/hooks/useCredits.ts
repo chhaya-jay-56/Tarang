@@ -9,11 +9,9 @@ interface CreditData {
   planCreditsTotal: number;
 }
 
-const PLAN_TOTALS: Record<string, number> = {
-  free: 1500,
-  starter: 10_000,
-  premium: 30_000,
-};
+// PLAN_TOTALS removed — credit_limit now comes from the backend per-user.
+// Fallback to 1500 if credit_limit is 0 (legacy users before migration).
+const DEFAULT_CREDIT_LIMIT = 1500;
 
 let globalCreditData: CreditData | null = null;
 let activeFetchPromise: Promise<void> | null = null;
@@ -53,10 +51,12 @@ export function useCredits() {
         const json = await res.json();
         const planType = json.plan_type || "free";
 
+        const creditLimit = json.credit_limit ?? 0;
+
         globalCreditData = {
           creditBalance: json.credit_balance ?? 0,
           planType,
-          planCreditsTotal: PLAN_TOTALS[planType] ?? PLAN_TOTALS.free,
+          planCreditsTotal: creditLimit > 0 ? creditLimit : DEFAULT_CREDIT_LIMIT,
         };
         globalLastFetchTime = Date.now();
         setError(null);

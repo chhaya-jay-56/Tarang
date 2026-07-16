@@ -13,9 +13,9 @@
 #   Alembic's env.py does `from app.models import Base` to get the metadata.
 #   Exporting it here keeps the import chain clean.
 #
-# TABLES (7 active, dubbing tables moved to Desktop/Dubbing):
+# TABLES (8 active, dubbing tables moved to Desktop/Dubbing):
 #   users, user_assets, clone_jobs, credit_transactions, history,
-#   preset_voices, custom_voices
+#   preset_voices, custom_voices, app_config
 # ─────────────────────────────────────────────────────────────────────────────
 
 from app.database import Base
@@ -27,6 +27,7 @@ from app.models.credit_transaction import CreditTransaction, TxnType
 from app.models.history import History
 from app.models.preset_voice import PresetVoice
 from app.models.custom_voice import CustomVoice
+from app.models.app_config import AppConfig
 
 __all__ = [
     "Base",
@@ -43,5 +44,7 @@ __all__ = [
     "CreditTransaction", "TxnType",
     # ── History ──
     "History",
+    # ── Config ──
+    "AppConfig",
 ]
 

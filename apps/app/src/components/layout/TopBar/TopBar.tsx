@@ -20,6 +20,7 @@ const PAGE_NAMES: Record<string, string> = {
   "voice-separation": "Voice Separation",
   "pvc": "PVC",
   "history": "History",
+  "admin": "Admin",
 };
 
 function getPageName(pathname: string): string {

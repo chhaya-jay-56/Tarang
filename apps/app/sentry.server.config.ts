@@ -7,4 +7,15 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 1.0,
+  
+  beforeSend(event) {
+    const ignoredUsers = ["jay chhaya", "nilesh chhaya", "jay.chhaya", "nilesh.chhaya"];
+    if (event.user) {
+      const userName = (event.user.username || event.user.name || event.user.email || "").toLowerCase();
+      if (ignoredUsers.some(ignored => userName.includes(ignored))) {
+        return null;
+      }
+    }
+    return event;
+  },
 });

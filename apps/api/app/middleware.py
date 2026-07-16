@@ -132,7 +132,7 @@ def setup_middlewares(app: FastAPI):
         allow_origins=settings.CORS_ALLOWED_ORIGINS,
         allow_origin_regex=r"https://[a-zA-Z0-9-]+\.(ngrok-free\.app|ngrok-free\.dev|ngrok\.app)",
         allow_credentials=True,
-        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
     )
 

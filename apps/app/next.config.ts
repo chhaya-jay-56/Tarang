@@ -2,6 +2,15 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import path from "path";
 
+const isDev = process.env.NODE_ENV === "development";
+
+const connectSrc = [
+  "'self'",
+  "https:",
+  "wss:",
+  ...(isDev ? ["http://localhost:*", "http://127.0.0.1:*"] : []),
+].join(" ");
+
 const nextConfig: NextConfig = {
   reactCompiler: false,
   outputFileTracingRoot: path.join(__dirname, "../../"),
@@ -39,15 +48,13 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; font-src 'self' data: https:; connect-src 'self' https: wss:; media-src 'self' data: https: blob:; frame-src 'self' https:;"
+            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; font-src 'self' data: https:; connect-src ${connectSrc}; media-src 'self' data: https: blob:; frame-src 'self' https:;`
           }
         ],
       },
     ];
   },
 };
-
-const isDev = process.env.NODE_ENV === "development";
 
 export default isDev 
   ? nextConfig 

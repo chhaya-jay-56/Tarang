@@ -7,15 +7,14 @@ from app.config import settings
 from app.dependencies import get_db
 from app.models.user import User
 from app.models.credit_transaction import CreditTransaction, TxnType
+from app.models.app_config import AppConfig
 
 logger = logging.getLogger("tarang.webhooks")
 
-# ── Early-adopter config ──────────────────────────────────────────────────
-# First N users who sign up get a welcome credit grant.
-# Change these constants to adjust the promotion.
+# ── Early-adopter config (FALLBACKS — app_config table is the primary source) ──
+# These are used if app_config rows don't exist yet (fresh DB, migration pending).
 EARLY_ADOPTER_CREDIT_AMOUNT = 1500   # credits granted on signup
 EARLY_ADOPTER_USER_CAP = 200          # first N users get the bonus
-# ──────────────────────────────────────────────────────────────────────────
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -109,21 +108,31 @@ async def _handle_user_created(data: dict, db: AsyncSession):
     email = _extract_primary_email(data)
     name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip() or None
 
+    # Read config from app_config table, fallback to hardcoded constants
+    cap_result = await db.execute(
+        select(AppConfig.value).where(AppConfig.key == "free_tier_cap")
+    )
+    cap_val = cap_result.scalar_one_or_none()
+    user_cap = int(cap_val) if cap_val else EARLY_ADOPTER_USER_CAP
+
+    credits_result = await db.execute(
+        select(AppConfig.value).where(AppConfig.key == "free_tier_credits")
+    )
+    credits_val = credits_result.scalar_one_or_none()
+    credit_amount = int(credits_val) if credits_val else EARLY_ADOPTER_CREDIT_AMOUNT
+
     # Count existing users to decide early-adopter credit grant
     user_count_result = await db.execute(select(func.count()).select_from(User))
     current_user_count = user_count_result.scalar()
 
-    initial_credits = (
-        EARLY_ADOPTER_CREDIT_AMOUNT
-        if current_user_count < EARLY_ADOPTER_USER_CAP
-        else 0
-    )
+    initial_credits = credit_amount if current_user_count < user_cap else 0
 
     new_user = User(
         clerk_user_id=clerk_user_id,
         email=email,
         name=name,
         credit_balance=initial_credits,
+        credit_limit=initial_credits,
     )
     db.add(new_user)
     await db.flush()  # Get new_user.id before creating transaction

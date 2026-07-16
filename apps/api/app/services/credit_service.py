@@ -112,6 +112,7 @@ async def check_and_deduct(
     amount: int,
     description: str = "",
     clone_job_id: uuid.UUID | None = None,
+    service_type: str | None = None,
 ) -> int:
     """Atomically check balance and deduct credits.
 
@@ -147,6 +148,7 @@ async def check_and_deduct(
         txn_type=TxnType.deduction,
         amount=amount,
         balance_after=new_balance,
+        service_type=service_type,
     )
     db.add(txn)
 
@@ -166,6 +168,7 @@ async def refund_credits(
     amount: int,
     description: str = "",
     clone_job_id: uuid.UUID | None = None,
+    service_type: str | None = None,
 ) -> int:
     """Refund credits back to user (e.g., on processing failure).
 
@@ -191,6 +194,7 @@ async def refund_credits(
         txn_type=TxnType.refund,
         amount=amount,
         balance_after=new_balance,
+        service_type=service_type,
     )
     db.add(txn)
 

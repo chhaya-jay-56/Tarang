@@ -15,6 +15,7 @@ from sqlalchemy import select, func
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
+from app.models.app_config import AppConfig
 
 logger = logging.getLogger("tarang.credits")
 
@@ -46,6 +47,7 @@ async def get_credit_balance(
 
     return {
         "credit_balance": user.credit_balance,
+        "credit_limit": user.credit_limit,
         "plan_type": user.plan_type,
         "email": user.email,
     }
@@ -109,20 +111,33 @@ async def get_early_adopter_status(
             "promotion_active": true
         }
     """
+    # Read config from app_config table (admin-editable), fallback to hardcoded
     from app.routers.webhooks import (
         EARLY_ADOPTER_CREDIT_AMOUNT,
         EARLY_ADOPTER_USER_CAP,
     )
 
+    cap_result = await db.execute(
+        select(AppConfig.value).where(AppConfig.key == "free_tier_cap")
+    )
+    cap_val = cap_result.scalar_one_or_none()
+    cap = int(cap_val) if cap_val else EARLY_ADOPTER_USER_CAP
+
+    credits_result = await db.execute(
+        select(AppConfig.value).where(AppConfig.key == "free_tier_credits")
+    )
+    credits_val = credits_result.scalar_one_or_none()
+    credit_amount = int(credits_val) if credits_val else EARLY_ADOPTER_CREDIT_AMOUNT
+
     result = await db.execute(select(func.count()).select_from(User))
     total_users = result.scalar()
 
-    slots_remaining = max(0, EARLY_ADOPTER_USER_CAP - total_users)
+    slots_remaining = max(0, cap - total_users)
 
     return {
         "total_users": total_users,
-        "cap": EARLY_ADOPTER_USER_CAP,
+        "cap": cap,
         "slots_remaining": slots_remaining,
-        "credit_amount": EARLY_ADOPTER_CREDIT_AMOUNT,
+        "credit_amount": credit_amount,
         "promotion_active": slots_remaining > 0,
     }

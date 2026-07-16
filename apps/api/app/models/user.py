@@ -35,7 +35,7 @@
 import uuid
 
 from sqlalchemy import (
-    Column, String, Integer, DateTime, Text, CheckConstraint
+    Column, String, Integer, Boolean, DateTime, Text, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -84,6 +84,15 @@ class User(Base):
     # ── Credit balance — whole integer credits (like ElevenLabs)
     # No platform charges fractional credits, so INTEGER is sufficient
     credit_balance = Column(Integer, nullable=False, server_default="0")
+
+    # ── Credit limit — maximum credits ever allocated to this user.
+    # UI displays: credit_balance / credit_limit (e.g. "800/2000").
+    # When admin bumps limit from 1500→2000, credit_balance also gets +500.
+    credit_limit = Column(Integer, nullable=False, server_default="0")
+
+    # ── Admin flag — checked by get_admin_user() dependency on admin routes.
+    # Set via direct DB update, NOT via Clerk webhooks.
+    is_admin = Column(Boolean, nullable=False, server_default="false")
 
     # ── Timestamps ──
     created_at = Column(

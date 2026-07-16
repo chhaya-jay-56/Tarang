@@ -1,0 +1,534 @@
+/* ─── Admin Dashboard Styles ─── */
+
+.adminPage {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* ─── Overview Cards ─── */
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.statCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.2s;
+}
+
+.statCard:hover {
+  border-color: var(--primary);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Section Panels ─── */
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.sectionBody {
+  padding: 1.5rem;
+}
+
+/* ─── Search Bar ─── */
+
+.searchBar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 1;
+  height: 38px;
+  padding: 0 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-foreground);
+}
+
+/* ─── Buttons ─── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.btnSecondary:hover {
+  background: var(--border);
+}
+
+.btnDanger {
+  background: hsl(0 70% 50%);
+  color: white;
+}
+
+.btnDanger:hover {
+  background: hsl(0 70% 40%);
+}
+
+.btnSmall {
+  height: 30px;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+}
+
+/* ─── Users Table ─── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: hsl(var(--primary-hsl) / 0.03);
+}
+
+.userEmail {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+/* ─── Credit Bar (inline mini) ─── */
+
+.creditBarInline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.miniProgress {
+  width: 60px;
+  height: 4px;
+  background: var(--muted);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.miniProgressFill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+/* ─── Edit Credit Modal ─── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  width: min(440px, 90vw);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.modalLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.modalInput {
+  height: 40px;
+  padding: 0 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.modalInput:focus {
+  border-color: var(--primary);
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+/* ─── Config Panel ─── */
+
+.configGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.configItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.configKey {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.configValue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.configInput {
+  height: 36px;
+  width: 120px;
+  padding: 0 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.configInput:focus {
+  border-color: var(--primary);
+}
+
+/* ─── Insights ─── */
+
+.insightsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insightRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid hsl(var(--border-hsl, 0 0% 20%) / 0.5);
+}
+
+.insightRow:last-child {
+  border-bottom: none;
+}
+
+.insightLabel {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.insightValue {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Badges ─── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 0.5rem;
+  border-radius: 10px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badgeAdmin {
+  background: hsl(280 80% 50% / 0.15);
+  color: hsl(280 80% 65%);
+}
+
+.badgeFree {
+  background: hsl(200 60% 50% / 0.15);
+  color: hsl(200 60% 65%);
+}
+
+/* ─── Loading & Empty States ─── */
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  gap: 0.5rem;
+}
+
+/* ─── Tabs ─── */
+
+.tabBar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: var(--foreground);
+}
+
+.tabActive {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* ─── Pagination ─── */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.pageInfo {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* ─── Bulk Reassign Panel ─── */
+
+.bulkPanel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .table {
+    font-size: 0.75rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .searchBar {
+    flex-direction: column;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+}
+
+/* ─── Access Denied ─── */
+
+.accessDenied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+  text-align: center;
+}
+
+.accessDeniedIcon {
+  font-size: 3rem;
+}
+
+.accessDeniedTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.accessDeniedText {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}

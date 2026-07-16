@@ -20,7 +20,7 @@ import uuid
 import enum
 
 from sqlalchemy import (
-    Column, Integer, DateTime, ForeignKey, Enum, CheckConstraint
+    Column, Integer, Text, DateTime, ForeignKey, Enum, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -63,6 +63,10 @@ class CreditTransaction(Base):
     )
     amount = Column(Integer, nullable=False)
     balance_after = Column(Integer, nullable=False)
+
+    # ── Service that consumed credits — nullable for backward compat.
+    # Values: 'tts', 'clone', 'separation', 'voice_creation'
+    service_type = Column(Text, nullable=True)
 
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
