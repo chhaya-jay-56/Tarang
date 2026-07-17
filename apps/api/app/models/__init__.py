@@ -28,6 +28,7 @@ from app.models.history import History
 from app.models.preset_voice import PresetVoice
 from app.models.custom_voice import CustomVoice
 from app.models.app_config import AppConfig
+from app.models.deleted_user import DeletedUser
 
 __all__ = [
     "Base",
@@ -46,5 +47,7 @@ __all__ = [
     "History",
     # ── Config ──
     "AppConfig",
+    # ── Deleted users archive ──
+    "DeletedUser",
 ]
 

@@ -49,8 +49,8 @@ class CreditTransaction(Base):
 
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="RESTRICT"),
-        nullable=False, index=True,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True, index=True,
     )
     clone_job_id = Column(
         UUID(as_uuid=True),
@@ -67,6 +67,10 @@ class CreditTransaction(Base):
     # ── Service that consumed credits — nullable for backward compat.
     # Values: 'tts', 'clone', 'separation', 'voice_creation'
     service_type = Column(Text, nullable=True)
+
+    # ── Email snapshot: populated when user is deleted so we can trace
+    # orphaned transactions back to the original account.
+    deleted_user_email = Column(Text, nullable=True)
 
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

@@ -6,8 +6,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-background p-4 sm:p-8">
-      <div className="flex w-full max-w-[1050px] overflow-hidden rounded-[2.5rem] bg-card shadow-2xl ring-1 ring-border animate-in fade-in zoom-in-95 duration-700 ease-out">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-background px-3 py-6 sm:p-8">
+      <div className="flex w-full max-w-[1050px] overflow-hidden rounded-2xl sm:rounded-[2.5rem] bg-card shadow-2xl ring-1 ring-border animate-in fade-in zoom-in-95 duration-700 ease-out">
         
         {/* Left Side: Image and Branding inside a rounded container */}
         <div className="hidden lg:flex w-[45%] flex-col p-3">
@@ -35,11 +35,11 @@ export default function AuthLayout({
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="flex w-full lg:w-[55%] items-center justify-center p-8 lg:p-12 animate-in fade-in slide-in-from-right-4 duration-700 delay-150 fill-mode-both">
-          <div className="w-full max-w-sm flex flex-col items-center">
-             {/* Mobile branding */}
-             <div className="mb-8 flex lg:hidden flex-col items-center justify-center text-center mt-4">
-               <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <div className="flex w-full lg:w-[55%] items-center justify-center px-4 py-6 sm:p-8 lg:p-12 animate-in fade-in slide-in-from-right-4 duration-700 delay-150 fill-mode-both">
+          <div className="w-full max-w-sm flex flex-col items-center overflow-x-hidden">
+             {/* Mobile branding — smaller text, tighter spacing */}
+             <div className="mb-5 flex lg:hidden flex-col items-center justify-center text-center px-2">
+               <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground leading-snug">
                  Create, clone, and manage expressive voices.
                </h1>
              </div>

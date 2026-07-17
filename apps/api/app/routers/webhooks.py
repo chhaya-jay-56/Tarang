@@ -2,11 +2,12 @@ import logging
 from fastapi import APIRouter, Request, HTTPException, Depends
 from svix.webhooks import Webhook, WebhookVerificationError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from app.config import settings
 from app.dependencies import get_db
 from app.models.user import User
 from app.models.credit_transaction import CreditTransaction, TxnType
+from app.models.deleted_user import DeletedUser
 from app.models.app_config import AppConfig
 
 logger = logging.getLogger("tarang.webhooks")
@@ -127,28 +128,50 @@ async def _handle_user_created(data: dict, db: AsyncSession):
 
     initial_credits = credit_amount if current_user_count < user_cap else 0
 
+    # ── Check if this email has a deleted account (returning user) ──
+    # Only look at the MOST RECENT deletion for this email.
+    # Credits used from the prior account are deducted from the initial grant.
+    returning_credits_used = 0
+    deleted_result = await db.execute(
+        select(DeletedUser.credits_used)
+        .where(DeletedUser.email == email)
+        .order_by(DeletedUser.deleted_at.desc())
+        .limit(1)
+    )
+    last_deleted = deleted_result.scalar_one_or_none()
+    if last_deleted is not None:
+        returning_credits_used = last_deleted
+        logger.info(
+            "🔄 Returning user detected: email=%s, prior_credits_used=%s",
+            email, returning_credits_used,
+        )
+
+    # Deduct previously-used credits from the initial grant
+    adjusted_credits = max(0, initial_credits - returning_credits_used)
+
     new_user = User(
         clerk_user_id=clerk_user_id,
         email=email,
         name=name,
-        credit_balance=initial_credits,
-        credit_limit=initial_credits,
+        credit_balance=adjusted_credits,
+        credit_limit=adjusted_credits,
     )
     db.add(new_user)
     await db.flush()  # Get new_user.id before creating transaction
 
     # Log the credit grant in the ledger (only if credits were given)
-    if initial_credits > 0:
+    if adjusted_credits > 0:
         txn = CreditTransaction(
             user_id=new_user.id,
             txn_type=TxnType.top_up,
-            amount=initial_credits,
-            balance_after=initial_credits,
+            amount=adjusted_credits,
+            balance_after=adjusted_credits,
         )
         db.add(txn)
         logger.info(
-            "🎁 Early-adopter bonus: user=%s, credits=%s (user #%s)",
-            clerk_user_id, initial_credits, current_user_count + 1,
+            "🎁 Credit grant: user=%s, credits=%s (initial=%s, prior_used=%s, user #%s)",
+            clerk_user_id, adjusted_credits, initial_credits,
+            returning_credits_used, current_user_count + 1,
         )
 
     await db.commit()
@@ -185,6 +208,41 @@ async def _handle_user_deleted(data: dict, db: AsyncSession):
         logger.warning("⚠️ user.deleted — %s NOT FOUND, skipping", clerk_user_id)
         return
 
+    # ── Step 1: Archive user to deleted_users table ──
+    credits_used = max(0, user.credit_limit - user.credit_balance)
+    deleted_record = DeletedUser(
+        original_user_id=user.id,
+        clerk_user_id=user.clerk_user_id,
+        email=user.email,
+        name=user.name,
+        plan_type=user.plan_type,
+        credit_balance=user.credit_balance,
+        credit_limit=user.credit_limit,
+        credits_used=credits_used,
+        is_admin=user.is_admin,
+        original_created_at=user.created_at,
+    )
+    db.add(deleted_record)
+    logger.info(
+        "📦 Archived user before deletion: %s (%s), credits_used=%s",
+        clerk_user_id, user.email, credits_used,
+    )
+
+    # ── Step 2: Detach credit_transactions before user deletion ──
+    # WHY: clone_jobs CASCADE-delete with the user, but credit_transactions
+    # reference clone_jobs via SET NULL FK. If we don't clear clone_job_id
+    # first, the CASCADE delete of clone_jobs triggers a FK check on
+    # credit_transactions before our SET NULL on user_id fires.
+    # Also stamp the user's email for traceability after user_id becomes NULL.
+    await db.execute(
+        update(CreditTransaction)
+        .where(CreditTransaction.user_id == user.id)
+        .values(deleted_user_email=user.email, clone_job_id=None)
+    )
+
+    # ── Step 3: Delete user from users table ──
+    # CASCADE handles: user_assets, clone_jobs, history, custom_voices
+    # SET NULL handles: credit_transactions.user_id
     await db.delete(user)
     await db.commit()
-    logger.info("✅ user.deleted — removed %s", clerk_user_id)
+    logger.info("✅ user.deleted — archived and removed %s", clerk_user_id)

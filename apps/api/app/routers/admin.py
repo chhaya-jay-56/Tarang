@@ -23,6 +23,7 @@ from app.dependencies import get_db
 from app.models.user import User
 from app.models.app_config import AppConfig
 from app.models.credit_transaction import CreditTransaction, TxnType
+from app.models.deleted_user import DeletedUser
 from app.utils.admin_auth import get_admin_user
 
 logger = logging.getLogger("tarang.admin")
@@ -440,4 +441,63 @@ def _user_to_dict(user: User) -> dict:
         "is_admin": user.is_admin,
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+    }
+
+
+# ── Deleted Users ────────────────────────────────────────────────────────────
+
+@router.get("/deleted-users")
+async def list_deleted_users(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=100),
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all deleted/archived user accounts, paginated.
+
+    Shows email, credits_used, deletion time — useful for auditing
+    delete-and-re-signup patterns.
+    """
+    offset = (page - 1) * per_page
+
+    count_result = await db.execute(
+        select(func.count()).select_from(DeletedUser)
+    )
+    total = count_result.scalar()
+
+    result = await db.execute(
+        select(DeletedUser)
+        .order_by(DeletedUser.deleted_at.desc())
+        .offset(offset)
+        .limit(per_page)
+    )
+    deleted = result.scalars().all()
+
+    return {
+        "deleted_users": [
+            {
+                "id": str(d.id),
+                "original_user_id": str(d.original_user_id),
+                "clerk_user_id": d.clerk_user_id,
+                "email": d.email,
+                "name": d.name,
+                "plan_type": d.plan_type,
+                "credit_balance": d.credit_balance,
+                "credit_limit": d.credit_limit,
+                "credits_used": d.credits_used,
+                "is_admin": d.is_admin,
+                "original_created_at": (
+                    d.original_created_at.isoformat()
+                    if d.original_created_at else None
+                ),
+                "deleted_at": (
+                    d.deleted_at.isoformat() if d.deleted_at else None
+                ),
+            }
+            for d in deleted
+        ],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": (total + per_page - 1) // per_page,
     }
