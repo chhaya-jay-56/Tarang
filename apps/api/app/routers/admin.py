@@ -121,10 +121,16 @@ async def update_credit_limit(
 ):
     """Update a user's credit limit and adjust their balance accordingly.
 
-    When bumping from 1500→2000:
+    When bumping UP (e.g. 1500→2000):
       - credit_limit = 2000
       - credit_balance += 500 (the delta)
       - Logs a top_up transaction for the delta
+
+    When setting LOWER (e.g. 2000→1000):
+      - Treated as a fresh reassignment (top-up style)
+      - credit_limit = 1000
+      - credit_balance = 1000 (full reset to the new limit)
+      - Logs a top_up transaction for the new limit amount
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -135,17 +141,23 @@ async def update_credit_limit(
         raise HTTPException(status_code=400, detail="Credit limit cannot be negative")
 
     old_limit = user.credit_limit
+    old_balance = user.credit_balance
     delta = body.new_limit - old_limit
 
     user.credit_limit = body.new_limit
 
-    # Adjust balance by the delta — if bumping up, user gets more credits;
-    # if reducing, balance decreases (but never below 0 due to DB CHECK)
-    new_balance = max(0, user.credit_balance + delta)
+    if delta >= 0:
+        # Increasing or same: add the delta to current balance
+        new_balance = user.credit_balance + delta
+    else:
+        # Decreasing: fresh reassignment — balance resets to the new limit
+        new_balance = body.new_limit
+
     user.credit_balance = new_balance
 
-    # Log transaction if credits were added
+    # Log a top_up transaction for any credit assignment
     if delta > 0:
+        # Increasing: log the delta as top-up
         txn = CreditTransaction(
             user_id=user.id,
             txn_type=TxnType.top_up,
@@ -154,12 +166,23 @@ async def update_credit_limit(
             service_type=None,
         )
         db.add(txn)
+    elif delta < 0:
+        # Decreasing (reassignment): log the full new limit as top-up
+        txn = CreditTransaction(
+            user_id=user.id,
+            txn_type=TxnType.top_up,
+            amount=body.new_limit,
+            balance_after=new_balance,
+            service_type=None,
+        )
+        db.add(txn)
 
     await db.commit()
 
     logger.info(
-        "📝 Admin credit limit update: user=%s, %s→%s (delta=%+d), by=%s",
-        user_id, old_limit, body.new_limit, delta, admin.clerk_user_id,
+        "📝 Admin credit limit update: user=%s, %s→%s (delta=%+d), balance=%s→%s, by=%s",
+        user_id, old_limit, body.new_limit, delta,
+        old_balance, new_balance, admin.clerk_user_id,
     )
 
     return {
@@ -208,7 +231,12 @@ async def bulk_reassign_credits(
             continue
 
         user.credit_limit = body.new_limit
-        new_balance = max(0, user.credit_balance + delta)
+
+        if delta >= 0:
+            new_balance = user.credit_balance + delta
+        else:
+            new_balance = body.new_limit
+
         user.credit_balance = new_balance
 
         if delta > 0:
@@ -216,6 +244,15 @@ async def bulk_reassign_credits(
                 user_id=user.id,
                 txn_type=TxnType.top_up,
                 amount=delta,
+                balance_after=new_balance,
+                service_type=None,
+            )
+            db.add(txn)
+        elif delta < 0:
+            txn = CreditTransaction(
+                user_id=user.id,
+                txn_type=TxnType.top_up,
+                amount=body.new_limit,
                 balance_after=new_balance,
                 service_type=None,
             )

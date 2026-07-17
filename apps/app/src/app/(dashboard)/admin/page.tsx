@@ -374,7 +374,7 @@ function EditCreditModal({
     try {
       const result = await admin.updateCreditLimit(user.id, limit);
       alert(
-        `Credit limit updated: ${result.old_limit} → ${result.new_limit} (delta: ${result.delta >= 0 ? "+" : ""}${result.delta})\nNew balance: ${result.credit_balance}`
+        `Credit limit updated: ${result.old_limit} → ${result.new_limit}\nNew balance: ${result.credit_balance}`
       );
       onSaved();
     } catch (err) {
@@ -385,8 +385,9 @@ function EditCreditModal({
     }
   }, [admin, user.id, newLimit, onSaved]);
 
-  const delta = parseInt(newLimit || "0") - user.credit_limit;
-  const projected = Math.max(0, user.credit_balance + delta);
+  const parsedLimit = parseInt(newLimit || "0");
+  const delta = parsedLimit - user.credit_limit;
+  const projected = delta >= 0 ? user.credit_balance + delta : parsedLimit;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -422,8 +423,8 @@ function EditCreditModal({
         {!isNaN(delta) && delta !== 0 && (
           <div className={styles.modalField}>
             <span className={styles.modalLabel}>Preview</span>
-            <span style={{ color: delta > 0 ? "hsl(140 60% 55%)" : "hsl(0 60% 55%)", fontSize: "0.875rem" }}>
-              Balance: {user.credit_balance.toLocaleString()} → {projected.toLocaleString()} ({delta >= 0 ? "+" : ""}{delta})
+            <span style={{ color: delta > 0 ? "hsl(140 60% 55%)" : "hsl(35 90% 55%)", fontSize: "0.875rem" }}>
+              Balance: {user.credit_balance.toLocaleString()} → {projected.toLocaleString()} ({delta > 0 ? `+${delta}` : "Reset to new limit"})
             </span>
           </div>
         )}
