@@ -5,8 +5,9 @@ import { PostHogProvider, PostHogIdentifier } from "@/components/providers/PostH
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tarang - Voice Cloning & TTS",
-  description: "Tarang provides instant voice cloning and text to speech capabilities.",
+  title: "Tarang - Voice Cloning, Voice Creation & TTS",
+  description: "Tarang provides instant AI voice cloning, voice creation, and text-to-speech (TTS) capabilities in 500+ languages.",
+  keywords: ["voice cloning", "TTS", "voice creation", "500+ languages", "AI voice", "text to speech"],
 };
 
 export default function RootLayout({

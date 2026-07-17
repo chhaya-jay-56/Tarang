@@ -5,9 +5,10 @@ import "../index.css";
 const SITE_URL = "https://trytarang.app";
 
 export const metadata: Metadata = {
-  title: "Tarang | AI Voice Cloning in 500+ Languages",
+  title: "Tarang | AI Voice Creation, Voice Cloning & TTS in 500+ Languages",
   description:
-    "Tarang supports voice cloning and text-to-speech in 500+ languages including Hindi, English, Gujarati, Tamil, Bengali, Marathi, and more. Clone your voice and speak any language instantly.",
+    "Tarang supports AI voice creation, voice cloning, and text-to-speech (TTS) in 500+ languages. Clone your voice and speak any language instantly.",
+  keywords: ["voice cloning", "TTS", "voice creation", "500+ languages", "AI voice", "text to speech"],
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
   icons: {
@@ -19,9 +20,9 @@ export const metadata: Metadata = {
     ]
   },
   openGraph: {
-    title: "Tarang | AI Voice Cloning in 500+ Languages",
+    title: "Tarang | AI Voice Creation, Voice Cloning & TTS",
     description:
-      "AI voice cloning & text-to-speech in 500+ languages. Regional Indian languages included.",
+      "AI voice cloning, voice creation, and text-to-speech (TTS) in 500+ languages. Regional Indian languages included.",
     url: SITE_URL,
     siteName: "Tarang",
     type: "website",
@@ -29,9 +30,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarang | AI Voice Cloning in 500+ Languages",
+    title: "Tarang | AI Voice Creation, Voice Cloning & TTS",
     description:
-      "Clone your voice in Hindi, Gujarati, Tamil, English, and 500+ more languages.",
+      "Clone your voice in Hindi, Gujarati, Tamil, English, and 500+ more languages with advanced TTS.",
   },
 };
 
