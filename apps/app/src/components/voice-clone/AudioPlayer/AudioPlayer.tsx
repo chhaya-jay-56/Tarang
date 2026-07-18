@@ -29,13 +29,15 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // ── Initialize WaveSurfer ──
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const url =
-      typeof source === "string" ? source : URL.createObjectURL(source);
+    setIsLoading(true);
+    setLoadError(null);
 
     const rootStyles = getComputedStyle(document.documentElement);
     const progressHex =
@@ -43,6 +45,8 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
     const waveHex =
       rootStyles.getPropertyValue("--border").trim() || "#27272a";
 
+    // Create WaveSurfer WITHOUT a url — we'll load the source manually after
+    // creation to use the more reliable loadBlob() path for File objects.
     const ws = WaveSurfer.create({
       container: containerRef.current,
       waveColor: waveHex,
@@ -51,7 +55,6 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
       barGap: 3,
       barRadius: 4,
       height: 72,
-      url,
       cursorWidth: 0,
       normalize: true,
       barHeight: 1.2,
@@ -68,13 +71,33 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
     ws.on("ready", () => {
       const decoded = ws.getDecodedData();
       setDuration(decoded ? decoded.duration : ws.getDuration());
+      setIsLoading(false);
+    });
+    ws.on("error", (err) => {
+      console.error("[AudioPlayer] WaveSurfer error:", err);
+      setLoadError("Failed to load audio. The file may be corrupted or unsupported.");
+      setIsLoading(false);
     });
 
     wsRef.current = ws;
 
+    // Load audio — use loadBlob() for File/Blob objects (bypasses fetch,
+    // reads ArrayBuffer directly — much more reliable on mobile).
+    // Use load() only for URL strings.
+    if (typeof source === "string") {
+      ws.load(source).catch(() => {
+        setLoadError("Failed to load audio from URL.");
+        setIsLoading(false);
+      });
+    } else {
+      ws.loadBlob(source).catch(() => {
+        setLoadError("Failed to decode audio file.");
+        setIsLoading(false);
+      });
+    }
+
     return () => {
       ws.destroy();
-      if (typeof source !== "string") URL.revokeObjectURL(url);
     };
   }, [source, playerId]);
 
@@ -110,11 +133,27 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
         {/* Waveform */}
         <div ref={containerRef} className={styles.waveform} />
 
+        {/* Loading / Error state */}
+        {isLoading && (
+          <div className={styles.timeDisplay}>
+            <span>Loading…</span>
+          </div>
+        )}
+        {loadError && (
+          <div className={styles.timeDisplay}>
+            <span style={{ color: "var(--destructive, #ef4444)", fontSize: "0.8rem" }}>
+              {loadError}
+            </span>
+          </div>
+        )}
+
         {/* Time */}
-        <div className={styles.timeDisplay}>
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
+        {!isLoading && !loadError && (
+          <div className={styles.timeDisplay}>
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        )}
 
         {/* Controls */}
         <div className={styles.controls}>
@@ -138,3 +177,4 @@ export function AudioPlayer({ source, label, headerAction }: AudioPlayerProps) {
     </div>
   );
 }
+
