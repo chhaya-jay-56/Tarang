@@ -12,9 +12,19 @@ type AudioRecorderProps = {
 };
 
 /**
+ * Picks the best supported file extension based on the recorder's MIME type.
+ * Handles Safari (audio/mp4), Firefox (audio/ogg), Chrome/Edge (audio/webm).
+ */
+function getExtFromMime(mime: string): string {
+  if (mime.includes("mp4") || mime.includes("aac")) return "m4a";
+  if (mime.includes("ogg")) return "ogg";
+  return "webm";
+}
+
+/**
  * In-browser audio recorder using MediaRecorder API.
  * - Max 2-minute recording with auto-stop
- * - Shows real-time timer (mm:ss)
+ * - Shows real-time timer (mm:ss) using requestAnimationFrame (reliable on mobile)
  * - Produces a File object on completion
  */
 export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps) {
@@ -25,15 +35,40 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
+  const rafIdRef = useRef<number>(0);
+  const isRecordingRef = useRef(false);
+
+  // requestAnimationFrame-based timer — more reliable than setInterval on mobile
+  const tickTimer = useCallback(() => {
+    if (!isRecordingRef.current) return;
+
+    const sec = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    setElapsed(sec);
+
+    // Auto-stop at 2 minutes
+    if (sec >= MAX_DURATION_SEC) {
+      // Use the ref directly to avoid stale closure
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      isRecordingRef.current = false;
+      return;
+    }
+
+    rafIdRef.current = requestAnimationFrame(tickTimer);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      isRecordingRef.current = false;
+      cancelAnimationFrame(rafIdRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
       }
     };
   }, []);
@@ -45,12 +80,11 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
   };
 
   const stopRecording = useCallback(() => {
+    isRecordingRef.current = false;
+    cancelAnimationFrame(rafIdRef.current);
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
     }
   }, []);
 
@@ -71,14 +105,30 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
         }
       };
 
+      mediaRecorder.onerror = () => {
+        isRecordingRef.current = false;
+        cancelAnimationFrame(rafIdRef.current);
+        stream.getTracks().forEach((t) => t.stop());
+        setError("Recording failed. Please try again.");
+        setStatus("idle");
+      };
+
       mediaRecorder.onstop = () => {
+        isRecordingRef.current = false;
+        cancelAnimationFrame(rafIdRef.current);
+
         // Stop all tracks
         stream.getTracks().forEach((t) => t.stop());
 
-        const blob = new Blob(chunksRef.current, {
-          type: mediaRecorder.mimeType || "audio/webm",
-        });
-        const ext = mediaRecorder.mimeType?.includes("ogg") ? "ogg" : "webm";
+        if (chunksRef.current.length === 0) {
+          setError("No audio was captured. Please check your microphone.");
+          setStatus("idle");
+          return;
+        }
+
+        const mimeType = mediaRecorder.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const ext = getExtFromMime(mimeType);
         const file = new File([blob], `recording_${Date.now()}.${ext}`, {
           type: blob.type,
         });
@@ -87,25 +137,18 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
         onRecordComplete(file);
       };
 
-      mediaRecorder.start(); // Single blob on stop — required for proper waveform decoding
+      mediaRecorder.start(1000); // Collect data in 1s chunks for reliability on mobile
       setStatus("recording");
       startTimeRef.current = Date.now();
       setElapsed(0);
 
-      // Timer
-      timerRef.current = setInterval(() => {
-        const sec = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        setElapsed(sec);
-
-        // Auto-stop at 2 minutes
-        if (sec >= MAX_DURATION_SEC) {
-          stopRecording();
-        }
-      }, 500);
+      // Start rAF-based timer
+      isRecordingRef.current = true;
+      rafIdRef.current = requestAnimationFrame(tickTimer);
     } catch {
       setError("Microphone access denied. Please allow microphone permission.");
     }
-  }, [onRecordComplete, stopRecording]);
+  }, [onRecordComplete, tickTimer]);
 
   if (error) {
     return (
@@ -170,3 +213,4 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
     </div>
   );
 }
+
