@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { LuMic, LuSquare } from "react-icons/lu";
+import { getRecordingScript, getRecordingLangName } from "./recordingScripts";
 import styles from "./AudioRecorder.module.css";
 
 const MAX_DURATION_SEC = 120; // 2 minutes
@@ -9,6 +10,8 @@ const MAX_DURATION_SEC = 120; // 2 minutes
 type AudioRecorderProps = {
   onRecordComplete: (file: File) => void;
   onCancel: () => void;
+  /** Language code for the reading script (e.g. "hi", "en"). Defaults to "en". */
+  language?: string;
 };
 
 /**
@@ -22,12 +25,13 @@ function getExtFromMime(mime: string): string {
 }
 
 /**
- * In-browser audio recorder using MediaRecorder API.
+ * In-browser audio recorder with a pre-built ~20-sec reading passage.
+ * - Shows the translated passage for the selected language
  * - Max 2-minute recording with auto-stop
- * - Shows real-time timer (mm:ss) using requestAnimationFrame (reliable on mobile)
+ * - Real-time timer using requestAnimationFrame (reliable on mobile)
  * - Produces a File object on completion
  */
-export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps) {
+export function AudioRecorder({ onRecordComplete, onCancel, language = "en" }: AudioRecorderProps) {
   const [status, setStatus] = useState<"idle" | "recording" | "done">("idle");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +42,9 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
   const startTimeRef = useRef(0);
   const rafIdRef = useRef<number>(0);
   const isRecordingRef = useRef(false);
+
+  const readingScript = getRecordingScript(language);
+  const languageName = getRecordingLangName(language);
 
   // requestAnimationFrame-based timer — more reliable than setInterval on mobile
   const tickTimer = useCallback(() => {
@@ -163,27 +170,35 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
 
   return (
     <div className={styles.container}>
+      {/* ── Reading Script Passage ── */}
+      <div className={styles.scriptSection}>
+        <span className={styles.scriptLabel}>Read this out aloud</span>
+        <div className={styles.scriptCard}>
+          <p className={styles.scriptText}>{readingScript}</p>
+        </div>
+        <div className={styles.scriptMeta}>
+          <span className={styles.langBadge}>
+            Selected language · {languageName}
+          </span>
+          <span className={styles.durationHint}>~20 sec</span>
+        </div>
+      </div>
+
+      {/* ── Recorder Controls ── */}
       {status === "idle" && (
-        <>
-          <div className={styles.iconWrapper}>
-            <LuMic className={styles.micIcon} />
-          </div>
-          <p className={styles.title}>Record your voice</p>
-          <p className={styles.subtitle}>Max 2 minutes • Auto-stops at limit</p>
-          <div className={styles.btnRow}>
-            <button type="button" className={styles.recordBtn} onClick={startRecording}>
-              <LuMic />
-              Start Recording
-            </button>
-            <button type="button" className={styles.cancelBtn} onClick={onCancel}>
-              Cancel
-            </button>
-          </div>
-        </>
+        <div className={styles.controlsRow}>
+          <button type="button" className={styles.recordBtn} onClick={startRecording}>
+            <LuMic />
+            Start Recording
+          </button>
+          <button type="button" className={styles.cancelBtn} onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       )}
 
       {status === "recording" && (
-        <>
+        <div className={styles.recordingControls}>
           <div className={styles.recordingIndicator}>
             <span className={styles.pulseDot} />
             <span className={styles.recordingLabel}>Recording</span>
@@ -202,15 +217,19 @@ export function AudioRecorder({ onRecordComplete, onCancel }: AudioRecorderProps
             <LuSquare />
             Stop Recording
           </button>
-        </>
+        </div>
       )}
 
       {status === "done" && (
         <div className={styles.doneMessage}>
-          <p className={styles.title}>Recording saved!</p>
+          <p className={styles.doneText}>Recording saved!</p>
         </div>
       )}
+
+      {/* ── Tips Footer ── */}
+      <p className={styles.tipsFooter}>
+        Read passage clearly · Sit in a quiet place · Min. 10s recording
+      </p>
     </div>
   );
 }
-

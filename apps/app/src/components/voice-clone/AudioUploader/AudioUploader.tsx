@@ -7,13 +7,15 @@ import styles from "./AudioUploader.module.css";
 
 type AudioUploaderProps = {
   onFileSelect: (file: File) => void;
+  /** Language code for the recording script (e.g. "hi", "en"). */
+  language?: string;
 };
 
 /**
  * Drag-and-drop audio upload zone with an option to record audio.
  * Accepts ALL audio formats — the backend converts to WAV before processing.
  */
-export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
+export function AudioUploader({ onFileSelect, language = "en" }: AudioUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"upload" | "record">("upload");
 
@@ -63,6 +65,7 @@ export function AudioUploader({ onFileSelect }: AudioUploaderProps) {
       <AudioRecorder
         onRecordComplete={handleRecordComplete}
         onCancel={() => setMode("upload")}
+        language={language}
       />
     );
   }

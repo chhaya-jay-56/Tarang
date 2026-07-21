@@ -212,7 +212,16 @@ class OmniVoiceModel:
             print(f"[generate] Files in {CUSTOM_PROMPTS_DIR}: {files}")
         
         cached_prompt = None
-        if cached_voice:
+        # Only use prompt caching for known presets or UUID-length identifiers.
+        # Short/generic names (e.g. "voice") must never be cached — they would
+        # cause all direct-upload clones to share one cached prompt, producing
+        # the wrong voice for every user after the first.
+        KNOWN_PRESETS = {"anjali", "priya", "alex", "david"}
+        is_valid_cache_key = (
+            cached_voice
+            and (cached_voice.lower() in KNOWN_PRESETS or len(cached_voice) >= 30)
+        )
+        if is_valid_cache_key:
             voice_name = cached_voice.lower()
             # Check preset voices dir first, then custom voices dir
             pt_path_preset = os.path.join(PRESET_VOICES_DIR, f"{voice_name}.pt")

@@ -177,10 +177,14 @@ const HowItWorks = () => {
 
           {/* Row 2: Target Audience tags */}
           <div className={styles.audienceRow}>
-            <span className={styles.audienceTag}>Content Creators</span>
-            <span className={styles.audienceTag}>Podcasters</span>
-            <span className={styles.audienceTag}>Game Studios</span>
-            <span className={styles.audienceTag}>Voice Artists</span>
+            <div className={styles.audienceHalfRight}>
+              <span className={styles.audienceTag}>Content Creators</span>
+              <span className={styles.audienceTag}>Podcasters</span>
+            </div>
+            <div className={styles.audienceHalfLeft}>
+              <span className={styles.audienceTag}>Game Studios</span>
+              <span className={styles.audienceTag}>Voice Artists</span>
+            </div>
           </div>
 
           <ConnectorArrow />
@@ -190,7 +194,7 @@ const HowItWorks = () => {
             <div className={styles.inputBox}>
               <div className={styles.inputBoxIcon}><WaveformIcon /></div>
               <div className={styles.inputBoxContent}>
-                <span className={styles.inputBoxTitle}>Voice sample (3-30s)</span>
+                <span className={styles.inputBoxTitle}>Voice sample (20-30s)</span>
                 <span className={styles.inputBoxSub}>Upload clean MP3, WAV, or recording</span>
               </div>
             </div>
@@ -209,7 +213,9 @@ const HowItWorks = () => {
           {/* Row 4: Tarang Engine */}
           <div className={styles.engineBox}>
             <div className={styles.engineBadge}>
-              <div className={styles.engineBadgeIcon}><LightningIcon /></div>
+              <div className={styles.engineBadgeIcon}>
+                <img src="/Logo.svg" alt="Tarang Logo" style={{ width: '20px', height: '20px' }} />
+              </div>
               <span>TARANG ENGINE</span>
             </div>
 

@@ -59,7 +59,7 @@ export default function InstantVoiceClonePage() {
               }
             />
           ) : (
-            <AudioUploader onFileSelect={selectFile} />
+            <AudioUploader onFileSelect={selectFile} language={targetLanguage} />
           )}
 
           {/* Target Language */}

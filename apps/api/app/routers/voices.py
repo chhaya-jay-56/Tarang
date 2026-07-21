@@ -123,7 +123,7 @@ async def trigger_clone(
     # ── Resolve the voice source ──
     # Priority: UserAsset (direct) → CustomVoice (user) → PresetVoice (platform)
     voice_r2_key = None
-    voice_name = "voice"
+    voice_name = ""
     voice_duration_ms = None
     # cached_voice_id: UUID string for custom voices with cached .pt prompts
     # For presets, we use the voice name; for custom, we use the UUID.
@@ -137,7 +137,11 @@ async def trigger_clone(
 
     if existing_asset:
         # Direct UserAsset — use as-is (no proxy needed)
+        # voice_name and cached_voice_id stay empty so the Modal worker
+        # always processes from the raw reference audio (no caching).
         asset_uuid = existing_asset.id
+        voice_name = ""
+        cached_voice_id = ""
     else:
         # 2. Check CustomVoice (user's own voices)
         cv_result = await db.execute(
