@@ -5,10 +5,10 @@ import "../index.css";
 const SITE_URL = "https://trytarang.app";
 
 export const metadata: Metadata = {
-  title: "Tarang | AI Voice Creation, Voice Cloning & TTS in 100+ Languages",
+  title: "Tarang | AI Voice Creation, Voice Cloning & TTS in 500+ Languages",
   description:
-    "Tarang supports AI voice creation, voice cloning, and text-to-speech (TTS) in 100+ languages. Clone your voice and speak any language instantly.",
-  keywords: ["voice cloning", "TTS", "voice creation", "100+ languages", "AI voice", "text to speech"],
+    "Tarang supports AI voice creation, voice cloning, and text-to-speech (TTS) in 500+ languages. Clone your voice and speak any language instantly.",
+  keywords: ["voice cloning", "TTS", "voice creation", "500+ languages", "AI voice", "text to speech"],
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
   icons: {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Tarang | AI Voice Creation, Voice Cloning & TTS",
     description:
-      "AI voice cloning, voice creation, and text-to-speech (TTS) in 100+ languages. Regional Indian languages included.",
+      "AI voice cloning, voice creation, and text-to-speech (TTS) in 500+ languages. Regional Indian languages included.",
     url: SITE_URL,
     siteName: "Tarang",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tarang | AI Voice Creation, Voice Cloning & TTS",
     description:
-      "Clone your voice in Hindi, Gujarati, Tamil, English, and 100+ more languages with advanced TTS.",
+      "Clone your voice in Hindi, Gujarati, Tamil, English, and 500+ more languages with advanced TTS.",
   },
 };
 
@@ -73,9 +73,9 @@ const softwareAppSchema = {
   applicationCategory: "MultimediaApplication",
   operatingSystem: "Web",
   description:
-    "AI-powered voice platform for creators — voice cloning, text-to-speech, and voice separation in 100+ languages.",
+    "AI-powered voice platform for creators — voice cloning, text-to-speech, and voice separation in 500+ languages.",
   featureList: [
-    "Multi-language voice cloning (100+ languages)",
+    "Multi-language voice cloning (500+ languages)",
     "Text-to-speech synthesis",
     "Voice separation (vocals & instruments)",
     "Voice library with preset and custom voices",
@@ -106,7 +106,7 @@ const faqSchema = {
       name: "What languages does Tarang support for text to speech?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Tarang supports text-to-speech and voice cloning in over 100+ languages, including English, Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Spanish, French, German, Japanese, Chinese, Korean, Arabic, and many more.",
+        text: "Tarang supports text-to-speech and voice cloning in over 500 languages, including English, Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Spanish, French, German, Japanese, Chinese, Korean, Arabic, and many more.",
       },
     },
     {
@@ -114,7 +114,7 @@ const faqSchema = {
       name: "Can I clone my voice and speak in a different language?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. Tarang supports cross-lingual voice cloning. You can record your voice in one language and generate speech in any of 100+ supported languages while preserving your voice's unique characteristics, tone, and emotional quality.",
+        text: "Yes. Tarang supports cross-lingual voice cloning. You can record your voice in one language and generate speech in any of 500+ supported languages while preserving your voice's unique characteristics, tone, and emotional quality.",
       },
     },
     {
@@ -132,7 +132,7 @@ const itemListSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   name: "Languages Supported by Tarang for Voice Cloning",
-  description: "Over 100+ languages supported for AI voice cloning and text-to-speech",
+  description: "Over 500 languages supported for AI voice cloning and text-to-speech",
   numberOfItems: POPULAR_LANG_NAMES.length,
   itemListElement: POPULAR_LANG_NAMES.map((lang, i) => ({
     "@type": "ListItem",

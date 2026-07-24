@@ -11,7 +11,7 @@
 #   - No more Voice model → uses UserAsset (file) + CloneJob (job state)
 #   - No more Replicate API → Modal OmniVoice endpoint
 #   - No more clerk_user_id on models → resolves to User.id (UUID)
-#   - Accepts language in clone request body (100+ OmniVoice languages)
+#   - Accepts language in clone request body (646 OmniVoice languages)
 #   - Proper status codes: 201 on create, 204 on delete (per 06-rest-api.md)
 #
 # FLOW:
