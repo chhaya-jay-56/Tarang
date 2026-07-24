@@ -160,7 +160,7 @@ def setup_middlewares(app: FastAPI):
         "allow_origins": settings.CORS_ALLOWED_ORIGINS,
         "allow_credentials": True,
         "allow_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        "allow_headers": ["*"],
+        "allow_headers": ["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
     }
     if not settings.is_strict_env:
         cors_kwargs["allow_origin_regex"] = (
