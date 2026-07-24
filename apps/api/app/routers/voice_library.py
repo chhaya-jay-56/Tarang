@@ -52,32 +52,12 @@ async def create_voice(
     Accepts multipart form: name, description, language, audio file.
     Returns 201 Created with voice metadata.
     """
-    # ── Validate content type ──
-    if file.content_type and not file.content_type.startswith("audio/"):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Expected audio file, got {file.content_type}",
-        )
-
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="User not found")
 
     file_bytes = await file.read()
-
-    # ── Enforce server-side size limit ──
-    from app.config import settings
-    max_size = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-    if len(file_bytes) > max_size:
-        raise HTTPException(
-            status_code=400,
-            detail=f"File too large ({len(file_bytes) / 1024 / 1024:.1f}MB). "
-                   f"Max is {settings.MAX_UPLOAD_SIZE_MB}MB.",
-        )
-
-    if len(file_bytes) == 0:
-        raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     try:
         voice = await voice_library_service.create_voice(

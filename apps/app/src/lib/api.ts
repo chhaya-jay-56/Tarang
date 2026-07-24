@@ -59,6 +59,7 @@ export function useApiClient() {
 
       const headers: Record<string, string> = {
         Authorization: `Bearer ${token}`,
+        "X-Tarang-Secret": process.env.NEXT_PUBLIC_TARANG_SECRET || "",
         ...options.headers as Record<string, string>,
       };
 
@@ -66,7 +67,7 @@ export function useApiClient() {
       if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
         headers["Content-Type"] = "application/json";
       } else if (options.body instanceof FormData && headers["Content-Type"] === "application/json") {
-         delete headers["Content-Type"]; // let browser handle multipart boundaries naturally
+         delete headers["Content-Type"]; // let browser handle multipart boundries naturally
       }
 
       const res = await fetch(`${API_BASE}${url}`, {

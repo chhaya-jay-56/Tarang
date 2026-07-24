@@ -11,17 +11,6 @@ const connectSrc = [
   ...(isDev ? ["http://localhost:*", "http://127.0.0.1:*"] : []),
 ].join(" ");
 
-const scriptSrc = [
-  "'self'",
-  "'unsafe-inline'",
-  "https://us.i.posthog.com",
-  "https://*.sentry.io",
-  "https://*.clerk.accounts.dev",
-  "https://clerk.trytarang.app",
-  "https://challenges.cloudflare.com",
-  ...(isDev ? ["'unsafe-eval'"] : []),
-].join(" ");
-
 const nextConfig: NextConfig = {
   reactCompiler: false,
   outputFileTracingRoot: path.join(__dirname, "../../"),
@@ -59,7 +48,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src ${connectSrc}; media-src 'self' data: https: blob:; frame-src 'self' https://challenges.cloudflare.com https:; worker-src 'self' blob:;`
+            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; font-src 'self' data: https:; connect-src ${connectSrc}; media-src 'self' data: https: blob:; frame-src 'self' https:;`
           }
         ],
       },
