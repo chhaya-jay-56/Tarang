@@ -8,7 +8,7 @@ class TTSParams(BaseModel):
     top_p: float = Field(default=0.9, ge=0.0, le=1.0)
     top_k: int = Field(default=50, ge=1, le=500)
     max_new_tokens: int = Field(default=2048, ge=64, le=8192)
-    speed: float = Field(default=1.0, ge=0.5, le=1.5)
+    speed: float = Field(default=1.0, ge=0.5, le=2.0)
     guidance_scale: float = Field(default=1.0, ge=0.0, le=5.0)
 
 
