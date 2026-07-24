@@ -125,10 +125,17 @@ async def trigger_separation(
             detail=f"Expected audio file, got {file.content_type}",
         )
 
-    # ── Read file bytes ──
+    # ── Read + validate size ──
     file_bytes = await file.read()
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
+
+    max_size = 50 * 1024 * 1024  # 50 MB
+    if len(file_bytes) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large ({len(file_bytes) / 1024 / 1024:.1f}MB). Max is 50MB.",
+        )
 
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)

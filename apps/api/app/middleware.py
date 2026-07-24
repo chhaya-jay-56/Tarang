@@ -52,8 +52,8 @@ def get_real_ip(request: Request) -> str:
 
 
 # ── Rate Limiter (shared instance — import in routers for per-route limits) ──
-# Uses in-memory storage by default. Acceptable for single-worker Cloud Run.
-# For multi-instance production, switch to Redis: storage_uri=settings.REDIS_URL
+# Uses in-memory storage. Acceptable for single-worker Cloud Run (--workers 1).
+# If scaling to multiple instances, consider Redis: storage_uri=settings.REDIS_URL
 limiter = Limiter(key_func=get_real_ip, default_limits=["100/minute"])
 
 
@@ -154,14 +154,19 @@ def setup_middlewares(app: FastAPI):
 
     # 1. CORS (must be first — handles preflight requests)
     # Per 13-security.md §7: restrict methods/headers to what the app uses.
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ALLOWED_ORIGINS,
-        allow_origin_regex=r"https://[a-zA-Z0-9-]+\.(ngrok-free\.app|ngrok-free\.dev|ngrok\.app)",
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
-    )
+    # WHY conditional regex: ngrok domains are only needed for local dev tunneling.
+    # In production, only explicit CORS_ALLOWED_ORIGINS are permitted.
+    cors_kwargs: dict = {
+        "allow_origins": settings.CORS_ALLOWED_ORIGINS,
+        "allow_credentials": True,
+        "allow_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": ["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
+    }
+    if not settings.is_strict_env:
+        cors_kwargs["allow_origin_regex"] = (
+            r"https://[a-zA-Z0-9-]+\.(ngrok-free\.app|ngrok-free\.dev|ngrok\.app)"
+        )
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     # 2. Security Headers
     app.add_middleware(SecurityHeadersMiddleware)
