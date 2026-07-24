@@ -17,17 +17,44 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 
 logger = logging.getLogger("tarang.middleware")
 
+# ── Real Client IP Extraction ────────────────────────────────────────────────
+# WHY: With Cloudflare proxy (orange cloud) in front of api.trytarang.app,
+# request.client.host is Cloudflare's edge IP — NOT the visitor's real IP.
+# Cloudflare sends the real visitor IP in the CF-Connecting-IP header.
+# Falls back to X-Forwarded-For → raw socket IP for local dev / non-CF envs.
+
+def get_real_ip(request: Request) -> str:
+    """Extract the real client IP, accounting for Cloudflare proxy.
+
+    Priority:
+      1. CF-Connecting-IP  — set by Cloudflare on every proxied request
+      2. X-Forwarded-For   — first IP in the chain (fallback for non-CF proxies)
+      3. request.client.host — raw TCP socket IP (local dev, no proxy)
+    """
+    # Cloudflare always sets this to the true visitor IP
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip.strip()
+
+    # Standard proxy header — take the first (leftmost = original client) IP
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    # No proxy — local development
+    return request.client.host if request.client else "127.0.0.1"
+
+
 # ── Rate Limiter (shared instance — import in routers for per-route limits) ──
 # Uses in-memory storage by default. Acceptable for single-worker Cloud Run.
 # For multi-instance production, switch to Redis: storage_uri=settings.REDIS_URL
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+limiter = Limiter(key_func=get_real_ip, default_limits=["100/minute"])
 
 
 # ── Per-user rate limiting key function ──────────────────────────────────────
@@ -48,7 +75,7 @@ def get_user_or_ip(request: Request) -> str:
                 return f"user:{user_id}"
         except Exception:
             pass
-    return get_remote_address(request)
+    return get_real_ip(request)
 
 
 # ── Shared Secret Middleware ─────────────────────────────────────────────────
