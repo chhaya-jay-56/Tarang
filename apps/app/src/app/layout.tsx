@@ -6,8 +6,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Tarang - Voice Cloning, Voice Creation & TTS",
-  description: "Tarang provides instant AI voice cloning, voice creation, and text-to-speech (TTS) capabilities in 500+ languages.",
-  keywords: ["voice cloning", "TTS", "voice creation", "500+ languages", "AI voice", "text to speech"],
+  description: "Tarang provides instant AI voice cloning, voice creation, and text-to-speech (TTS) capabilities in 100+ languages.",
+  keywords: ["voice cloning", "TTS", "voice creation", "100+ languages", "AI voice", "text to speech"],
 };
 
 export default function RootLayout({
