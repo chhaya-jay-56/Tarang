@@ -7,12 +7,12 @@ type SpeedControlProps = {
 };
 
 const MIN = 0.5;
-const MAX = 2.0;
+const MAX = 1.5;
 const STEP = 0.1;
 
 /**
  * Speed slider for OmniVoice generation.
- * Maps 0.5× → 2.0× with 0.1 increments.
+ * Maps 0.5× → 1.5× with 0.1 increments.
  */
 export function SpeedControl({ value, onChange }: SpeedControlProps) {
   const handleChange = useCallback(
@@ -50,7 +50,7 @@ export function SpeedControl({ value, onChange }: SpeedControlProps) {
           />
         </div>
 
-        <span className={styles.bound}>2.0×</span>
+        <span className={styles.bound}>1.5×</span>
       </div>
 
       <span className={styles.valueLabel}>{value.toFixed(1)}×</span>
