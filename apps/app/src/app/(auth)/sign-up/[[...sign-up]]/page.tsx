@@ -9,7 +9,7 @@ export default function SignUpPage() {
       appearance={{
         baseTheme: dark,
         elements: {
-          cardBox: "shadow-none border border-border bg-card",
+          cardBox: "shadow-none border border-border bg-card rounded-2xl",
           headerTitle: "text-foreground",
           headerSubtitle: "text-muted-foreground",
           socialButtonsBlockButton: "border-border bg-background text-foreground",
