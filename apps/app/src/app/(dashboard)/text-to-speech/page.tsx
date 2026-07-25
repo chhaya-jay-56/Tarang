@@ -73,11 +73,11 @@ export default function TextToSpeechPage() {
               className={styles.textInput}
               placeholder="Type or paste the text you want spoken..."
               value={text}
-              maxLength={1500}
+              maxLength={1000}
               onChange={(e) => setText(e.target.value)}
             />
             <div className={styles.charCounter}>
-              {text.length} / 1500
+              {text.length} / 1000
             </div>
           </div>
 

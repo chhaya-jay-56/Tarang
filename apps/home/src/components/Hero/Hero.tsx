@@ -16,7 +16,7 @@ const Hero = () => {
           <span className={styles.gradientText}>Voice</span>
           <span className={styles.arrow}>&gt;</span>
           <span className={styles.gradientText}>Text</span>
-          <span className={styles.srOnly}> — AI Voice Cloning in 500+ Languages</span>
+          <span className={styles.srOnly}> — AI Voice Cloning in 100+ Languages</span>
         </h1>
         <AnimatedTagline
           text="Bring real emotion to your voice, without losing the context."

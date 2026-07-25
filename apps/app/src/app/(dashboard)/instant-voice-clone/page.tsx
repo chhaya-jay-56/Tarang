@@ -79,11 +79,11 @@ export default function InstantVoiceClonePage() {
               className={styles.textInput}
               placeholder="Enter the text you want the cloned voice to speak..."
               value={text}
-              maxLength={1500}
+              maxLength={1000}
               onChange={(e) => setText(e.target.value)}
             />
             <div className={styles.charCounter}>
-              {text.length} / 1500
+              {text.length} / 1000
             </div>
           </div>
 

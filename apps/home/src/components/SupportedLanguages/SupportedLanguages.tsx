@@ -57,11 +57,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "What languages does Tarang support for text to speech?",
-    a: "Tarang supports text-to-speech and voice cloning in over 500 languages, including English, Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Spanish, French, German, Japanese, Chinese, Korean, Arabic, and many more.",
+    a: "Tarang supports text-to-speech and voice cloning in over 100 languages, including English, Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Spanish, French, German, Japanese, Chinese, Korean, Arabic, and many more.",
   },
   {
     q: "Can I clone my voice and speak in a different language?",
-    a: "Yes. Tarang supports cross-lingual voice cloning. You can record your voice in one language and generate speech in any of 500+ supported languages while preserving your voice's unique characteristics, tone, and emotional quality.",
+    a: "Yes. Tarang supports cross-lingual voice cloning. You can record your voice in one language and generate speech in any of 100+ supported languages while preserving your voice's unique characteristics, tone, and emotional quality.",
   },
   {
     q: "Does Tarang support regional Indian languages like Gujarati or Marathi?",
@@ -83,7 +83,7 @@ const SupportedLanguages = () => {
           <span className={styles.badge}>LANGUAGES</span>
           <h2 className={styles.heading}>
             AI Voice Cloning in{" "}
-            <span className={styles.headingAccent}>500+ Languages</span>
+            <span className={styles.headingAccent}>100+ Languages</span>
           </h2>
           <p className={styles.subtitle}>
             Clone your voice or generate speech in any language — from Hindi and
