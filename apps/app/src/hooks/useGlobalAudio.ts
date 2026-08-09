@@ -8,14 +8,20 @@ import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
  *
  * Uses useSyncExternalStore for React-safe subscriptions to
  * shared mutable state without causing tearing.
+ *
+ * Fixed: Race condition on mobile where audio.play() promise
+ * hadn't resolved when user tapped pause, causing the toggle
+ * to miss the pause branch and restart playback.
  */
 
 type AudioState = {
   currentUrl: string | null;
   isPlaying: boolean;
+  /** True while audio.play() promise is in-flight (not yet resolved). */
+  isPending: boolean;
 };
 
-let state: AudioState = { currentUrl: null, isPlaying: false };
+let state: AudioState = { currentUrl: null, isPlaying: false, isPending: false };
 let audioInstance: HTMLAudioElement | null = null;
 const listeners = new Set<() => void>();
 
@@ -40,15 +46,19 @@ function stopCurrent() {
     audioInstance.onerror = null;
     audioInstance = null;
   }
-  state = { currentUrl: null, isPlaying: false };
+  state = { currentUrl: null, isPlaying: false, isPending: false };
   emitChange();
 }
 
 function playUrl(url: string) {
-  // If same URL is playing, toggle pause
-  if (audioInstance && state.currentUrl === url && state.isPlaying) {
+  // If same URL is already active (playing OR pending), toggle pause/stop
+  if (audioInstance && state.currentUrl === url && (state.isPlaying || state.isPending)) {
     audioInstance.pause();
-    state = { currentUrl: url, isPlaying: false };
+    audioInstance.currentTime = 0;
+    audioInstance.onended = null;
+    audioInstance.onerror = null;
+    audioInstance = null;
+    state = { currentUrl: null, isPlaying: false, isPending: false };
     emitChange();
     return;
   }
@@ -60,25 +70,41 @@ function playUrl(url: string) {
   const audio = new Audio(url);
   audioInstance = audio;
 
+  // Set currentUrl and isPending IMMEDIATELY — before the promise resolves.
+  // This ensures a quick second tap will hit the pause branch above.
+  state = { currentUrl: url, isPlaying: false, isPending: true };
+  emitChange();
+
   audio.onended = () => {
-    state = { currentUrl: null, isPlaying: false };
-    audioInstance = null;
-    emitChange();
+    // Only update if this is still the active instance
+    if (audioInstance === audio) {
+      state = { currentUrl: null, isPlaying: false, isPending: false };
+      audioInstance = null;
+      emitChange();
+    }
   };
 
   audio.onerror = () => {
-    state = { currentUrl: null, isPlaying: false };
-    audioInstance = null;
-    emitChange();
+    if (audioInstance === audio) {
+      state = { currentUrl: null, isPlaying: false, isPending: false };
+      audioInstance = null;
+      emitChange();
+    }
   };
 
   audio.play().then(() => {
-    state = { currentUrl: url, isPlaying: true };
-    emitChange();
+    // Only transition to playing if this is still the active instance
+    // (user might have tapped pause while the promise was pending)
+    if (audioInstance === audio) {
+      state = { currentUrl: url, isPlaying: true, isPending: false };
+      emitChange();
+    }
   }).catch(() => {
-    state = { currentUrl: null, isPlaying: false };
-    audioInstance = null;
-    emitChange();
+    if (audioInstance === audio) {
+      state = { currentUrl: null, isPlaying: false, isPending: false };
+      audioInstance = null;
+      emitChange();
+    }
   });
 }
 
@@ -102,7 +128,7 @@ export function useGlobalAudio() {
   }, []);
 
   const isPlayingUrl = useCallback(
-    (url: string) => audioState.currentUrl === url && audioState.isPlaying,
+    (url: string) => audioState.currentUrl === url && (audioState.isPlaying || audioState.isPending),
     [audioState]
   );
 

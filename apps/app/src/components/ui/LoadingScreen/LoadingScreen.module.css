@@ -1,0 +1,38 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--background, #0a0a0a);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.brandText {
+  font-family: var(--font-brand, Georgia, serif);
+  font-style: italic;
+  font-weight: normal;
+  font-size: 1.75rem;
+  color: var(--foreground, #fafafa);
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+
+.loaderWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground, #a1a1aa);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
