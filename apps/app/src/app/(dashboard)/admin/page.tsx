@@ -28,6 +28,7 @@ interface ConfigEntry {
 
 type TabKey = "users" | "config" | "insights";
 
+
 // ── Main Page ──
 
 export default function AdminPage() {

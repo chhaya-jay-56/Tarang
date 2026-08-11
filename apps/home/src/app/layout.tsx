@@ -11,14 +11,7 @@ export const metadata: Metadata = {
   keywords: ["voice cloning", "TTS", "voice creation", "100+ languages", "AI voice", "text to speech"],
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
-  icons: {
-    icon: [
-      { url: '/Logo.svg', type: 'image/svg+xml' }
-    ],
-    apple: [
-      { url: '/Logo.svg', type: 'image/svg+xml' }
-    ]
-  },
+
   openGraph: {
     title: "Tarang | AI Voice Creation, Voice Cloning & TTS",
     description:
