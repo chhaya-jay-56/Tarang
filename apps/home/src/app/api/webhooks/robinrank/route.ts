@@ -3,9 +3,25 @@ import { storeArticleInRedis, RobinRankArticle } from "@/lib/robinrank";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
 
     console.log("[RobinRank Webhook] Received payload:", JSON.stringify(body, null, 2));
+
+    // Handle RobinRank "Test connection" ping or empty test payloads
+    if (
+      !body ||
+      Object.keys(body).length === 0 ||
+      body.event === "ping" ||
+      body.test ||
+      body.type === "ping" ||
+      body.action === "ping" ||
+      body.event === "test"
+    ) {
+      return NextResponse.json({
+        success: true,
+        message: "Webhook connection test successful",
+      });
+    }
 
     // Handle payload standard formats:
     // 1. { event: "article.published", data: { ...article } }
@@ -13,17 +29,18 @@ export async function POST(req: NextRequest) {
     // 3. { title: "...", slug: "...", content: "..." }
     const rawArticle = body.data ?? body.article ?? body;
 
-    if (!rawArticle || (!rawArticle.title && !rawArticle.slug)) {
-      return NextResponse.json(
-        { error: "Invalid article payload" },
-        { status: 400 }
-      );
+    // If it's a test ping payload that has generic non-article fields, accept it with 200 OK
+    if (!rawArticle.title && !rawArticle.slug && !rawArticle.id) {
+      return NextResponse.json({
+        success: true,
+        message: "Webhook ping received",
+      });
     }
 
     const article: RobinRankArticle = {
-      id: rawArticle.id || rawArticle.slug || String(Date.now()),
+      id: String(rawArticle.id || rawArticle.slug || Date.now()),
       title: rawArticle.title || "Untitled Article",
-      slug: rawArticle.slug || rawArticle.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: rawArticle.slug || rawArticle.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "article-" + Date.now(),
       content: rawArticle.content || rawArticle.html || rawArticle.body || "",
       excerpt: rawArticle.excerpt || rawArticle.description || "",
       published_at: rawArticle.published_at || rawArticle.created_at || new Date().toISOString(),
