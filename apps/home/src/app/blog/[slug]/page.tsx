@@ -6,6 +6,7 @@ import {
   fetchArticles,
   generateExcerpt,
 } from "@/lib/robinrank";
+import { renderMarkdownToHtml } from "@/lib/markdown";
 import Navbar from "@/components/Navbar/Navbar";
 import Background from "@/components/Background/Background";
 import Footer from "@/components/Footer/Footer";
@@ -72,6 +73,8 @@ export default async function ArticlePage({ params }: PageProps) {
       })
     : null;
 
+  const htmlContent = renderMarkdownToHtml(article.content || "");
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -135,10 +138,10 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Article Body */}
+          {/* Article Body with rich Markdown parsing */}
           <article
             className={styles.articleContent}
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
 
           {/* CTA */}
