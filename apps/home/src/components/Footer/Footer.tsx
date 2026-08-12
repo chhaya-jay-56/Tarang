@@ -7,11 +7,17 @@ const FOOTER_LINKS = [
   {
     title: "Product",
     links: [
-      "Text to Speech",
-      "Voice Cloning",
-      "Voice Separation",
-      "Voice Library",
-      "Voice Creation",
+      { label: "Text to Speech", href: "#" },
+      { label: "Voice Cloning", href: "#" },
+      { label: "Voice Separation", href: "#" },
+      { label: "Voice Library", href: "#" },
+      { label: "Voice Creation", href: "#" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Blog", href: "/blog" },
     ],
   },
 ];
@@ -45,9 +51,9 @@ const Footer = () => {
                 <h4 className={styles.columnTitle}>{col.title}</h4>
                 <ul className={styles.linkList}>
                   {col.links.map((link) => (
-                    <li key={link}>
-                      <a href="#" className={styles.link}>
-                        {link}
+                    <li key={link.label}>
+                      <a href={link.href} className={styles.link}>
+                        {link.label}
                       </a>
                     </li>
                   ))}

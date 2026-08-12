@@ -1,0 +1,333 @@
+/* ─── Article Page ─── */
+.articlePage {
+    min-height: 100vh;
+    position: relative;
+    z-index: 10;
+    padding: 8rem 5% 4rem;
+}
+
+.container {
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+/* ─── Back Link ─── */
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 2.5rem;
+    padding: 0.4rem 0;
+    transition: color 0.2s ease, gap 0.3s ease;
+}
+
+.backLink:hover {
+    color: var(--accent-color);
+    gap: 0.35rem;
+}
+
+.backArrow {
+    transition: transform 0.3s ease;
+}
+
+.backLink:hover .backArrow {
+    transform: translateX(-3px);
+}
+
+/* ─── Article Header ─── */
+.articleHeader {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.date {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.tag {
+    font-size: 0.72rem;
+    color: var(--accent-color);
+    background: rgba(190, 242, 2, 0.08);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.articleTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+}
+
+.articleExcerpt {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* ─── Featured Image ─── */
+.featuredImage {
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.featuredImage img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ─── Article Content ─── */
+.articleContent {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.8;
+}
+
+.articleContent h1,
+.articleContent h2,
+.articleContent h3,
+.articleContent h4 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.articleContent h2 {
+    font-size: 1.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.articleContent h3 {
+    font-size: 1.4rem;
+}
+
+.articleContent p {
+    margin-bottom: 1.25rem;
+}
+
+.articleContent a {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s ease;
+}
+
+.articleContent a:hover {
+    opacity: 0.8;
+}
+
+.articleContent ul,
+.articleContent ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+}
+
+.articleContent li {
+    margin-bottom: 0.5rem;
+}
+
+.articleContent blockquote {
+    border-left: 3px solid var(--accent-color);
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    background: rgba(190, 242, 2, 0.03);
+    border-radius: 0 12px 12px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+}
+
+.articleContent code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'JetBrains Mono Variable', monospace;
+}
+
+.articleContent pre {
+    background: rgba(12, 12, 14, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.articleContent pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.88rem;
+}
+
+.articleContent img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+}
+
+.articleContent table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.articleContent th,
+.articleContent td {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+}
+
+.articleContent th {
+    background: rgba(255, 255, 255, 0.04);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ─── CTA Bottom ─── */
+.ctaSection {
+    margin-top: 4rem;
+    padding: 3rem;
+    background: rgba(12, 12, 14, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    text-align: center;
+}
+
+.ctaTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.ctaText {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.ctaButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #000;
+    background: #fff;
+    padding: 0.7rem 1.8rem;
+    border-radius: 100px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Not Found ─── */
+.notFound {
+    text-align: center;
+    padding: 8rem 2rem;
+}
+
+.notFoundIcon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.notFoundTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.notFoundText {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.notFoundLink {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .articlePage {
+        padding: 7rem 4% 3rem;
+    }
+
+    .articleContent {
+        font-size: 1rem;
+    }
+
+    .ctaSection {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .articlePage {
+        padding: 6rem 4% 2rem;
+    }
+
+    .articleContent {
+        font-size: 0.95rem;
+    }
+
+    .articleContent h2 {
+        font-size: 1.5rem;
+    }
+
+    .articleContent h3 {
+        font-size: 1.2rem;
+    }
+
+    .ctaSection {
+        padding: 1.5rem;
+    }
+
+    .ctaTitle {
+        font-size: 1.3rem;
+    }
+}

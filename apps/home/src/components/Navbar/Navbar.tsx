@@ -32,6 +32,7 @@ const PRODUCT_ITEMS = [
 const NAV_LINKS = [
   { id: "product", label: "Product", hasDropdown: true },
   { id: "how-it-works", label: "How it Works", hasDropdown: false },
+  { id: "blog", label: "Blog", hasDropdown: false, href: "/blog" },
   { id: "contact", label: "Contact", hasDropdown: false },
 ];
 
@@ -133,6 +134,14 @@ const Navbar = () => {
                   </div>
                 </div>
               </div>
+            ) : link.href ? (
+              <a
+                key={link.id}
+                href={link.href}
+                className={styles.navLink}
+              >
+                {link.label}
+              </a>
             ) : (
               <a
                 key={link.id}
@@ -169,16 +178,26 @@ const Navbar = () => {
       <div
         className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ""}`}
       >
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link.id}
-            href={`#${link.id}`}
-            className={styles.mobileNavLink}
-            onClick={(e) => handleNavClick(e, link.id)}
-          >
-            {link.label}
-          </a>
-        ))}
+        {NAV_LINKS.map((link) =>
+          link.href ? (
+            <a
+              key={link.id}
+              href={link.href}
+              className={styles.mobileNavLink}
+            >
+              {link.label}
+            </a>
+          ) : (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              className={styles.mobileNavLink}
+              onClick={(e) => handleNavClick(e, link.id)}
+            >
+              {link.label}
+            </a>
+          )
+        )}
         <a href={APP_URL} className={styles.mobileCta}>
           Get Started &rarr;
         </a>
