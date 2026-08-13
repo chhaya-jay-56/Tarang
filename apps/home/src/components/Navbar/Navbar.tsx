@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import ShinyText from "@/components/ShinyText/ShinyText";
 import styles from "./Navbar.module.css";
 
@@ -37,6 +38,7 @@ const NAV_LINKS = [
 ];
 
 const Navbar = () => {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,15 +54,19 @@ const Navbar = () => {
 
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-      e.preventDefault();
-      const section = document.getElementById(id);
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth" });
-      }
       setMobileMenuOpen(false);
       setDropdownOpen(false);
+      if (pathname === "/") {
+        e.preventDefault();
+        const section = document.getElementById(id);
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
     },
-    []
+    [pathname]
   );
 
   return (
@@ -71,7 +77,11 @@ const Navbar = () => {
       <div className={styles.inner}>
         {/* Logo */}
         <div className={styles.leftSection}>
-          <a href="#home" className={styles.logo} onClick={(e) => handleNavClick(e, "home")}>
+          <a
+            href={pathname === "/" ? "#home" : "/"}
+            className={styles.logo}
+            onClick={(e) => handleNavClick(e, "home")}
+          >
             <img src="/Logo.svg" alt="Tarang Logo" className={styles.logoSvg} />
             <ShinyText
               text="Tarang"
@@ -85,8 +95,14 @@ const Navbar = () => {
 
         {/* Desktop Nav Links */}
         <nav className={styles.navLinks}>
-          {NAV_LINKS.map((link) =>
-            link.hasDropdown ? (
+          {NAV_LINKS.map((link) => {
+            const targetHref = link.href
+              ? link.href
+              : pathname === "/"
+              ? `#${link.id}`
+              : `/#${link.id}`;
+
+            return link.hasDropdown ? (
               <div
                 key={link.id}
                 className={styles.dropdownWrapper}
@@ -94,7 +110,7 @@ const Navbar = () => {
                 onMouseLeave={() => setDropdownOpen(false)}
               >
                 <a
-                  href={`#${link.id}`}
+                  href={targetHref}
                   className={styles.navLink}
                   onClick={(e) => handleNavClick(e, link.id)}
                 >
@@ -145,14 +161,14 @@ const Navbar = () => {
             ) : (
               <a
                 key={link.id}
-                href={`#${link.id}`}
+                href={targetHref}
                 className={styles.navLink}
                 onClick={(e) => handleNavClick(e, link.id)}
               >
                 {link.label}
               </a>
-            )
-          )}
+            );
+          })}
         </nav>
 
         {/* CTA */}
@@ -178,8 +194,14 @@ const Navbar = () => {
       <div
         className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ""}`}
       >
-        {NAV_LINKS.map((link) =>
-          link.href ? (
+        {NAV_LINKS.map((link) => {
+          const targetHref = link.href
+            ? link.href
+            : pathname === "/"
+            ? `#${link.id}`
+            : `/#${link.id}`;
+
+          return link.href ? (
             <a
               key={link.id}
               href={link.href}
@@ -190,14 +212,14 @@ const Navbar = () => {
           ) : (
             <a
               key={link.id}
-              href={`#${link.id}`}
+              href={targetHref}
               className={styles.mobileNavLink}
               onClick={(e) => handleNavClick(e, link.id)}
             >
               {link.label}
             </a>
-          )
-        )}
+          );
+        })}
         <a href={APP_URL} className={styles.mobileCta}>
           Get Started &rarr;
         </a>

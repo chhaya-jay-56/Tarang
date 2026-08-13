@@ -12,6 +12,9 @@ import Background from "@/components/Background/Background";
 import Footer from "@/components/Footer/Footer";
 import styles from "./article.module.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 const SITE_URL = "https://trytarang.app";
 
@@ -73,7 +76,7 @@ export default async function ArticlePage({ params }: PageProps) {
       })
     : null;
 
-  const htmlContent = renderMarkdownToHtml(article.content || "");
+  const htmlContent = renderMarkdownToHtml(article.content || "", article.title);
 
   const articleSchema = {
     "@context": "https://schema.org",

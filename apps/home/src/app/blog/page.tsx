@@ -6,6 +6,9 @@ import Background from "@/components/Background/Background";
 import Footer from "@/components/Footer/Footer";
 import styles from "./blog.module.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Blog | Tarang — Voice AI Insights & Tutorials",
   description:

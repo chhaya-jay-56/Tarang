@@ -7,11 +7,11 @@ const FOOTER_LINKS = [
   {
     title: "Product",
     links: [
-      { label: "Text to Speech", href: "#" },
-      { label: "Voice Cloning", href: "#" },
-      { label: "Voice Separation", href: "#" },
-      { label: "Voice Library", href: "#" },
-      { label: "Voice Creation", href: "#" },
+      { label: "Text to Speech", href: "/#product" },
+      { label: "Voice Cloning", href: "/#product" },
+      { label: "Voice Separation", href: "/#product" },
+      { label: "Voice Library", href: "/#product" },
+      { label: "Voice Creation", href: "/#product" },
     ],
   },
   {
