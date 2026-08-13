@@ -36,12 +36,12 @@ export interface RobinRankArticle {
 const memoryCache = new Map<string, RobinRankArticle>();
 
 function getRedisClient(): Redis | null {
-  if (
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
-  ) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  
+  if (url && token) {
     try {
-      return Redis.fromEnv();
+      return new Redis({ url, token });
     } catch (e) {
       console.warn("[RobinRank] Upstash Redis initialization error:", e);
     }
@@ -77,10 +77,73 @@ function writeToFileCache(articles: RobinRankArticle[]): void {
 }
 
 /**
+ * Normalize any article object (from RobinRank REST API or Webhook payload) into RobinRankArticle format.
+ */
+export function normalizeArticle(raw: any): RobinRankArticle {
+  const title = raw.title || raw.heading || raw.name || "Untitled Article";
+  const rawContent =
+    raw.content ||
+    raw.markdown ||
+    raw.html ||
+    raw.body ||
+    raw.text ||
+    "";
+
+  const slug =
+    raw.slug ||
+    raw.url_slug ||
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") ||
+    "article-" + Date.now();
+
+  const rawExcerpt = raw.excerpt || raw.metaDescription || raw.description || raw.summary || "";
+  const excerpt = rawExcerpt ? generateExcerpt(rawExcerpt, 160) : generateExcerpt(rawContent, 160);
+
+  let tags: string[] = [];
+  if (Array.isArray(raw.tags)) {
+    tags = raw.tags.map((t: any) => String(typeof t === "object" ? t.name || t.label : t));
+  } else if (typeof raw.tags === "string") {
+    tags = raw.tags.split(",").map((t: string) => t.trim()).filter(Boolean);
+  }
+
+  return {
+    id: String(raw.id || slug),
+    title,
+    slug,
+    content: rawContent,
+    excerpt,
+    published_at:
+      raw.publishedAt ||
+      raw.published_at ||
+      raw.createdAt ||
+      raw.created_at ||
+      raw.date ||
+      new Date().toISOString(),
+    created_at: raw.createdAt || raw.created_at,
+    updated_at: raw.updatedAt || raw.updated_at,
+    meta_title: raw.metaTitle || raw.meta_title || title,
+    meta_description: raw.metaDescription || raw.meta_description || excerpt,
+    featured_image:
+      raw.featuredImageUrl ||
+      raw.featured_image ||
+      raw.image_url ||
+      raw.image ||
+      raw.thumbnail,
+    status: raw.status || raw.state || "published",
+    tags: tags.length > 0 ? tags : ["Voice AI", "Blog"],
+    author: raw.author || raw.author_name || "Tarang Team",
+  };
+}
+
+/**
  * Store or update an article received via Webhook.
  */
-export async function storeArticleInRedis(article: RobinRankArticle): Promise<void> {
-  if (!article.slug) return;
+export async function storeArticleInRedis(rawArticle: any): Promise<RobinRankArticle> {
+  const article = normalizeArticle(rawArticle);
+
+  if (!article.slug) return article;
 
   // 1. Store in memory cache
   memoryCache.set(article.slug, article);
@@ -114,9 +177,11 @@ export async function storeArticleInRedis(article: RobinRankArticle): Promise<vo
       console.error("[RobinRank] Failed to save article to Upstash Redis:", err);
     }
   }
+
+  return article;
 }
 
-function isPublishedStatus(status?: string): boolean {
+export function isPublishedStatus(status?: string): boolean {
   if (!status) return true;
   const s = String(status).toLowerCase().trim();
   return (
@@ -131,20 +196,49 @@ function isPublishedStatus(status?: string): boolean {
 
 /**
  * Fetch all published articles.
- * Checks Redis -> Filesystem -> Memory cache first, then falls back to RobinRank REST API & Seed Articles.
+ * Merges RobinRank REST API + Webhooks + Redis + Filesystem + Memory Cache.
  */
 export async function fetchArticles(): Promise<RobinRankArticle[]> {
   const mergedMap = new Map<string, RobinRankArticle>();
 
-  // 1. Try Redis cache
+  // 1. Fetch live articles directly from RobinRank REST API (Always fresh)
+  const apiKey = process.env.ROBINRANK_API_KEY || "rr_0437b507d8f7b9239713f5fc8c24ea0ad2349a08488a8f7b4f629860a9d4792a";
+  if (apiKey) {
+    try {
+      const res = await fetch(ROBINRANK_API_URL, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 60 },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const rawList: any[] = Array.isArray(data)
+          ? data
+          : data.articles ?? data.data ?? [];
+
+        rawList.forEach((raw) => {
+          const norm = normalizeArticle(raw);
+          if (norm.slug) mergedMap.set(norm.slug, norm);
+        });
+      }
+    } catch (error) {
+      console.error("[RobinRank] Failed to fetch articles from REST API:", error);
+    }
+  }
+
+  // 2. Add Upstash Redis cached articles (if any were pushed via webhook)
   const redis = getRedisClient();
   if (redis) {
     try {
       const data = await redis.get<string | RobinRankArticle[]>(REDIS_KEY);
       if (data) {
         const list: RobinRankArticle[] = typeof data === "string" ? JSON.parse(data) : data;
-        list.forEach((a) => {
-          if (a.slug) mergedMap.set(a.slug, a);
+        list.forEach((raw) => {
+          const norm = normalizeArticle(raw);
+          if (norm.slug) mergedMap.set(norm.slug, norm);
         });
       }
     } catch (err) {
@@ -152,51 +246,22 @@ export async function fetchArticles(): Promise<RobinRankArticle[]> {
     }
   }
 
-  // 2. Add filesystem cache articles
+  // 3. Add filesystem cache articles
   const fileArticles = readFromFileCache();
-  fileArticles.forEach((a) => {
-    if (a.slug) mergedMap.set(a.slug, a);
+  fileArticles.forEach((raw) => {
+    const norm = normalizeArticle(raw);
+    if (norm.slug) mergedMap.set(norm.slug, norm);
   });
 
-  // 3. Add memory cache articles
-  memoryCache.forEach((a, slug) => {
-    mergedMap.set(slug, a);
+  // 4. Add memory cache articles
+  memoryCache.forEach((raw, slug) => {
+    const norm = normalizeArticle(raw);
+    mergedMap.set(slug, norm);
   });
 
   let articles = Array.from(mergedMap.values());
 
-  // 4. Fallback to RobinRank REST API if no webhook articles exist yet
-  if (articles.length === 0) {
-    const apiKey = process.env.ROBINRANK_API_KEY;
-    if (apiKey) {
-      try {
-        const res = await fetch(ROBINRANK_API_URL, {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          next: { revalidate: 300 },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const apiArticles: RobinRankArticle[] = Array.isArray(data)
-            ? data
-            : data.articles ?? data.data ?? [];
-
-          apiArticles.forEach((a) => {
-            if (a.slug) mergedMap.set(a.slug, a);
-          });
-
-          articles = Array.from(mergedMap.values());
-        }
-      } catch (error) {
-        console.error("[RobinRank] Failed to fetch articles from REST API:", error);
-      }
-    }
-  }
-
-  // 5. Fallback seed articles if no content exists yet to ensure clean presentation
+  // 5. Fallback seed articles only if zero articles found
   if (articles.length === 0) {
     articles = [
       {
@@ -252,7 +317,7 @@ Whether you're producing music remixes, cleaning up interview recordings, or ext
     ];
   }
 
-  // Filter for published status and sort by publication date descending
+  // Filter for published status and sort by publication date descending (newest first)
   return articles
     .filter((a) => isPublishedStatus(a.status))
     .sort((a, b) => {
@@ -278,10 +343,16 @@ export async function fetchArticleBySlug(
 export function generateExcerpt(content: string, maxLength = 160): string {
   if (!content) return "";
   const text = content
-    .replace(/<[^>]*>/g, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]*>/g, " ")
     .replace(/#+\s*/g, "")
     .replace(/[*_~`]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -289,4 +360,5 @@ export function generateExcerpt(content: string, maxLength = 160): string {
     ? text.slice(0, maxLength).trimEnd() + "…"
     : text;
 }
+
 

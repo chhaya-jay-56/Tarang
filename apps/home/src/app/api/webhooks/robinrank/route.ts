@@ -38,61 +38,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const title = rawArticle.title || rawArticle.heading || rawArticle.name || "Untitled Article";
-    const rawContent =
-      rawArticle.content ||
-      rawArticle.markdown ||
-      rawArticle.html ||
-      rawArticle.body ||
-      rawArticle.text ||
-      rawArticle.message ||
-      "";
-
-    const generatedSlug =
-      rawArticle.slug ||
-      rawArticle.url_slug ||
-      title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "") ||
-      "article-" + Date.now();
-
-    const rawExcerpt = rawArticle.excerpt || rawArticle.description || rawArticle.summary || "";
-    const excerpt = rawExcerpt || generateExcerpt(rawContent, 160);
-
-    // Tags normalization
-    let tags: string[] = [];
-    if (Array.isArray(rawArticle.tags)) {
-      tags = rawArticle.tags.map((t: any) => String(typeof t === "object" ? t.name || t.label : t));
-    } else if (typeof rawArticle.tags === "string") {
-      tags = rawArticle.tags.split(",").map((t: string) => t.trim()).filter(Boolean);
-    }
-
-    const article: RobinRankArticle = {
-      id: String(rawArticle.id || generatedSlug),
-      title,
-      slug: generatedSlug,
-      content: rawContent,
-      excerpt,
-      published_at:
-        rawArticle.published_at ||
-        rawArticle.created_at ||
-        rawArticle.date ||
-        new Date().toISOString(),
-      meta_title: rawArticle.meta_title || title,
-      meta_description: rawArticle.meta_description || excerpt,
-      featured_image:
-        rawArticle.featured_image ||
-        rawArticle.image_url ||
-        rawArticle.image ||
-        rawArticle.thumbnail,
-      status: rawArticle.status || rawArticle.state || "published",
-      tags: tags.length > 0 ? tags : ["Voice AI", "Blog"],
-      author: rawArticle.author || rawArticle.author_name || "Tarang Team",
-    };
-
-    // Store in Redis / Filesystem / Memory cache
-    await storeArticleInRedis(article);
+    // Store in Redis / Filesystem / Memory cache and normalize
+    const article = await storeArticleInRedis(rawArticle);
 
     // Trigger instant Next.js App Router cache revalidation for all blog routes
     try {
