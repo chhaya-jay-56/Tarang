@@ -94,34 +94,59 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
             body = {
                 "model": "Qwen/Qwen3.6-35B-A3B",
                 "messages": [
-                    {"role": "system", "content": "You are a concise technical assistant."},
+                    {"role": "system", "content": "You are a concise technical assistant. Output strict JSON only."},
                     {"role": "user", "content": prompt},
                 ],
                 "temperature": 0.1,
-                "max_tokens": 1024,
+                "max_tokens": 4096,
                 "stream": False,
-                "extra_body": {"reasoning_effort": "none"},
             }
             resp = await client.post(settings.MODAL_QWEN_ENDPOINT, headers=headers, json=body)
             resp.raise_for_status()
 
             response_data = resp.json()
-            response_text = response_data["choices"][0]["message"]["content"].strip()
+            msg = response_data["choices"][0]["message"]
+            response_text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
 
-            # Strip markdown fences if model adds them
-            if response_text.startswith("```json"):
-                response_text = response_text[7:]
-            if response_text.endswith("```"):
-                response_text = response_text[:-3]
-            response_text = response_text.strip()
+            # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
+            raw = response_text
+            if "<think>" in raw and "</think>" in raw:
+                raw = raw.split("</think>")[-1].strip()
+            if "```json" in raw:
+                raw = raw.split("```json")[1].split("```")[0].strip()
+            elif "```" in raw:
+                raw = raw.split("```")[1].split("```")[0].strip()
 
-            intelligence_json = json.loads(response_text)
+            start_idx = raw.find("{")
+            end_idx = raw.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                raw = raw[start_idx : end_idx + 1]
+
+            intelligence_json = json.loads(raw)
     except json.JSONDecodeError:
-        logger.error("Qwen returned non-JSON: %s", response_text[:200] if 'response_text' in locals() else "N/A")
+        logger.error("Qwen returned non-JSON content: %s", response_text[:300] if 'response_text' in locals() else "N/A")
         intelligence_json = {"error": "Non-JSON response from LLM"}
     except Exception as e:
-        logger.error("Failed to extract intelligence from Qwen: %s", e, exc_info=True)
-        intelligence_json = {"error": str(e)}
+        logger.error("Modal Qwen extraction failed (%s). Attempting Gemini fallback...", e)
+        if settings.GEMINI_API_KEY:
+            try:
+                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+                gemini_body = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"response_mime_type": "application/json"}
+                }
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(gemini_url, json=gemini_body)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                    intelligence_json = json.loads(raw_text)
+                    logger.info("✅ Intelligence successfully extracted via Gemini fallback!")
+            except Exception as fallback_err:
+                logger.error("Gemini fallback failed: %s", fallback_err)
+                intelligence_json = {"error": f"Modal Qwen: {str(e)}; Gemini: {str(fallback_err)}"}
+        else:
+            intelligence_json = {"error": str(e)}
 
     # Write result back using a fresh session
     async with AsyncSessionLocal() as db:
@@ -259,54 +284,7 @@ async def analyze_call(
     return call
 
 
-@router.post("/webhook")
-async def gladia_webhook(
-    request: Request,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-):
-    """Webhook called by Gladia when transcription is complete (optional fallback)."""
-    import httpx
 
-    payload = await request.json()
-    job_id = payload.get("id")
-    event = payload.get("event")
-
-    if not job_id:
-        return {"status": "ignored"}
-
-    result = await db.execute(
-        select(CallAnalysis).where(CallAnalysis.gladia_job_id == job_id)
-    )
-    call = result.scalar_one_or_none()
-
-    if not call:
-        logger.warning("Webhook received for unknown Gladia job %s", job_id)
-        return {"status": "not_found"}
-
-    if event == "success":
-        result_url = payload.get("result_url")
-        async with httpx.AsyncClient() as client:
-            headers = {"x-gladia-key": settings.GLADIA_API_KEY}
-            resp = await client.get(result_url, headers=headers)
-            resp.raise_for_status()
-            transcript_data = resp.json()
-
-        call.transcript = transcript_data
-        call.status = AnalysisStatus.EXTRACTING
-
-        metadata = transcript_data.get("metadata", {})
-        if metadata.get("audio_duration"):
-            call.duration_seconds = float(metadata["audio_duration"])
-
-        await db.commit()
-        background_tasks.add_task(_run_qwen_extraction, call.id, transcript_data)
-
-    elif event == "error":
-        call.status = AnalysisStatus.FAILED
-        await db.commit()
-
-    return {"status": "received"}
 
 
 @router.get("/calls", response_model=CallAnalysisListResponse)

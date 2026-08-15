@@ -39,7 +39,7 @@ async def upload_audio_to_gladia(file_bytes: bytes, filename: str) -> str:
             raise ExternalServiceError("Gladia", f"Could not connect to Gladia upload API: {str(e)}")
 
 
-async def start_gladia_transcription(audio_url: str, webhook_url: str = None) -> Dict[str, Any]:
+async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
     """
     Starts an asynchronous transcription job on Gladia.
     Uses 'solaria-1' and enables intelligence flags (diarization, sentiment, NER, etc).
@@ -57,12 +57,7 @@ async def start_gladia_transcription(audio_url: str, webhook_url: str = None) ->
         "sentiment_analysis": True,
         "named_entity_recognition": True,
         "name_consistency": True,
-        "punctuation_enhanced": True,
     }
-
-    if webhook_url:
-        payload["callback"] = True
-        payload["callback_url"] = webhook_url
 
     headers = {
         "Content-Type": "application/json",
