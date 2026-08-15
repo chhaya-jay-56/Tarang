@@ -4,15 +4,12 @@ import { useState } from "react";
 import { useApiClient } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio, LuShieldAlert } from "react-icons/lu";
-import { useUser } from "@clerk/nextjs";
+import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio } from "react-icons/lu";
 
 export default function VoiceInsightUpload() {
-  const { user, isLoaded } = useUser();
-  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { authFetch } = useApiClient();
   const router = useRouter();
-  
+
   const [uploadMode, setUploadMode] = useState<"file" | "url">("file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState("");
@@ -77,20 +74,7 @@ export default function VoiceInsightUpload() {
       setIsLoading(false);
       setUploadProgress("");
     }
-  if (isLoaded && !isAdmin) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
-        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
-        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
-        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
-          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to upload call recordings.
-        </p>
-        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
-          Return to Dashboard
-        </Link>
-      </div>
-    );
-  }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "650px", width: "100%", padding: "0 16px", margin: "40px auto" }}>
@@ -146,15 +130,15 @@ export default function VoiceInsightUpload() {
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px", backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--foreground)" }}>Case Identifier / Filename</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             required
             placeholder="e.g. Case_2026_08_15_Call_04.mp3"
             value={filename}
             onChange={(e) => setFilename(e.target.value)}
-            style={{ 
-              padding: "12px", backgroundColor: "var(--background)", border: "1px solid var(--border)", 
-              borderRadius: "8px", color: "var(--foreground)", fontSize: "14px", outline: "none" 
+            style={{
+              padding: "12px", backgroundColor: "var(--background)", border: "1px solid var(--border)",
+              borderRadius: "8px", color: "var(--foreground)", fontSize: "14px", outline: "none"
             }}
           />
         </div>
@@ -166,9 +150,9 @@ export default function VoiceInsightUpload() {
               border: "2px dashed var(--border)", padding: "30px 20px", borderRadius: "10px",
               textAlign: "center", backgroundColor: "var(--background)", cursor: "pointer"
             }}>
-              <input 
-                type="file" 
-                accept="audio/*" 
+              <input
+                type="file"
+                accept="audio/*"
                 onChange={handleFileChange}
                 style={{ display: "none" }}
                 id="audio-file-input"
@@ -187,15 +171,15 @@ export default function VoiceInsightUpload() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--foreground)" }}>Call Recording Audio URL</label>
-            <input 
-              type="url" 
+            <input
+              type="url"
               required
               placeholder="https://storage.provider.com/audio/call.mp3"
               value={audioUrl}
               onChange={(e) => setAudioUrl(e.target.value)}
-              style={{ 
-                padding: "12px", backgroundColor: "var(--background)", border: "1px solid var(--border)", 
-                borderRadius: "8px", color: "var(--foreground)", fontSize: "14px", outline: "none" 
+              style={{
+                padding: "12px", backgroundColor: "var(--background)", border: "1px solid var(--border)",
+                borderRadius: "8px", color: "var(--foreground)", fontSize: "14px", outline: "none"
               }}
             />
           </div>
@@ -207,11 +191,11 @@ export default function VoiceInsightUpload() {
           </p>
         )}
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isLoading}
           style={{
-            marginTop: "8px", padding: "14px", backgroundColor: "var(--primary)", 
+            marginTop: "8px", padding: "14px", backgroundColor: "var(--primary)",
             color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, fontSize: "14px",
             opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer", border: "none",
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"

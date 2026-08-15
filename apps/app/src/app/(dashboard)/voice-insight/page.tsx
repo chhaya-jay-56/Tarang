@@ -3,25 +3,21 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApiClient } from "@/lib/api";
 import Link from "next/link";
-import { 
-  LuUpload, 
-  LuShield, 
-  LuSearch, 
-  LuActivity, 
-  LuList, 
-  LuShieldAlert, 
-  LuClock, 
-  LuFlame, 
-  LuTag, 
+import {
+  LuUpload,
+  LuShield,
+  LuSearch,
+  LuActivity,
+  LuList,
+  LuShieldAlert,
+  LuClock,
+  LuFlame,
+  LuTag,
   LuGlobe,
   LuFileText
 } from "react-icons/lu";
 
-import { useUser } from "@clerk/nextjs";
-
 export default function VoiceInsightPage() {
-  const { user, isLoaded } = useUser();
-  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { authFetch } = useApiClient();
   const [activeTab, setActiveTab] = useState<"records" | "analytics">("records");
 
@@ -75,21 +71,6 @@ export default function VoiceInsightPage() {
     }
   }, [activeTab, fetchCalls, fetchAnalytics]);
 
-  if (isLoaded && !isAdmin) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
-        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
-        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
-        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
-          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to view or manage call analysis records.
-        </p>
-        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
-          Return to Dashboard
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px", maxWidth: "1050px", width: "100%", padding: "0 16px", margin: "0 auto", paddingBottom: "40px" }}>
       {/* Header */}
@@ -103,11 +84,11 @@ export default function VoiceInsightPage() {
           </p>
         </div>
         <Link href="/voice-insight/upload" style={{
-            display: "flex", alignItems: "center", gap: "8px", 
-            backgroundColor: "var(--primary)", color: "var(--primary-foreground)", 
-            padding: "10px 18px", borderRadius: "10px", fontSize: "14px", fontWeight: 600,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)", textDecoration: "none"
-          }}>
+          display: "flex", alignItems: "center", gap: "8px",
+          backgroundColor: "var(--primary)", color: "var(--primary-foreground)",
+          padding: "10px 18px", borderRadius: "10px", fontSize: "14px", fontWeight: 600,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)", textDecoration: "none"
+        }}>
           <LuUpload /> New Analysis
         </Link>
       </div>
@@ -147,14 +128,14 @@ export default function VoiceInsightPage() {
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <div style={{ display: "flex", position: "relative", flex: 1, minWidth: "260px" }}>
               <LuSearch style={{ position: "absolute", left: "14px", top: "12px", color: "var(--muted-foreground)" }} />
-              <input 
-                type="text" 
-                placeholder="Search by case ID or filename..." 
+              <input
+                type="text"
+                placeholder="Search by case ID or filename..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ 
-                  width: "100%", padding: "10px 14px 10px 40px", 
-                  backgroundColor: "var(--card)", border: "1px solid var(--border)", 
+                style={{
+                  width: "100%", padding: "10px 14px 10px 40px",
+                  backgroundColor: "var(--card)", border: "1px solid var(--border)",
                   borderRadius: "10px", color: "var(--foreground)", fontSize: "14px", outline: "none"
                 }}
               />
@@ -188,10 +169,10 @@ export default function VoiceInsightPage() {
               </div>
             ) : (
               calls.map((call) => {
-                const statusColor = 
+                const statusColor =
                   call.status === "completed" ? "#22c55e" :
-                  call.status === "failed" ? "#ef4444" :
-                  call.status === "extracting" ? "#3b82f6" : "#eab308";
+                    call.status === "failed" ? "#ef4444" :
+                      call.status === "extracting" ? "#3b82f6" : "#eab308";
 
                 return (
                   <Link key={call.id} href={`/voice-insight/${call.id}`} style={{
@@ -200,10 +181,10 @@ export default function VoiceInsightPage() {
                     borderRadius: "12px", textDecoration: "none", transition: "all 0.2s"
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                      <div style={{ 
-                        width: "42px", height: "42px", borderRadius: "10px", 
-                        backgroundColor: "var(--background)", display: "flex", alignItems: "center", 
-                        justifyContent: "center", color: "var(--primary)", border: "1px solid var(--border)" 
+                      <div style={{
+                        width: "42px", height: "42px", borderRadius: "10px",
+                        backgroundColor: "var(--background)", display: "flex", alignItems: "center",
+                        justifyContent: "center", color: "var(--primary)", border: "1px solid var(--border)"
                       }}>
                         <LuFileText style={{ fontSize: "20px" }} />
                       </div>
@@ -218,10 +199,10 @@ export default function VoiceInsightPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span style={{ 
+                      <span style={{
                         display: "flex", alignItems: "center", gap: "6px",
-                        padding: "4px 12px", backgroundColor: `rgba(${statusColor === "#22c55e" ? "34, 197, 94" : statusColor === "#ef4444" ? "239, 68, 68" : "59, 130, 246"}, 0.1)`, 
-                        color: statusColor, borderRadius: "100px", fontSize: "12px", fontWeight: 600 
+                        padding: "4px 12px", backgroundColor: `rgba(${statusColor === "#22c55e" ? "34, 197, 94" : statusColor === "#ef4444" ? "239, 68, 68" : "59, 130, 246"}, 0.1)`,
+                        color: statusColor, borderRadius: "100px", fontSize: "12px", fontWeight: 600
                       }}>
                         <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: statusColor }} />
                         {call.status}
@@ -355,11 +336,11 @@ export default function VoiceInsightPage() {
                 {analytics.top_keywords && analytics.top_keywords.length > 0 ? (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                     {analytics.top_keywords.map((kw: any, i: number) => (
-                      <span key={i} style={{ 
+                      <span key={i} style={{
                         display: "flex", alignItems: "center", gap: "6px",
-                        padding: "6px 14px", backgroundColor: "rgba(239, 68, 68, 0.1)", 
+                        padding: "6px 14px", backgroundColor: "rgba(239, 68, 68, 0.1)",
                         color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.2)",
-                        borderRadius: "100px", fontSize: "13px", fontWeight: 600 
+                        borderRadius: "100px", fontSize: "13px", fontWeight: 600
                       }}>
                         {kw.keyword}
                         <span style={{ backgroundColor: "#ef4444", color: "#fff", padding: "1px 6px", borderRadius: "10px", fontSize: "11px" }}>

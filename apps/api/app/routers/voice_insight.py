@@ -9,8 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.dependencies import get_db, get_current_user
-from app.utils.admin_auth import get_admin_user
-from app.models.user import User
 from app.database import AsyncSessionLocal
 from app.models.call_analysis import CallAnalysis, AnalysisStatus
 from app.schemas.voice_insight import (
@@ -20,7 +18,7 @@ from app.schemas.voice_insight import (
     CallAnalysisListResponse,
 )
 from app.services import clone_service
-from app.services.voice_insight_service import start_gladia_transcription, upload_audio_to_gladia
+from app.services.voice_insight_service import start_gladia_transcription
 from app.config import settings
 
 logger = logging.getLogger("tarang.voice_insight")
@@ -133,7 +131,7 @@ from app.exceptions import ExternalServiceError
 @router.post("/upload-audio")
 async def upload_audio_to_r2(
     file: UploadFile = File(...),
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
 ):
     """Upload an audio recording file directly to Cloudflare R2 and Gladia."""
     file_bytes = await file.read()
@@ -157,11 +155,14 @@ async def upload_audio_to_r2(
 @router.post("/analyze", response_model=CallAnalysisResponse)
 async def analyze_call(
     body: CallAnalysisCreate,
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Start analyzing a call recording via Gladia → Qwen pipeline."""
-    user_id = admin.id
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
 
     try:
         gladia_response = await start_gladia_transcription(str(body.audio_url))
@@ -245,11 +246,14 @@ async def list_calls(
     per_page: int = Query(20, ge=1, le=100),
     q: str = Query(None, description="Search query"),
     status: str = Query(None, description="Filter by status"),
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List and search call analysis records for the admin user."""
-    user_id = admin.id
+    """List and search call analysis records for the user."""
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
 
     offset = (page - 1) * per_page
     query = select(CallAnalysis).where(CallAnalysis.user_id == user_id)
@@ -274,11 +278,14 @@ async def list_calls(
 @router.get("/calls/{call_id}", response_model=CallAnalysisDetailResponse)
 async def get_call_detail(
     call_id: uuid.UUID,
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get details for a specific call analysis."""
-    user_id = admin.id
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
 
     result = await db.execute(
         select(CallAnalysis).where(
@@ -296,11 +303,14 @@ async def get_call_detail(
 async def export_call(
     call_id: uuid.UUID,
     format: str = Query("json", description="Export format: json or csv"),
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Export a call analysis as JSON or CSV."""
-    user_id = admin.id
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
 
     result = await db.execute(
         select(CallAnalysis).where(
@@ -359,14 +369,17 @@ async def export_call(
 @router.get("/analytics")
 async def get_analytics(
     days: int = Query(30, ge=1, le=365, description="Lookback period in days"),
-    admin: User = Depends(get_admin_user),
+    clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Analytics dashboard data: threat distribution, sentiment breakdown,
     keyword frequency, calls-over-time, and emotion heatmap data.
     """
-    user_id = admin.id
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
 
     since = datetime.now(timezone.utc) - timedelta(days=days)
 

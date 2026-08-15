@@ -51,13 +51,14 @@ async def start_gladia_transcription(audio_url: str, webhook_url: str = None) ->
         "audio_url": audio_url,
         "model": "solaria-1",
         "language_config": {
-            "languages": ["hi", "gu", "en"], # Hindi, Gujarati, English for Police of Ahmedabad
+            "languages": ["hi", "gu", "en"],  # Hindi, Gujarati, English for Police of Ahmedabad
+            "code_switching": True,
         },
         "diarization": True,
         "sentiment_analysis": True,
         "named_entity_recognition": True,
         "name_consistency": True,
-        "enhanced_punctuation": True,
+        "punctuation_enhanced": True,
     }
 
     if webhook_url:

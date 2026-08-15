@@ -3,10 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApiClient } from "@/lib/api";
 import { useParams } from "next/navigation";
-import { 
-  LuFileAudio, 
-  LuShieldAlert, 
-  LuMessageSquare, 
+import {
+  LuFileAudio,
+  LuShieldAlert,
+  LuMessageSquare,
   LuDownload,
   LuFileText,
   LuArrowLeft,
@@ -14,11 +14,8 @@ import {
   LuCircleCheck
 } from "react-icons/lu";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 
 export default function VoiceInsightDetail() {
-  const { user, isLoaded } = useUser();
-  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { id } = useParams();
   const { authFetch } = useApiClient();
   const [call, setCall] = useState<any>(null);
@@ -66,28 +63,13 @@ export default function VoiceInsightDetail() {
     }
   };
 
-  if (isLoaded && !isAdmin) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
-        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
-        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
-        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
-          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to view call case details.
-        </p>
-        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
-          Return to Dashboard
-        </Link>
-      </div>
-    );
-  }
-
   if (isLoading) return <div style={{ padding: "40px", color: "var(--muted-foreground)" }}>Loading case details...</div>;
   if (!call) return <div style={{ padding: "40px", color: "var(--destructive)" }}>Case record not found.</div>;
 
-  const threatColor = 
+  const threatColor =
     call.intelligence?.threat_level === "CRITICAL" ? "#ef4444" :
-    call.intelligence?.threat_level === "HIGH" ? "#f97316" :
-    call.intelligence?.threat_level === "MEDIUM" ? "#eab308" : "#22c55e";
+      call.intelligence?.threat_level === "HIGH" ? "#f97316" :
+        call.intelligence?.threat_level === "MEDIUM" ? "#eab308" : "#22c55e";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "950px", width: "100%", padding: "0 16px", margin: "0 auto", paddingBottom: "40px" }}>
@@ -110,21 +92,21 @@ export default function VoiceInsightDetail() {
 
           {/* Export Dropdown / Actions */}
           <div style={{ display: "flex", gap: "10px" }}>
-            <button 
+            <button
               onClick={() => handleExport("json")}
               disabled={isExporting}
               style={{
-                display: "flex", alignItems: "center", gap: "8px", 
+                display: "flex", alignItems: "center", gap: "8px",
                 backgroundColor: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)",
                 padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer"
               }}>
               <LuDownload /> Export JSON
             </button>
-            <button 
+            <button
               onClick={() => handleExport("csv")}
               disabled={isExporting}
               style={{
-                display: "flex", alignItems: "center", gap: "8px", 
+                display: "flex", alignItems: "center", gap: "8px",
                 backgroundColor: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)",
                 padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer"
               }}>
@@ -169,29 +151,29 @@ export default function VoiceInsightDetail() {
 
           {/* Executive Summary */}
           <div style={{ backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-             <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--foreground)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-               <LuFileText style={{ color: "var(--primary)" }} /> Executive Summary
-             </h3>
-             <p style={{ color: "var(--foreground)", fontSize: "15px", lineHeight: 1.7 }}>
-               {call.intelligence.summary}
-             </p>
+            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--foreground)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <LuFileText style={{ color: "var(--primary)" }} /> Executive Summary
+            </h3>
+            <p style={{ color: "var(--foreground)", fontSize: "15px", lineHeight: 1.7 }}>
+              {call.intelligence.summary}
+            </p>
           </div>
 
           {/* Actionable Intelligence */}
           {call.intelligence.actionable_intelligence && call.intelligence.actionable_intelligence.length > 0 && (
-             <div style={{ backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--foreground)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <LuCircleCheck style={{ color: "#22c55e" }} /> Actionable Intelligence & Directives
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {call.intelligence.actionable_intelligence.map((item: string, i: number) => (
-                    <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", backgroundColor: "var(--background)", padding: "12px 16px", borderRadius: "8px" }}>
-                      <span style={{ color: "var(--primary)", fontWeight: 700 }}>{i + 1}.</span>
-                      <span style={{ color: "var(--foreground)", fontSize: "14px", lineHeight: 1.5 }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-             </div>
+            <div style={{ backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--foreground)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <LuCircleCheck style={{ color: "#22c55e" }} /> Actionable Intelligence & Directives
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {call.intelligence.actionable_intelligence.map((item: string, i: number) => (
+                  <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", backgroundColor: "var(--background)", padding: "12px 16px", borderRadius: "8px" }}>
+                    <span style={{ color: "var(--primary)", fontWeight: 700 }}>{i + 1}.</span>
+                    <span style={{ color: "var(--foreground)", fontSize: "14px", lineHeight: 1.5 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Suspicious Keywords & Named Entities */}
@@ -234,11 +216,11 @@ export default function VoiceInsightDetail() {
           </p>
         </div>
       )}
-      
+
       {/* Playback & Diarized Transcript */}
       <div style={{ backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)", marginTop: "12px" }}>
         <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--foreground)", marginBottom: "16px" }}>Call Recording & Diarized Transcript</h3>
-        
+
         {call.audio_url && (
           <audio controls src={call.audio_url} style={{ width: "100%", marginBottom: "20px" }} />
         )}
