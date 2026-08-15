@@ -3,7 +3,7 @@ import uuid
 import json
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -18,7 +18,13 @@ from app.schemas.voice_insight import (
     CallAnalysisListResponse,
 )
 from app.services import clone_service
-from app.services.voice_insight_service import start_gladia_transcription
+from app.services.voice_insight_service import (
+    start_gladia_transcription,
+    upload_audio_to_gladia,
+    get_gladia_transcription,
+)
+from app.services.storage import upload_file as upload_to_r2, get_download_presigned_url
+from app.exceptions import ExternalServiceError
 from app.config import settings
 
 logger = logging.getLogger("tarang.voice_insight")
@@ -37,9 +43,21 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
     """Background task: sends transcript to Qwen proxy, writes intelligence to DB."""
     import httpx
 
-    utterances = transcript_data.get("prediction", {}).get("utterances", [])
+    # Extract utterances from Gladia V2 structure
+    res_obj = transcript_data.get("result", transcript_data.get("prediction", transcript_data))
+    utterances = (
+        res_obj.get("utterances")
+        or (res_obj.get("transcription", {}).get("utterances") if isinstance(res_obj.get("transcription"), dict) else None)
+        or []
+    )
+
     if not utterances:
-        conversation_text = transcript_data.get("prediction", {}).get("transcription", "")
+        if isinstance(res_obj.get("transcription"), str):
+            conversation_text = res_obj["transcription"]
+        elif isinstance(res_obj.get("full_transcript"), str):
+            conversation_text = res_obj["full_transcript"]
+        else:
+            conversation_text = str(res_obj)
     else:
         lines = []
         for utt in utterances:
@@ -99,13 +117,13 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
 
             intelligence_json = json.loads(response_text)
     except json.JSONDecodeError:
-        logger.error("Qwen returned non-JSON: %s", response_text[:200])
-        intelligence_json = {"error": "Non-JSON response from LLM", "raw": response_text[:500]}
+        logger.error("Qwen returned non-JSON: %s", response_text[:200] if 'response_text' in locals() else "N/A")
+        intelligence_json = {"error": "Non-JSON response from LLM"}
     except Exception as e:
         logger.error("Failed to extract intelligence from Qwen: %s", e, exc_info=True)
         intelligence_json = {"error": str(e)}
 
-    # Write result back using a fresh session (background tasks run outside request scope)
+    # Write result back using a fresh session
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(CallAnalysis).where(CallAnalysis.id == call_id))
         call = result.scalar_one_or_none()
@@ -119,14 +137,63 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
             logger.info("Intelligence extraction complete for call %s → %s", call_id, call.status)
 
 
+async def _poll_gladia_and_extract_intelligence(call_id: uuid.UUID, gladia_job_id: str):
+    """Background task: Polls Gladia V2 until job status is 'done', then invokes Qwen extraction."""
+    import asyncio
+
+    max_attempts = 40  # 40 * 3s = 120 seconds max
+    for attempt in range(max_attempts):
+        await asyncio.sleep(3)
+        try:
+            gladia_res = await get_gladia_transcription(gladia_job_id)
+            status = gladia_res.get("status")
+            logger.info("Polling Gladia job %s (attempt %d/%d): status=%s", gladia_job_id, attempt + 1, max_attempts, status)
+
+            if status == "done":
+                async with AsyncSessionLocal() as db:
+                    result = await db.execute(select(CallAnalysis).where(CallAnalysis.id == call_id))
+                    call = result.scalar_one_or_none()
+                    if call:
+                        call.transcript = gladia_res
+                        call.status = AnalysisStatus.EXTRACTING
+
+                        # Extract audio duration if present
+                        res_obj = gladia_res.get("result", gladia_res)
+                        meta = res_obj.get("metadata", {}) if isinstance(res_obj, dict) else {}
+                        if meta.get("audio_duration"):
+                            call.duration_seconds = float(meta["audio_duration"])
+
+                        await db.commit()
+
+                # Trigger Qwen extraction immediately
+                await _run_qwen_extraction(call_id, gladia_res)
+                return
+
+            elif status == "error":
+                logger.error("Gladia job %s failed with status=error: %s", gladia_job_id, gladia_res)
+                async with AsyncSessionLocal() as db:
+                    result = await db.execute(select(CallAnalysis).where(CallAnalysis.id == call_id))
+                    call = result.scalar_one_or_none()
+                    if call:
+                        call.status = AnalysisStatus.FAILED
+                        await db.commit()
+                return
+        except Exception as e:
+            logger.warning("Error polling Gladia job %s (attempt %d): %s", gladia_job_id, attempt + 1, e)
+
+    # If timed out
+    logger.error("Gladia polling timed out after %d attempts for call %s", max_attempts, call_id)
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(CallAnalysis).where(CallAnalysis.id == call_id))
+        call = result.scalar_one_or_none()
+        if call:
+            call.status = AnalysisStatus.FAILED
+            await db.commit()
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Endpoints
 # ─────────────────────────────────────────────────────────────────────────────
-
-from fastapi import UploadFile, File
-from app.services.storage import upload_file as upload_to_r2, get_download_presigned_url
-from app.services.voice_insight_service import start_gladia_transcription, upload_audio_to_gladia
-from app.exceptions import ExternalServiceError
 
 @router.post("/upload-audio")
 async def upload_audio_to_r2(
@@ -141,7 +208,7 @@ async def upload_audio_to_r2(
     # 1. Store in Cloudflare R2 for permanent archive
     r2_key = f"voice_insight/{uuid.uuid4()}_{file.filename}"
     upload_to_r2(file_bytes, r2_key)
-    
+
     # 2. Upload directly to Gladia API to ensure 100% accessible transcription URL
     try:
         gladia_audio_url = await upload_audio_to_gladia(file_bytes, file.filename)
@@ -155,6 +222,7 @@ async def upload_audio_to_r2(
 @router.post("/analyze", response_model=CallAnalysisResponse)
 async def analyze_call(
     body: CallAnalysisCreate,
+    background_tasks: BackgroundTasks,
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -184,6 +252,10 @@ async def analyze_call(
     db.add(call)
     await db.commit()
     await db.refresh(call)
+
+    # Add background task to poll Gladia and trigger Qwen automatically
+    background_tasks.add_task(_poll_gladia_and_extract_intelligence, call.id, gladia_job_id)
+
     return call
 
 
@@ -193,7 +265,7 @@ async def gladia_webhook(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
-    """Webhook called by Gladia when transcription is complete."""
+    """Webhook called by Gladia when transcription is complete (optional fallback)."""
     import httpx
 
     payload = await request.json()
@@ -223,14 +295,11 @@ async def gladia_webhook(
         call.transcript = transcript_data
         call.status = AnalysisStatus.EXTRACTING
 
-        # Extract duration from Gladia metadata if available
         metadata = transcript_data.get("metadata", {})
         if metadata.get("audio_duration"):
             call.duration_seconds = float(metadata["audio_duration"])
 
         await db.commit()
-
-        # Fire-and-forget intelligence extraction
         background_tasks.add_task(_run_qwen_extraction, call.id, transcript_data)
 
     elif event == "error":
@@ -249,7 +318,7 @@ async def list_calls(
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List and search call analysis records for the user."""
+    """List and search call analysis records for the current user."""
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
     except ValueError:
@@ -335,12 +404,13 @@ async def export_call(
 
     # Flatten transcript into plain text
     if call.transcript:
-        utterances = call.transcript.get("prediction", {}).get("utterances", [])
+        res_obj = call.transcript.get("result", call.transcript.get("prediction", call.transcript))
+        utterances = res_obj.get("utterances") or []
         if utterances:
             lines = [f"Speaker {u.get('speaker','?')}: {u.get('text','')}" for u in utterances]
             export_data["transcript_text"] = "\n".join(lines)
         else:
-            export_data["transcript_text"] = call.transcript.get("prediction", {}).get("transcription", "")
+            export_data["transcript_text"] = str(res_obj.get("transcription", ""))
 
     if format == "csv":
         import csv
@@ -393,7 +463,7 @@ async def get_analytics(
     )
     calls = result.scalars().all()
 
-    # ── Aggregate analytics ──
+    # Aggregate analytics
     total_calls = len(calls)
     threat_distribution = {"LOW": 0, "MEDIUM": 0, "HIGH": 0, "CRITICAL": 0}
     sentiment_distribution: dict[str, int] = {}
@@ -425,7 +495,7 @@ async def get_analytics(
             date_key = call.created_at.strftime("%Y-%m-%d")
             calls_over_time[date_key] = calls_over_time.get(date_key, 0) + 1
 
-        # Emotion heatmap (average emotion scores)
+        # Emotion heatmap
         emotions = intel.get("emotion_breakdown", {})
         for emo_key in emotion_heatmap:
             val = emotions.get(emo_key, 0.0)

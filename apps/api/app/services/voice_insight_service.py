@@ -51,8 +51,7 @@ async def start_gladia_transcription(audio_url: str, webhook_url: str = None) ->
         "audio_url": audio_url,
         "model": "solaria-1",
         "language_config": {
-            "languages": ["hi", "gu", "en"],  # Hindi, Gujarati, English for Police of Ahmedabad
-            "code_switching": True,
+            "code_switching": True,  # Gladia auto-detects language dynamically with code-switching
         },
         "diarization": True,
         "sentiment_analysis": True,
@@ -63,10 +62,7 @@ async def start_gladia_transcription(audio_url: str, webhook_url: str = None) ->
 
     if webhook_url:
         payload["callback"] = True
-        payload["callback_config"] = {
-            "url": webhook_url,
-            "method": "POST"
-        }
+        payload["callback_url"] = webhook_url
 
     headers = {
         "Content-Type": "application/json",
