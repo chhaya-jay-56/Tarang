@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Voice Creation", href: "/voice-creation", icon: LuPlus },
   { name: "Text to Speech", href: "/text-to-speech", icon: RiSpeakLine },
   { name: "Voice Separation", href: "/voice-separation", icon: TbWaveSine },
+  { name: "VoiceInsight", href: "/voice-insight", icon: LuShield },
   { name: "PVC", href: "/pvc", icon: MdOutlineVideoSettings, comingSoon: true },
   { name: "History", href: "/history", icon: LuHistory },
 ];

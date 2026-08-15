@@ -29,6 +29,7 @@ from app.models.preset_voice import PresetVoice
 from app.models.custom_voice import CustomVoice
 from app.models.app_config import AppConfig
 from app.models.deleted_user import DeletedUser
+from app.models.call_analysis import CallAnalysis, AnalysisStatus
 
 __all__ = [
     "Base",
@@ -49,5 +50,7 @@ __all__ = [
     "AppConfig",
     # ── Deleted users archive ──
     "DeletedUser",
+    # ── VoiceInsight ──
+    "CallAnalysis", "AnalysisStatus",
 ]
 

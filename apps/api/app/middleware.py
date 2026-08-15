@@ -161,6 +161,7 @@ def setup_middlewares(app: FastAPI):
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-Tarang-Secret"],
+        
     )
 
     # 2. Security Headers

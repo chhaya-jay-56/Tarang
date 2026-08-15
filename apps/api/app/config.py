@@ -83,6 +83,9 @@ class Settings:
     GLADIA_API_KEY: str = os.getenv("GLADIA_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    MODAL_PROXY_TOKEN_ID: str = os.getenv("MODAL_PROXY_TOKEN_ID", "wk-WJdZexiA4Ftw2AP0OKNWlN")
+    MODAL_PROXY_TOKEN_SECRET: str = os.getenv("MODAL_PROXY_TOKEN_SECRET", "ws-eaKx1ZFOwRO7et1xMjDbyZ")
+    MODAL_QWEN_ENDPOINT: str = os.getenv("MODAL_QWEN_ENDPOINT", "https://jaychhaya3489--ep-qwen3-6-35b-a3b-server.us-west.modal.direct/v1/chat/completions")
 
     # Dubbing validation limits
     MAX_VIDEO_DURATION_SEC: int = int(os.getenv("MAX_VIDEO_DURATION_SEC", "300"))  # 5 min
