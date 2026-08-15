@@ -17,7 +17,11 @@ import {
   LuFileText
 } from "react-icons/lu";
 
+import { useUser } from "@clerk/nextjs";
+
 export default function VoiceInsightPage() {
+  const { user, isLoaded } = useUser();
+  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { authFetch } = useApiClient();
   const [activeTab, setActiveTab] = useState<"records" | "analytics">("records");
 
@@ -70,6 +74,21 @@ export default function VoiceInsightPage() {
       fetchAnalytics();
     }
   }, [activeTab, fetchCalls, fetchAnalytics]);
+
+  if (isLoaded && !isAdmin) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
+        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
+        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
+        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
+          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to view or manage call analysis records.
+        </p>
+        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px", maxWidth: "1050px", width: "100%", padding: "0 16px", margin: "0 auto", paddingBottom: "40px" }}>

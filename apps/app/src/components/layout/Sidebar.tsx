@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { GoHome } from "react-icons/go";
 import { HiOutlineMicrophone } from "react-icons/hi2";
 import { RiSpeakLine } from "react-icons/ri";
-import { LuHistory, LuLibrary, LuPlus, LuPanelLeftClose, LuShield } from "react-icons/lu";
+import { LuHistory, LuLibrary, LuPlus, LuPanelLeftClose, LuShield, LuLock } from "react-icons/lu";
 import { TbWaveSine } from "react-icons/tb";
 import { MdOutlineVideoSettings } from "react-icons/md";
 import { useLayoutStore } from "@/stores/layoutStore";
@@ -27,7 +27,6 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Voice Creation", href: "/voice-creation", icon: LuPlus },
   { name: "Text to Speech", href: "/text-to-speech", icon: RiSpeakLine },
   { name: "Voice Separation", href: "/voice-separation", icon: TbWaveSine },
-  { name: "VoiceInsight", href: "/voice-insight", icon: LuShield },
   { name: "PVC", href: "/pvc", icon: MdOutlineVideoSettings, comingSoon: true },
   { name: "History", href: "/history", icon: LuHistory },
 ];
@@ -141,27 +140,52 @@ export function Sidebar() {
             );
           })}
 
-          {/* Admin link — only visible to admins */}
-          {isAdmin && (() => {
-            const isActive = pathname === "/admin" || pathname.startsWith("/admin/");
-            return (
-              <Link
-                href="/admin"
-                onClick={closeSidebar}
-                title={isCollapsed ? "Admin" : undefined}
-                className={cn(
-                  "flex items-center rounded-lg text-sm font-medium transition-colors mt-4 pt-4 border-t border-border",
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  isCollapsed ? "gap-3 px-3 py-2.5 lg:justify-center lg:p-2.5" : "gap-3 px-3 py-2.5"
-                )}
-              >
-                <LuShield className={cn("text-lg shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
-                <span className={cn("truncate transition-all duration-300", isCollapsed ? "lg:w-0 lg:opacity-0 lg:hidden" : "w-auto opacity-100")}>Admin</span>
-              </Link>
-            );
-          })()}
+          {/* Admin & VoiceInsight links — strictly restricted to admins */}
+          {isAdmin && (
+            <div className="flex flex-col gap-0.5 mt-4 pt-4 border-t border-border">
+              {(() => {
+                const isActive = pathname === "/voice-insight" || pathname.startsWith("/voice-insight/");
+                return (
+                  <Link
+                    href="/voice-insight"
+                    onClick={closeSidebar}
+                    title={isCollapsed ? "VoiceInsight (Admin)" : undefined}
+                    className={cn(
+                      "flex items-center rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isCollapsed ? "gap-3 px-3 py-2.5 lg:justify-center lg:p-2.5" : "gap-3 px-3 py-2.5"
+                    )}
+                  >
+                    <LuShield className={cn("text-lg shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                    <span className={cn("truncate transition-all duration-300", isCollapsed ? "lg:w-0 lg:opacity-0 lg:hidden" : "w-auto opacity-100")}>VoiceInsight</span>
+                  </Link>
+                );
+              })()}
+
+              {(() => {
+                const isActive = pathname === "/admin" || pathname.startsWith("/admin/");
+                return (
+                  <Link
+                    href="/admin"
+                    onClick={closeSidebar}
+                    title={isCollapsed ? "Admin" : undefined}
+                    className={cn(
+                      "flex items-center rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isCollapsed ? "gap-3 px-3 py-2.5 lg:justify-center lg:p-2.5" : "gap-3 px-3 py-2.5"
+                    )}
+                  >
+                    <LuLock className={cn("text-lg shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                    <span className={cn("truncate transition-all duration-300", isCollapsed ? "lg:w-0 lg:opacity-0 lg:hidden" : "w-auto opacity-100")}>Admin</span>
+                  </Link>
+                );
+              })()}
+            </div>
+          )}
         </nav>
       </aside>
     </>

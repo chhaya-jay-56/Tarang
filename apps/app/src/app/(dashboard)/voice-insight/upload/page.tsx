@@ -4,9 +4,12 @@ import { useState } from "react";
 import { useApiClient } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio } from "react-icons/lu";
+import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio, LuShieldAlert } from "react-icons/lu";
+import { useUser } from "@clerk/nextjs";
 
 export default function VoiceInsightUpload() {
+  const { user, isLoaded } = useUser();
+  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { authFetch } = useApiClient();
   const router = useRouter();
   
@@ -74,7 +77,20 @@ export default function VoiceInsightUpload() {
       setIsLoading(false);
       setUploadProgress("");
     }
-  };
+  if (isLoaded && !isAdmin) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
+        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
+        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
+        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
+          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to upload call recordings.
+        </p>
+        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "650px", width: "100%", padding: "0 16px", margin: "40px auto" }}>

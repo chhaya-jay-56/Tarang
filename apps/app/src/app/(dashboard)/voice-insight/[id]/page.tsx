@@ -14,8 +14,11 @@ import {
   LuCircleCheck
 } from "react-icons/lu";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 export default function VoiceInsightDetail() {
+  const { user, isLoaded } = useUser();
+  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === "admin";
   const { id } = useParams();
   const { authFetch } = useApiClient();
   const [call, setCall] = useState<any>(null);
@@ -62,6 +65,21 @@ export default function VoiceInsightDetail() {
       setIsExporting(false);
     }
   };
+
+  if (isLoaded && !isAdmin) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", gap: "16px", padding: "40px 20px" }}>
+        <LuShieldAlert style={{ fontSize: "56px", color: "var(--destructive, #ef4444)" }} />
+        <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--foreground)" }}>Access Restricted</h2>
+        <p style={{ color: "var(--muted-foreground)", maxWidth: "460px", fontSize: "14px", lineHeight: "1.6" }}>
+          VoiceInsight is an exclusive police intelligence tool restricted to administrators. You do not have permission to view call case details.
+        </p>
+        <Link href="/" style={{ padding: "12px 24px", backgroundColor: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "8px", fontWeight: 600, textDecoration: "none", marginTop: "8px" }}>
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   if (isLoading) return <div style={{ padding: "40px", color: "var(--muted-foreground)" }}>Loading case details...</div>;
   if (!call) return <div style={{ padding: "40px", color: "var(--destructive)" }}>Case record not found.</div>;
