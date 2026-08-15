@@ -42,6 +42,15 @@ export default function VoiceInsightDetail() {
     }
   }, [fetchCall, id]);
 
+  useEffect(() => {
+    if (call && (call.status === "transcribing" || call.status === "extracting")) {
+      const interval = setInterval(() => {
+        fetchCall();
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [call, fetchCall]);
+
   const handleExport = async (format: "json" | "csv") => {
     setIsExporting(true);
     try {
@@ -226,11 +235,13 @@ export default function VoiceInsightDetail() {
         )}
 
         <div style={{ color: "var(--foreground)", fontSize: "14px", lineHeight: 1.8, maxHeight: "450px", overflowY: "auto", padding: "16px", backgroundColor: "var(--background)", borderRadius: "8px", border: "1px solid var(--border)" }}>
-          {call.transcript?.prediction?.utterances ? (
-            call.transcript.prediction.utterances.map((utt: any, idx: number) => (
+          {getUtterances(call.transcript).length > 0 ? (
+            getUtterances(call.transcript).map((utt: any, idx: number) => (
               <div key={idx} style={{ marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                  <strong style={{ color: "var(--primary)", fontSize: "13px" }}>Speaker {utt.speaker || 'Unknown'}</strong>
+                  <strong style={{ color: "var(--primary)", fontSize: "13px" }}>
+                    Speaker {utt.speaker !== undefined ? utt.speaker : 'Unknown'}
+                  </strong>
                   <span style={{ color: "var(--muted-foreground)", fontSize: "11px" }}>
                     [{Math.floor(utt.start || 0)}s - {Math.floor(utt.end || 0)}s]
                   </span>
@@ -238,13 +249,49 @@ export default function VoiceInsightDetail() {
                 <p style={{ margin: 0, fontSize: "14px", color: "var(--foreground)" }}>{utt.text}</p>
               </div>
             ))
-          ) : call.transcript?.prediction?.transcription ? (
-            <p>{call.transcript.prediction.transcription}</p>
+          ) : getFullTranscriptText(call.transcript) ? (
+            <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{getFullTranscriptText(call.transcript)}</p>
           ) : (
-            <p style={{ color: "var(--muted-foreground)" }}>Transcript will be available once transcribing completes.</p>
+            <p style={{ color: "var(--muted-foreground)", margin: 0 }}>
+              {call.status === "completed"
+                ? "Transcript processed."
+                : `Transcript will be available once transcribing completes (Status: ${call.status}).`}
+            </p>
           )}
         </div>
       </div>
     </div>
   );
+}
+
+function getUtterances(transcript: any): any[] {
+  if (!transcript) return [];
+  if (Array.isArray(transcript?.result?.transcription?.utterances)) {
+    return transcript.result.transcription.utterances;
+  }
+  if (Array.isArray(transcript?.transcription?.utterances)) {
+    return transcript.transcription.utterances;
+  }
+  if (Array.isArray(transcript?.prediction?.utterances)) {
+    return transcript.prediction.utterances;
+  }
+  if (Array.isArray(transcript?.utterances)) {
+    return transcript.utterances;
+  }
+  return [];
+}
+
+function getFullTranscriptText(transcript: any): string {
+  if (!transcript) return "";
+  if (typeof transcript?.result?.transcription?.full_transcript === "string") {
+    return transcript.result.transcription.full_transcript;
+  }
+  if (typeof transcript?.transcription?.full_transcript === "string") {
+    return transcript.transcription.full_transcript;
+  }
+  if (typeof transcript?.prediction?.transcription === "string") {
+    return transcript.prediction.transcription;
+  }
+  if (typeof transcript === "string") return transcript;
+  return "";
 }
