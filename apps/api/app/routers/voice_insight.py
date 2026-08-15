@@ -125,21 +125,31 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
 
 from fastapi import UploadFile, File
 from app.services.storage import upload_file as upload_to_r2, get_download_presigned_url
+from app.services.voice_insight_service import start_gladia_transcription, upload_audio_to_gladia
+from app.exceptions import ExternalServiceError
 
 @router.post("/upload-audio")
 async def upload_audio_to_r2(
     file: UploadFile = File(...),
     clerk_user_id: str = Depends(get_current_user),
 ):
-    """Upload an audio recording file directly to Cloudflare R2 bucket."""
+    """Upload an audio recording file directly to Cloudflare R2 and Gladia."""
     file_bytes = await file.read()
     if not file_bytes:
         raise HTTPException(status_code=400, detail="Empty audio file provided")
 
+    # 1. Store in Cloudflare R2 for permanent archive
     r2_key = f"voice_insight/{uuid.uuid4()}_{file.filename}"
     upload_to_r2(file_bytes, r2_key)
-    audio_url = get_download_presigned_url(r2_key, expiration=86400)
-    return {"r2_key": r2_key, "audio_url": audio_url, "filename": file.filename}
+    
+    # 2. Upload directly to Gladia API to ensure 100% accessible transcription URL
+    try:
+        gladia_audio_url = await upload_audio_to_gladia(file_bytes, file.filename)
+    except Exception as e:
+        logger.warning("Gladia direct upload failed, falling back to R2 presigned URL: %s", e)
+        gladia_audio_url = get_download_presigned_url(r2_key, expiration=86400)
+
+    return {"r2_key": r2_key, "audio_url": gladia_audio_url, "filename": file.filename}
 
 
 @router.post("/analyze", response_model=CallAnalysisResponse)
@@ -157,9 +167,12 @@ async def analyze_call(
     try:
         gladia_response = await start_gladia_transcription(str(body.audio_url))
         gladia_job_id = gladia_response.get("id")
+    except ExternalServiceError as e:
+        logger.error("Gladia service error: %s", e.message)
+        raise HTTPException(status_code=502, detail=e.message)
     except Exception as e:
-        logger.error("Failed to start Gladia job: %s", e)
-        raise HTTPException(status_code=500, detail="Failed to initiate transcription service")
+        logger.error("Failed to start Gladia job: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
 
     call = CallAnalysis(
         user_id=user_id,
