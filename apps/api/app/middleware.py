@@ -165,7 +165,7 @@ def setup_middlewares(app: FastAPI):
     )
 
     # 2. Security Headers
-    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware) 
 
     # 3. Shared Secret (Cloud Run URL protection)
     app.add_middleware(SharedSecretMiddleware)
