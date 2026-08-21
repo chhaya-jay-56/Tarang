@@ -144,7 +144,7 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
     try:
         # Primary: Sarvam-30B FP8 on Modal
         if settings.MODAL_SARVAM_INSIGHT_ENDPOINT:
-            async with httpx.AsyncClient(timeout=300.0) as client:
+            async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
                 headers = {
                     "x-tarang-modal-secret": settings.MODAL_SHARED_SECRET,
                     "Content-Type": "application/json",

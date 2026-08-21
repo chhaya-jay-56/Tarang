@@ -104,7 +104,7 @@ def _hotpatch_vllm():
 
 
 image = (
-    modal.Image.debian_slim(python_version="3.11")
+    modal.Image.from_registry("nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11")
     .pip_install(
         "vllm==0.15.0",
         "huggingface_hub",
@@ -176,7 +176,7 @@ class SarvamInsightModel:
 
         # Wait for vLLM server to become healthy
         health_url = f"http://localhost:{VLLM_PORT}/health"
-        for attempt in range(120):  # 120 * 1s = 2 min max
+        for attempt in range(360):  # 360 * 1s = 6 min max (allows slow 32GB weights load)
             try:
                 resp = httpx.get(health_url, timeout=2.0)
                 if resp.status_code == 200:
@@ -186,7 +186,7 @@ class SarvamInsightModel:
                 pass
             time.sleep(1)
 
-        raise RuntimeError("vLLM server failed to start within 120s")
+        raise RuntimeError("vLLM server failed to start within 360s")
 
     @modal.method()
     def analyze(self, messages: list[dict], temperature: float = 0.1, max_tokens: int = 4096) -> str:
@@ -241,7 +241,7 @@ async def analyze_api(request: Request):
             raise HTTPException(status_code=400, detail="Missing messages")
 
         model = SarvamInsightModel()
-        content = model.analyze.remote(messages, temperature, max_tokens)
+        content = await model.analyze.remote.aio(messages, temperature, max_tokens)
 
         return JSONResponse(content={"content": content})
 
