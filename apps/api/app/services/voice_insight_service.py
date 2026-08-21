@@ -49,14 +49,23 @@ async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
 
     payload = {
         "audio_url": audio_url,
-        "model": "solaria-1",
+        "custom_vocabulary": False,
+        "translation": False,
+        "custom_spelling": False,
         "language_config": {
-            "code_switching": True,  # Gladia auto-detects language dynamically with code-switching
+            "languages": ["gu"],       # Gujarati priority for police recordings
+            "code_switching": False,
         },
         "diarization": True,
+        "diarization_config": {
+            "enhanced": True,          # Enhanced speaker diarization
+        },
+        "name_consistency": True,
+        "punctuation_enhanced": True,
         "sentiment_analysis": True,
         "named_entity_recognition": True,
-        "name_consistency": True,
+        "model": "solaria-1",
+        "callback": False,             # We poll — no webhook needed
     }
 
     headers = {

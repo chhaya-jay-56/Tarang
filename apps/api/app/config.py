@@ -87,6 +87,11 @@ class Settings:
     MODAL_PROXY_TOKEN_SECRET: str = os.getenv("MODAL_PROXY_TOKEN_SECRET", "ws-eaKx1ZFOwRO7et1xMjDbyZ")
     MODAL_QWEN_ENDPOINT: str = os.getenv("MODAL_QWEN_ENDPOINT", "https://jaychhaya3489--ep-qwen3-6-35b-a3b-server.us-west.modal.direct/v1/chat/completions")
 
+    # Modal Sarvam-30B FP8 endpoint for VoiceInsight intelligence extraction
+    # Replaces the unreliable Qwen 35B proxy (was returning 503s).
+    # Deploy: modal deploy apps/ai_workers/sarvam_insight/modal_app.py
+    MODAL_SARVAM_INSIGHT_ENDPOINT: str = os.getenv("MODAL_SARVAM_INSIGHT_ENDPOINT", "")
+
     # Dubbing validation limits
     MAX_VIDEO_DURATION_SEC: int = int(os.getenv("MAX_VIDEO_DURATION_SEC", "300"))  # 5 min
     MAX_VIDEO_SIZE_MB: int = int(os.getenv("MAX_VIDEO_SIZE_MB", "100"))

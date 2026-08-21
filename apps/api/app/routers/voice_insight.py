@@ -36,14 +36,32 @@ router = APIRouter(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Background Intelligence Extraction (Qwen via OpenAI-compatible proxy)
+# Load VoiceInsight instruction file at module startup (cached, not per-request)
 # ─────────────────────────────────────────────────────────────────────────────
+import pathlib as _pathlib
 
-async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
-    """Background task: sends transcript to Qwen proxy, writes intelligence to DB."""
-    import httpx
+_INSTRUCTION_PATH = _pathlib.Path(__file__).resolve().parent.parent / "instructions" / "voice_insight_instruction.md"
+_INSTRUCTION_TEXT = ""
+if _INSTRUCTION_PATH.exists():
+    _INSTRUCTION_TEXT = _INSTRUCTION_PATH.read_text(encoding="utf-8")
+    logger.info("Loaded VoiceInsight instruction file (%d chars)", len(_INSTRUCTION_TEXT))
+else:
+    logger.warning("VoiceInsight instruction file not found at %s", _INSTRUCTION_PATH)
 
-    # Extract utterances from Gladia V2 structure
+
+def _format_timestamp(seconds: float) -> str:
+    """Convert seconds to MM:SS format."""
+    minutes = int(seconds) // 60
+    secs = int(seconds) % 60
+    return f"{minutes:02d}:{secs:02d}"
+
+
+def _build_structured_transcript(transcript_data: dict) -> tuple[str, dict]:
+    """
+    Build a structured transcript with timestamps from Gladia V2 response.
+    Returns (formatted_text, gladia_extras) where gladia_extras contains
+    sentiment and NER data for injection into the prompt.
+    """
     res_obj = transcript_data.get("result", transcript_data.get("prediction", transcript_data))
     utterances = (
         res_obj.get("utterances")
@@ -51,88 +69,128 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
         or []
     )
 
-    if not utterances:
-        if isinstance(res_obj.get("transcription"), str):
-            conversation_text = res_obj["transcription"]
-        elif isinstance(res_obj.get("full_transcript"), str):
-            conversation_text = res_obj["full_transcript"]
-        else:
-            conversation_text = str(res_obj)
-    else:
-        lines = []
-        for utt in utterances:
-            speaker = f"Speaker {utt.get('speaker', 'Unknown')}"
-            lines.append(f"{speaker}: {utt.get('text', '')}")
-        conversation_text = "\n".join(lines)
+    # Extract Gladia-provided sentiment and NER data
+    gladia_extras = {}
+    if isinstance(res_obj.get("transcription"), dict):
+        transcription_obj = res_obj["transcription"]
+        if "sentiment_analysis" in transcription_obj:
+            gladia_extras["sentiment_analysis"] = transcription_obj["sentiment_analysis"]
+        if "named_entity_recognition" in transcription_obj:
+            gladia_extras["named_entity_recognition"] = transcription_obj["named_entity_recognition"]
+    # Also check at top-level result
+    if "sentiment_analysis" in res_obj:
+        gladia_extras["sentiment_analysis"] = res_obj["sentiment_analysis"]
+    if "named_entity_recognition" in res_obj:
+        gladia_extras["named_entity_recognition"] = res_obj["named_entity_recognition"]
 
-    prompt = (
-        "You are an AI intelligence analyst for the Police of Ahmedabad.\n"
-        "Analyze the following call recording transcript (which may be in English, Hindi, or Gujarati).\n\n"
-        f"Transcript:\n{conversation_text}\n\n"
-        "Extract the following information in strict JSON format:\n"
-        "{\n"
-        '  "threat_level": "LOW|MEDIUM|HIGH|CRITICAL",\n'
-        '  "primary_language": "The main language spoken",\n'
-        '  "summary": "A 2-3 sentence summary of the conversation",\n'
-        '  "actionable_intelligence": ["Point 1", "Point 2"],\n'
-        '  "suspicious_keywords": ["word1", "word2"],\n'
-        '  "named_entities": ["person/place/org names found"],\n'
-        '  "topics": ["topic1", "topic2"],\n'
-        '  "overall_sentiment": "Angry|Calm|Urgent|Stressed|Neutral",\n'
-        '  "emotion_breakdown": {"anger": 0.0, "urgency": 0.0, "stress": 0.0, "calm": 0.0}\n'
-        "}\n\n"
-        "Output only the JSON block without any markdown formatting."
+    if not utterances:
+        # Fallback: plain text transcript
+        if isinstance(res_obj.get("transcription"), str):
+            return res_obj["transcription"], gladia_extras
+        elif isinstance(res_obj.get("full_transcript"), str):
+            return res_obj["full_transcript"], gladia_extras
+        elif isinstance(res_obj.get("transcription"), dict):
+            ft = res_obj["transcription"].get("full_transcript", "")
+            if ft:
+                return ft, gladia_extras
+        return str(res_obj), gladia_extras
+
+    # Build structured transcript with timestamps
+    lines = []
+    for utt in utterances:
+        start = utt.get("start", 0)
+        speaker = utt.get("speaker", "Unknown")
+        text = utt.get("text", "")
+        ts = _format_timestamp(start)
+        lines.append(f"[{ts}] Speaker {speaker}: {text}")
+
+    return "\n".join(lines), gladia_extras
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Background Intelligence Extraction (Sarvam-30B FP8 via Modal)
+# ─────────────────────────────────────────────────────────────────────────────
+
+async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
+    """Background task: sends transcript to Sarvam-30B on Modal, writes intelligence to DB.
+    
+    Falls back to Gemini if Sarvam endpoint is unavailable.
+    """
+    import httpx
+
+    # Build structured transcript with timestamps
+    conversation_text, gladia_extras = _build_structured_transcript(transcript_data)
+
+    # Build the analysis prompt with instruction file + transcript + Gladia extras
+    extra_context = ""
+    if gladia_extras.get("sentiment_analysis"):
+        extra_context += f"\n\n## Gladia Sentiment Analysis Data (use as reference):\n{json.dumps(gladia_extras['sentiment_analysis'], indent=2, ensure_ascii=False)[:2000]}"
+    if gladia_extras.get("named_entity_recognition"):
+        extra_context += f"\n\n## Gladia NER Data (use as reference):\n{json.dumps(gladia_extras['named_entity_recognition'], indent=2, ensure_ascii=False)[:2000]}"
+
+    user_prompt = (
+        f"Analyze the following call recording transcript.\n\n"
+        f"## Transcript:\n{conversation_text}\n"
+        f"{extra_context}\n\n"
+        f"Now analyze this transcript and output the structured JSON as specified in your instructions."
     )
+
+    messages = [
+        {"role": "system", "content": _INSTRUCTION_TEXT or "You are a law enforcement intelligence analyst. Output strict JSON only."},
+        {"role": "user", "content": user_prompt},
+    ]
 
     intelligence_json = {}
     try:
-        async with httpx.AsyncClient(timeout=300.0) as client:
-            headers = {
-                "Authorization": f"Bearer {settings.MODAL_PROXY_TOKEN_ID}.{settings.MODAL_PROXY_TOKEN_SECRET}",
-                "Content-Type": "application/json",
-            }
-            body = {
-                "model": "Qwen/Qwen3.6-35B-A3B",
-                "messages": [
-                    {"role": "system", "content": "You are a concise technical assistant. Output strict JSON only."},
-                    {"role": "user", "content": prompt},
-                ],
-                "temperature": 0.1,
-                "max_tokens": 4096,
-                "stream": False,
-            }
-            resp = await client.post(settings.MODAL_QWEN_ENDPOINT, headers=headers, json=body)
-            resp.raise_for_status()
+        # Primary: Sarvam-30B FP8 on Modal
+        if settings.MODAL_SARVAM_INSIGHT_ENDPOINT:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                headers = {
+                    "x-tarang-modal-secret": settings.MODAL_SHARED_SECRET,
+                    "Content-Type": "application/json",
+                }
+                body = {
+                    "messages": messages,
+                    "temperature": 0.1,
+                    "max_tokens": 4096,
+                }
+                resp = await client.post(settings.MODAL_SARVAM_INSIGHT_ENDPOINT, headers=headers, json=body)
+                resp.raise_for_status()
+                response_data = resp.json()
+                response_text = response_data.get("content", "").strip()
+        else:
+            raise ValueError("MODAL_SARVAM_INSIGHT_ENDPOINT not configured — skipping to fallback")
 
-            response_data = resp.json()
-            msg = response_data["choices"][0]["message"]
-            response_text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
+        # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
+        raw = response_text
+        # Sarvam-30B supports thinking mode — strip think tags
+        if "<think>" in raw and "</think>" in raw:
+            raw = raw.split("</think>")[-1].strip()
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0].strip()
 
-            # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
-            raw = response_text
-            if "<think>" in raw and "</think>" in raw:
-                raw = raw.split("</think>")[-1].strip()
-            if "```json" in raw:
-                raw = raw.split("```json")[1].split("```")[0].strip()
-            elif "```" in raw:
-                raw = raw.split("```")[1].split("```")[0].strip()
+        start_idx = raw.find("{")
+        end_idx = raw.rfind("}")
+        if start_idx != -1 and end_idx != -1:
+            raw = raw[start_idx : end_idx + 1]
 
-            start_idx = raw.find("{")
-            end_idx = raw.rfind("}")
-            if start_idx != -1 and end_idx != -1:
-                raw = raw[start_idx : end_idx + 1]
+        intelligence_json = json.loads(raw)
+        logger.info("✅ Intelligence extracted via Sarvam-30B for call %s", call_id)
 
-            intelligence_json = json.loads(raw)
     except json.JSONDecodeError:
-        logger.error("Qwen returned non-JSON content: %s", response_text[:300] if 'response_text' in locals() else "N/A")
+        logger.error("Sarvam returned non-JSON content: %s", response_text[:300] if 'response_text' in locals() else "N/A")
         intelligence_json = {"error": "Non-JSON response from LLM"}
     except Exception as e:
-        logger.error("Modal Qwen extraction failed (%s). Attempting Gemini fallback...", e)
+        logger.error("Sarvam extraction failed (%s). Attempting Gemini fallback...", e)
         if settings.GEMINI_API_KEY:
             try:
                 gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+                # Build a combined prompt for Gemini (no chat format needed)
+                gemini_prompt = f"{_INSTRUCTION_TEXT}\n\n{user_prompt}"
                 gemini_body = {
-                    "contents": [{"parts": [{"text": prompt}]}],
+                    "contents": [{"parts": [{"text": gemini_prompt}]}],
                     "generationConfig": {"response_mime_type": "application/json"}
                 }
                 async with httpx.AsyncClient(timeout=60.0) as client:
@@ -144,7 +202,7 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
                     logger.info("✅ Intelligence successfully extracted via Gemini fallback!")
             except Exception as fallback_err:
                 logger.error("Gemini fallback failed: %s", fallback_err)
-                intelligence_json = {"error": f"Modal Qwen: {str(e)}; Gemini: {str(fallback_err)}"}
+                intelligence_json = {"error": f"Sarvam: {str(e)}; Gemini: {str(fallback_err)}"}
         else:
             intelligence_json = {"error": str(e)}
 
@@ -163,7 +221,7 @@ async def _run_qwen_extraction(call_id: uuid.UUID, transcript_data: dict):
 
 
 async def _poll_gladia_and_extract_intelligence(call_id: uuid.UUID, gladia_job_id: str):
-    """Background task: Polls Gladia V2 until job status is 'done', then invokes Qwen extraction."""
+    """Background task: Polls Gladia V2 until job status is 'done', then invokes Sarvam extraction."""
     import asyncio
 
     max_attempts = 40  # 40 * 3s = 120 seconds max
@@ -190,8 +248,8 @@ async def _poll_gladia_and_extract_intelligence(call_id: uuid.UUID, gladia_job_i
 
                         await db.commit()
 
-                # Trigger Qwen extraction immediately
-                await _run_qwen_extraction(call_id, gladia_res)
+                # Trigger Sarvam intelligence extraction
+                await _run_sarvam_extraction(call_id, gladia_res)
                 return
 
             elif status == "error":
@@ -463,9 +521,13 @@ async def get_analytics(
         sentiment = intel.get("overall_sentiment", "Unknown")
         sentiment_distribution[sentiment] = sentiment_distribution.get(sentiment, 0) + 1
 
-        # Keywords
+        # Keywords — support both new schema (risk_keywords_detected) and old (suspicious_keywords)
+        for kw_obj in intel.get("risk_keywords_detected", []):
+            kw_text = kw_obj.get("keyword", "") if isinstance(kw_obj, dict) else str(kw_obj)
+            if kw_text:
+                keyword_frequency[kw_text.lower()] = keyword_frequency.get(kw_text.lower(), 0) + 1
         for kw in intel.get("suspicious_keywords", []):
-            kw_lower = kw.lower()
+            kw_lower = kw.lower() if isinstance(kw, str) else str(kw).lower()
             keyword_frequency[kw_lower] = keyword_frequency.get(kw_lower, 0) + 1
 
         # Timeline (group by date)
@@ -511,4 +573,87 @@ async def get_analytics(
         "calls_over_time": [{"date": d, "count": c} for d, c in sorted_timeline],
         "emotion_heatmap": emotion_heatmap,
         "language_distribution": languages,
+    }
+
+
+@router.get("/calls/{call_id}/cross-references")
+async def get_cross_references(
+    call_id: uuid.UUID,
+    clerk_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Multi-call cross-referencing: find other calls that share names,
+    locations, or phone numbers with this call.
+    """
+    try:
+        user_id = await clone_service.resolve_user_id(db, clerk_user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get target call
+    result = await db.execute(
+        select(CallAnalysis).where(
+            CallAnalysis.id == call_id,
+            CallAnalysis.user_id == user_id,
+        )
+    )
+    target_call = result.scalar_one_or_none()
+    if not target_call:
+        raise HTTPException(status_code=404, detail="Call analysis not found")
+
+    # Extract cross-reference markers from this call
+    intel = target_call.intelligence or {}
+    markers = intel.get("cross_reference_markers", [])
+    if not markers:
+        return {"cross_references": [], "marker_count": 0}
+
+    # Build lookup sets for matching
+    marker_values = set()
+    for m in markers:
+        normalized = m.get("normalized", m.get("value", "")).strip().lower()
+        if normalized:
+            marker_values.add(normalized)
+
+    # Query all other completed calls for the same user
+    result = await db.execute(
+        select(CallAnalysis).where(
+            CallAnalysis.user_id == user_id,
+            CallAnalysis.status == AnalysisStatus.COMPLETED,
+            CallAnalysis.id != call_id,
+        )
+    )
+    other_calls = result.scalars().all()
+
+    cross_references = []
+    for other_call in other_calls:
+        other_intel = other_call.intelligence or {}
+        other_markers = other_intel.get("cross_reference_markers", [])
+
+        matching_markers = []
+        for om in other_markers:
+            other_normalized = om.get("normalized", om.get("value", "")).strip().lower()
+            if other_normalized and other_normalized in marker_values:
+                matching_markers.append({
+                    "type": om.get("type", "unknown"),
+                    "value": om.get("value", other_normalized),
+                })
+
+        if matching_markers:
+            cross_references.append({
+                "call_id": str(other_call.id),
+                "filename": other_call.filename,
+                "created_at": other_call.created_at.isoformat() if other_call.created_at else None,
+                "threat_level": other_intel.get("threat_level"),
+                "matching_markers": matching_markers,
+                "match_count": len(matching_markers),
+            })
+
+    # Sort by match count (most matches first)
+    cross_references.sort(key=lambda x: x["match_count"], reverse=True)
+
+    return {
+        "cross_references": cross_references,
+        "marker_count": len(marker_values),
+        "source_markers": markers,
     }
