@@ -16,7 +16,7 @@ import {
   LuUsers,
   LuLink,
   LuMapPin,
-  LuAlertTriangle,
+  LuTriangleAlert,
 } from "react-icons/lu";
 import Link from "next/link";
 
@@ -379,7 +379,7 @@ function RiskKeywords({ intel }: { intel: any }) {
   return (
     <div style={{ backgroundColor: "var(--card)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
       <h3 style={{ fontSize: "15px", fontWeight: 600, color: "var(--foreground)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-        <LuAlertTriangle style={{ color: "#ef4444" }} /> Risk Keywords Detected
+        <LuTriangleAlert style={{ color: "#ef4444" }} /> Risk Keywords Detected
       </h3>
 
       {riskKeywords && riskKeywords.length > 0 ? (
