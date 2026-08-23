@@ -57,10 +57,16 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     wh = Webhook(webhook_secret)
 
     try:
-        event = wh.verify(decoded_payload, headers)
+        wh.verify(decoded_payload, headers)
     except WebhookVerificationError as e:
         logger.error("❌ Signature verification failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid signature")
+
+    import json
+    event = json.loads(decoded_payload)
+    if event is None:
+        logger.error("❌ Decoded payload is literally 'null'")
+        raise HTTPException(status_code=400, detail="Payload cannot be null")
 
     event_type = event.get("type")
     data = event.get("data", {})
@@ -81,10 +87,9 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             logger.info("ℹ️ Unhandled event type: %s", event_type)
 
     except Exception as e:
-        import traceback
         await db.rollback()
         logger.error("❌ DB error during %s: %s", event_type, e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
     return {"success": True}
 
