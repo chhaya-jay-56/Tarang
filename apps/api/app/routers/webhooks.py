@@ -83,7 +83,7 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         await db.rollback()
         logger.error("❌ DB error during %s: %s", event_type, e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
     return {"success": True}
 
