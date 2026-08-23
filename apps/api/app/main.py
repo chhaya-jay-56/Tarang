@@ -116,10 +116,10 @@ async def external_service_handler(request: Request, exc: ExternalServiceError):
 
 @app.exception_handler(Exception)
 async def global_error_handler(request: Request, exc: Exception):
-    logger.error("Unhandled error on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    import traceback
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Internal server error: {str(exc)}"},
+        content={"detail": f"Internal server error: {str(exc)}\n{traceback.format_exc()}"},
     )
 
 
