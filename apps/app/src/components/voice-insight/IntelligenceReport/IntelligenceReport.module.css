@@ -1,0 +1,213 @@
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionIcon {
+  font-size: 16px;
+}
+
+/* -- Metric Cards -- */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  background: var(--card);
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.metricLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.metricValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.threatBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.threatDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* -- Summary -- */
+.summaryText {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* -- Timeline -- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 36px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timelineItem {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 8px 0;
+  position: relative;
+}
+
+.timelineTs {
+  min-width: 48px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  padding-top: 2px;
+  text-align: right;
+}
+
+.timelineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #38bdf8;
+  margin-top: 5px;
+  z-index: 1;
+  flex-shrink: 0;
+  border: 2px solid var(--card);
+}
+
+.timelineText {
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* -- Entity Table -- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.entityTypeBadge {
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.entityContext {
+  color: var(--muted-foreground);
+  max-width: 280px;
+}
+
+/* -- Risk Keywords -- */
+.keywordRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--background);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.keywordName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.keywordTranslation {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.keywordCategoryBadge {
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.keywordMeta {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* -- Actionable Intelligence -- */
+.actionItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--background);
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.actionNumber {
+  color: #38bdf8;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.actionText {
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.5;
+}

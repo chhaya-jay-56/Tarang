@@ -1,8 +1,8 @@
-# ─────────────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # WHY THIS FILE EXISTS:
 # SQLAlchemy model for storing VoiceInsight call analysis records.
-# This integrates Gladia transcription outputs and Qwen on Modal intelligence.
-# ─────────────────────────────────────────────────────────────────────────────
+# This integrates Gladia transcription outputs and Sarvam-30B intelligence.
+# ---------------------------------------------------------------------------
 
 import uuid
 import enum
@@ -19,7 +19,7 @@ from app.database import Base
 class AnalysisStatus(str, enum.Enum):
     PENDING = "pending"
     TRANSCRIBING = "transcribing" # Gladia processing
-    EXTRACTING = "extracting"     # Qwen Modal processing
+    EXTRACTING = "extracting"     # Sarvam-30B Modal processing
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -53,7 +53,7 @@ class CallAnalysis(Base):
     # Results
     # transcript will store the raw JSON from Gladia
     transcript = Column(JSONB, nullable=True)
-    # intelligence will store the extracted insights from Qwen
+    # intelligence will store the extracted insights from Sarvam-30B
     intelligence = Column(JSONB, nullable=True)
     
     # For full-text search across transcript

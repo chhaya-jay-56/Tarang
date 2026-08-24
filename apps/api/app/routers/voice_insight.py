@@ -34,6 +34,9 @@ router = APIRouter(
     tags=["voice-insight"],
 )
 
+# Track in-flight Sarvam extractions to prevent duplicate calls from rapid polling
+_active_extractions: set[uuid.UUID] = set()
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Load VoiceInsight instruction file at module startup (cached, not per-request)
@@ -159,7 +162,7 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
                 response_data = resp.json()
                 response_text = response_data.get("content", "").strip()
         else:
-            raise ValueError("MODAL_SARVAM_INSIGHT_ENDPOINT not configured — skipping to fallback")
+            raise ValueError("MODAL_SARVAM_INSIGHT_ENDPOINT not configured -- skipping to fallback")
 
         # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
         raw = response_text
@@ -177,7 +180,7 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
             raw = raw[start_idx : end_idx + 1]
 
         intelligence_json = json.loads(raw)
-        logger.info("✅ Intelligence extracted via Sarvam-30B for call %s", call_id)
+        logger.info("[OK] Intelligence extracted via Sarvam-30B for call %s", call_id)
 
     except json.JSONDecodeError:
         logger.error("Sarvam returned non-JSON content: %s", response_text[:300] if 'response_text' in locals() else "N/A")
@@ -199,7 +202,7 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
                     data = resp.json()
                     raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
                     intelligence_json = json.loads(raw_text)
-                    logger.info("✅ Intelligence successfully extracted via Gemini fallback!")
+                    logger.info("[OK] Intelligence successfully extracted via Gemini fallback")
             except Exception as fallback_err:
                 logger.error("Gemini fallback failed: %s", fallback_err)
                 intelligence_json = {"error": f"Sarvam: {str(e)}; Gemini: {str(fallback_err)}"}
@@ -217,7 +220,7 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
                 else AnalysisStatus.FAILED
             )
             await db.commit()
-            logger.info("Intelligence extraction complete for call %s → %s", call_id, call.status)
+            logger.info("Intelligence extraction complete for call %s -> %s", call_id, call.status)
 
 
 async def _poll_gladia_and_extract_intelligence(call_id: uuid.UUID, gladia_job_id: str):
@@ -309,7 +312,7 @@ async def analyze_call(
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Start analyzing a call recording via Gladia → Qwen pipeline."""
+    """Start analyzing a call recording via Gladia -> Sarvam-30B pipeline."""
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
     except ValueError:
@@ -336,7 +339,9 @@ async def analyze_call(
     await db.commit()
     await db.refresh(call)
 
-    # Add background task to poll Gladia and trigger Qwen automatically
+    # Add background task to poll Gladia and trigger Sarvam automatically
+    # NOTE: This may die in serverless environments. The self-healing
+    # get_call_detail endpoint will recover if this task fails.
     background_tasks.add_task(_poll_gladia_and_extract_intelligence, call.id, gladia_job_id)
 
     return call
@@ -386,7 +391,15 @@ async def get_call_detail(
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get details for a specific call analysis."""
+    """Get details for a specific call analysis.
+
+    SELF-HEALING: If the background task died (common in serverless),
+    this endpoint detects stale states and re-triggers the pipeline:
+      - transcribing + stale -> check Gladia inline, save transcript
+      - extracting + no intelligence -> re-trigger Sarvam extraction
+    """
+    import asyncio
+
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
     except ValueError:
@@ -401,6 +414,63 @@ async def get_call_detail(
     call = result.scalar_one_or_none()
     if not call:
         raise HTTPException(status_code=404, detail="Call analysis not found")
+
+    # -- Self-healing: recover from dead background tasks --
+
+    if call.status == AnalysisStatus.TRANSCRIBING and call.gladia_job_id:
+        # Background task may have died. Check Gladia inline.
+        try:
+            gladia_res = await get_gladia_transcription(call.gladia_job_id)
+            gladia_status = gladia_res.get("status")
+
+            if gladia_status == "done":
+                logger.info("[HEAL] Gladia done for call %s -- saving transcript inline", call_id)
+                call.transcript = gladia_res
+                call.status = AnalysisStatus.EXTRACTING
+
+                # Extract audio duration
+                res_obj = gladia_res.get("result", gladia_res)
+                meta = res_obj.get("metadata", {}) if isinstance(res_obj, dict) else {}
+                if meta.get("audio_duration"):
+                    call.duration_seconds = float(meta["audio_duration"])
+
+                await db.commit()
+                await db.refresh(call)
+
+                # Fire-and-forget Sarvam extraction
+                if call_id not in _active_extractions:
+                    _active_extractions.add(call_id)
+
+                    async def _heal_extract():
+                        try:
+                            await _run_sarvam_extraction(call_id, gladia_res)
+                        finally:
+                            _active_extractions.discard(call_id)
+
+                    asyncio.create_task(_heal_extract())
+
+            elif gladia_status == "error":
+                logger.error("[HEAL] Gladia failed for call %s", call_id)
+                call.status = AnalysisStatus.FAILED
+                await db.commit()
+                await db.refresh(call)
+        except Exception as e:
+            logger.warning("[HEAL] Gladia check failed for call %s: %s", call_id, e)
+
+    elif call.status == AnalysisStatus.EXTRACTING and not call.intelligence:
+        # Sarvam extraction may have died. Re-trigger if not already running.
+        if call_id not in _active_extractions and call.transcript:
+            logger.info("[HEAL] Re-triggering Sarvam extraction for stale call %s", call_id)
+            _active_extractions.add(call_id)
+
+            async def _heal_extract_retry():
+                try:
+                    await _run_sarvam_extraction(call_id, call.transcript)
+                finally:
+                    _active_extractions.discard(call_id)
+
+            asyncio.create_task(_heal_extract_retry())
+
     return call
 
 
