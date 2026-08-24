@@ -64,10 +64,6 @@ export default function VoiceInsightDetail() {
       const res = await authFetch(`/api/v1/voice-insight/calls/${id}/extract-intelligence`, {
         method: "POST",
       });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || `Extraction failed (${res.status})`);
-      }
       const data = await res.json();
       setCall(data);
     } catch (err: any) {
@@ -116,9 +112,10 @@ export default function VoiceInsightDetail() {
   }
 
   const hasTranscript = Boolean(call.transcript);
+  const hasUsableIntelligence = call.intelligence && !call.intelligence.error;
   const showExtractButton =
     (call.status === "transcript_ready") ||
-    (call.status === "failed" && hasTranscript && !call.intelligence);
+    (call.status === "failed" && hasTranscript && !hasUsableIntelligence);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "22px", maxWidth: "960px", width: "100%", padding: "0 16px", margin: "0 auto", paddingBottom: "40px" }}>
