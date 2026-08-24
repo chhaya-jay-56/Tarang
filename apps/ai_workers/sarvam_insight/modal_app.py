@@ -162,15 +162,13 @@ def _verify_modal_secret(request: Request) -> None:
 @app.cls(
     gpu="L40S",
     cpu=4.0,
-    memory=1024 * 32,  # 32 GB system RAM
+    memory=1024 * 64,  # 64 GB system RAM to prevent OOM when loading 32GB weights
     timeout=600,       # 10 min ceiling for long transcripts
     min_containers=0,  # True serverless ($0 when idle)
-    scaledown_window=2,  # 2s -- true serverless with fast snapshot restore
-    enable_memory_snapshot=True,  # CPU memory snapshot
-    experimental_options={"enable_gpu_snapshot": True},  # GPU memory snapshot
+    scaledown_window=10,  # 10s wait before scaling down
 )
 class SarvamInsightModel:
-    @modal.enter(snap=True)
+    @modal.enter()
     def start_vllm_server(self):
         """Start vLLM as a background process and warm up CUDA kernels.
 
@@ -194,18 +192,21 @@ class SarvamInsightModel:
                 "--kv-cache-dtype", "fp8",
                 "--max-model-len", "8192",
                 "--gpu-memory-utilization", "0.90",
+                "--enforce-eager",
                 "--port", str(VLLM_PORT),
                 "--host", "0.0.0.0",
             ],
             env={
                 **os.environ,
                 "VLLM_USE_FLASHINFER_MOE_FP8": "0",
+                "NCCL_P2P_DISABLE": "1",
+                "NCCL_IB_DISABLE": "1",
             },
         )
 
         # Wait for vLLM server to become healthy
         health_url = f"http://localhost:{VLLM_PORT}/health"
-        for attempt in range(360):  # 360 * 1s = 6 min max
+        for attempt in range(600):  # 600 * 1s = 10 min max
             try:
                 resp = httpx.get(health_url, timeout=2.0)
                 if resp.status_code == 200:
@@ -215,7 +216,7 @@ class SarvamInsightModel:
                 pass
             time.sleep(1)
         else:
-            raise RuntimeError("vLLM server failed to start within 360s")
+            raise RuntimeError("vLLM server failed to start within 600s")
 
         # -- Warm-up pass: compile CUDA kernels before snapshot --
         print("[INFO] Running warm-up completion to compile CUDA kernels...")
@@ -242,34 +243,7 @@ class SarvamInsightModel:
 
         print(f"[OK] SarvamInsight ready -- snapshot key: {SNAPSHOT_KEY}")
 
-    @modal.enter()
-    def post_restore(self):
-        """Post-snapshot init -- runs on EVERY container start (including restores).
 
-        WHY: After GPU snapshot restore, the vLLM subprocess and CUDA context
-        may need a sync before kernels are usable. Without this, the first
-        real request can incur a 1-2s lazy re-initialization penalty.
-        """
-        import time
-        import httpx
-
-        t0 = time.perf_counter()
-
-        # Verify vLLM server is still responsive after restore
-        health_url = f"http://localhost:{VLLM_PORT}/health"
-        for attempt in range(30):  # 30 * 1s = 30s max
-            try:
-                resp = httpx.get(health_url, timeout=2.0)
-                if resp.status_code == 200:
-                    elapsed = time.perf_counter() - t0
-                    print(f"[OK] Post-restore vLLM health check passed in {elapsed:.2f}s -- container ready")
-                    return
-            except Exception:
-                pass
-            time.sleep(1)
-
-        elapsed = time.perf_counter() - t0
-        print(f"[WARN] Post-restore vLLM health check failed after {elapsed:.2f}s -- proceeding anyway")
 
     @modal.method()
     def analyze(self, messages: list[dict], temperature: float = 0.1, max_tokens: int = 4096) -> str:

@@ -186,28 +186,8 @@ async def _run_sarvam_extraction(call_id: uuid.UUID, transcript_data: dict):
         logger.error("Sarvam returned non-JSON content: %s", response_text[:300] if 'response_text' in locals() else "N/A")
         intelligence_json = {"error": "Non-JSON response from LLM"}
     except Exception as e:
-        logger.error("Sarvam extraction failed (%s). Attempting Gemini fallback...", e)
-        if settings.GEMINI_API_KEY:
-            try:
-                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
-                # Build a combined prompt for Gemini (no chat format needed)
-                gemini_prompt = f"{_INSTRUCTION_TEXT}\n\n{user_prompt}"
-                gemini_body = {
-                    "contents": [{"parts": [{"text": gemini_prompt}]}],
-                    "generationConfig": {"response_mime_type": "application/json"}
-                }
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    resp = await client.post(gemini_url, json=gemini_body)
-                    resp.raise_for_status()
-                    data = resp.json()
-                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    intelligence_json = json.loads(raw_text)
-                    logger.info("[OK] Intelligence successfully extracted via Gemini fallback")
-            except Exception as fallback_err:
-                logger.error("Gemini fallback failed: %s", fallback_err)
-                intelligence_json = {"error": f"Sarvam: {str(e)}; Gemini: {str(fallback_err)}"}
-        else:
-            intelligence_json = {"error": str(e)}
+        logger.error("Sarvam extraction failed (%s)", e)
+        intelligence_json = {"error": str(e)}
 
     # Write result back using a fresh session
     async with AsyncSessionLocal() as db:
