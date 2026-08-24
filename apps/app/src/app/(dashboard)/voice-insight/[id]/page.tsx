@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApiClient } from "@/lib/api";
 import { useParams } from "next/navigation";
-import { LuArrowLeft, LuDownload, LuLink, LuMapPin } from "react-icons/lu";
+import { LuArrowLeft, LuDownload, LuLink, LuMapPin, LuBrain } from "react-icons/lu";
 import Link from "next/link";
 import { PipelineProgress } from "@/components/voice-insight/PipelineProgress/PipelineProgress";
 import { IntelligenceReport } from "@/components/voice-insight/IntelligenceReport/IntelligenceReport";
@@ -15,6 +15,8 @@ export default function VoiceInsightDetail() {
   const [call, setCall] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
   const [crossRefs, setCrossRefs] = useState<any>(null);
 
   const fetchCall = useCallback(async () => {
@@ -47,13 +49,36 @@ export default function VoiceInsightDetail() {
     if (call?.status === "completed") fetchCrossRefs();
   }, [call?.status, fetchCrossRefs]);
 
-  // Auto-refresh while processing (self-healing backend will recover stale states)
+  // Auto-refresh while Gladia is processing (self-healing backend checks inline)
   useEffect(() => {
-    if (call && (call.status === "transcribing" || call.status === "extracting")) {
+    if (call && call.status === "transcribing") {
       const interval = setInterval(fetchCall, 4000);
       return () => clearInterval(interval);
     }
   }, [call?.status, fetchCall]);
+
+  const handleExtractIntelligence = async () => {
+    setIsExtracting(true);
+    setExtractError(null);
+    try {
+      const res = await authFetch(`/api/v1/voice-insight/calls/${id}/extract-intelligence`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || `Extraction failed (${res.status})`);
+      }
+      const data = await res.json();
+      setCall(data);
+    } catch (err: any) {
+      console.error("Intelligence extraction failed:", err);
+      setExtractError(err.message || "Intelligence extraction failed. Please try again.");
+      // Refresh to get latest status
+      await fetchCall();
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   const handleExport = async (format: "json" | "csv") => {
     setIsExporting(true);
@@ -90,6 +115,11 @@ export default function VoiceInsightDetail() {
     );
   }
 
+  const hasTranscript = Boolean(call.transcript);
+  const showExtractButton =
+    (call.status === "transcript_ready") ||
+    (call.status === "failed" && hasTranscript && !call.intelligence);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "22px", maxWidth: "960px", width: "100%", padding: "0 16px", margin: "0 auto", paddingBottom: "40px" }}>
       {/* Header */}
@@ -119,7 +149,65 @@ export default function VoiceInsightDetail() {
       </div>
 
       {/* Pipeline Progress */}
-      <PipelineProgress status={call.status} />
+      <PipelineProgress status={call.status} hasTranscript={hasTranscript} />
+
+      {/* Analyze Intelligence Button (shown when transcript is ready) */}
+      {showExtractButton && (
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center", gap: "12px",
+          padding: "24px", background: "var(--card)", border: "1px solid var(--border)",
+          borderRadius: "14px",
+        }}>
+          <p style={{ color: "var(--muted-foreground)", fontSize: "13px", textAlign: "center", maxWidth: "480px" }}>
+            Transcription is complete. Click below to run Sarvam-30B intelligence analysis on the transcript.
+            {call.status === "failed" && " (Previous extraction failed — retry available.)"}
+          </p>
+          {extractError && (
+            <p style={{ color: "#ef4444", fontSize: "12px", textAlign: "center" }}>
+              {extractError}
+            </p>
+          )}
+          <button
+            onClick={handleExtractIntelligence}
+            disabled={isExtracting}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "8px",
+              background: isExtracting
+                ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
+                : "linear-gradient(135deg, #f59e0b, #ef4444)",
+              color: "#fff", border: "none",
+              padding: "12px 28px", borderRadius: "10px",
+              fontSize: "14px", fontWeight: 700,
+              cursor: isExtracting ? "not-allowed" : "pointer",
+              opacity: isExtracting ? 0.8 : 1,
+              transition: "all 0.3s ease",
+              boxShadow: isExtracting
+                ? "0 4px 16px rgba(99, 102, 241, 0.3)"
+                : "0 4px 16px rgba(245, 158, 11, 0.3)",
+            }}
+          >
+            <LuBrain style={{ fontSize: "16px" }} />
+            {isExtracting ? "Analyzing with Sarvam-30B..." : "Analyze Intelligence"}
+          </button>
+          {isExtracting && (
+            <p style={{ color: "var(--muted-foreground)", fontSize: "11px", textAlign: "center" }}>
+              This may take 30–120 seconds (Modal GPU cold start + inference).
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Extracting in progress (sync call is running) */}
+      {call.status === "extracting" && !isExtracting && (
+        <div style={{
+          padding: "20px", background: "var(--card)", border: "1px solid var(--border)",
+          borderRadius: "14px", textAlign: "center",
+        }}>
+          <p style={{ color: "#38bdf8", fontSize: "13px", fontWeight: 600 }}>
+            Intelligence extraction in progress...
+          </p>
+        </div>
+      )}
 
       {/* Intelligence Report (only when completed) */}
       {call.status === "completed" && call.intelligence && (

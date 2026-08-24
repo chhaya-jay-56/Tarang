@@ -18,8 +18,9 @@ from app.database import Base
 
 class AnalysisStatus(str, enum.Enum):
     PENDING = "pending"
-    TRANSCRIBING = "transcribing" # Gladia processing
-    EXTRACTING = "extracting"     # Sarvam-30B Modal processing
+    TRANSCRIBING = "transcribing"       # Gladia processing
+    TRANSCRIPT_READY = "transcript_ready" # Gladia done, awaiting manual Sarvam trigger
+    EXTRACTING = "extracting"           # Sarvam-30B Modal processing (sync)
     COMPLETED = "completed"
     FAILED = "failed"
 
