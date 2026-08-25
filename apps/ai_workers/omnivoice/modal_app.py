@@ -216,7 +216,7 @@ class OmniVoiceModel:
         # Short/generic names (e.g. "voice") must never be cached — they would
         # cause all direct-upload clones to share one cached prompt, producing
         # the wrong voice for every user after the first.
-        KNOWN_PRESETS = {"anjali", "priya", "alex", "david"}
+        KNOWN_PRESETS = {"anjali", "priya", "alex", "david", "samay_raina"}
         is_valid_cache_key = (
             cached_voice
             and (cached_voice.lower() in KNOWN_PRESETS or len(cached_voice) >= 30)

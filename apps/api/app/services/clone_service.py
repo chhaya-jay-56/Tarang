@@ -257,7 +257,7 @@ async def create_clone_job(
 
     # ── Credit deduction ──
     cached_voice = cached_voice_id or voice_name or ""
-    PRESET_VOICE_NAMES = {"anjali", "priya", "alex", "david"}
+    PRESET_VOICE_NAMES = {"anjali", "priya", "alex", "david", "samay_raina"}
     is_custom = cached_voice.lower() not in PRESET_VOICE_NAMES
     
     credit_cost = estimate_clone_credits(text, is_custom)
@@ -532,7 +532,7 @@ async def run_clone_pipeline(job_id: uuid.UUID):
             # Custom voices ALWAYS send ref_audio — the GPU tries the cached
             # .pt first but falls back to Whisper ASR if it doesn't exist yet.
             PRESET_VOICE_NAMES = {
-                "anjali", "priya", "alex", "david"
+                "anjali", "priya", "alex", "david", "samay_raina"
             }
             is_preset_cached = cached_voice.lower() in PRESET_VOICE_NAMES
 
