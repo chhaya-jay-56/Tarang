@@ -96,6 +96,8 @@ class SharedSecretMiddleware(BaseHTTPMiddleware):
         "/api/webhooks",
         "/api/webhooks/",
         "/api/webhooks/clerk",
+        "/api/feedback",
+        "/api/feedback/",
     })
 
     async def dispatch(self, request: Request, call_next) -> Response:
