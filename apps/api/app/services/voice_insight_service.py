@@ -52,8 +52,11 @@ async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
         "custom_vocabulary": False,
         "translation": False,
         "custom_spelling": False,
+        # Let Gladia identify the spoken language instead of forcing Gujarati.
+        # With code switching off, it detects the primary language once and
+        # applies it consistently to this recording (ideal for Hindi calls).
         "language_config": {
-            "languages": ["gu"],       # Gujarati priority for police recordings
+            "languages": [],
             "code_switching": False,
         },
         "diarization": True,
