@@ -9,9 +9,7 @@ const Hero = () => {
   return (
     <main className={styles.hero}>
       <div className={styles.heroContent}>
-        <div className={`${styles.mobileSparkleBadge} fade-in-up`} style={{ animationDelay: '0.1s' }}>
-          ✨ Clone once. Speak Forever
-        </div>
+
         <h1 className={`${styles.heroTitle} fade-in-up`} style={{ animationDelay: '0.2s' }}>
           <span className={styles.gradientText}>Voice</span>
           <span className={styles.arrow}>&gt;</span>

@@ -34,6 +34,7 @@ const NAV_LINKS = [
   { id: "product", label: "Product", hasDropdown: true },
   { id: "how-it-works", label: "How it Works", hasDropdown: false },
   { id: "blog", label: "Blog", hasDropdown: false, href: "/blog" },
+  { id: "feedback", label: "Feedback", hasDropdown: false },
   { id: "contact", label: "Contact", hasDropdown: false },
 ];
 
@@ -173,6 +174,9 @@ const Navbar = () => {
 
         {/* CTA */}
         <div className={styles.cta}>
+          <a href="https://www.uneed.best/tool/tarang" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="https://www.uneed.best/POTD3.png" className={styles.navBadge} alt="Uneed POTD3 Badge" />
+          </a>
           <a href={APP_URL} className={styles.ctaButton}>
             Get Started &rarr;
           </a>

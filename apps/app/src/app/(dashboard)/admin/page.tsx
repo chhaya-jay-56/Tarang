@@ -26,7 +26,7 @@ interface ConfigEntry {
   updated_at: string | null;
 }
 
-type TabKey = "users" | "config" | "insights";
+type TabKey = "users" | "config" | "insights" | "feedback";
 
 
 // ── Main Page ──
@@ -93,13 +93,13 @@ function AdminDashboard() {
 
       {/* Tab Navigation */}
       <div className={styles.tabBar}>
-        {(["users", "config", "insights"] as TabKey[]).map((tab) => (
+        {(["users", "config", "insights", "feedback"] as TabKey[]).map((tab) => (
           <button
             key={tab}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ""}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : "Insights"}
+            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : tab === "insights" ? "Insights" : "Feedback"}
           </button>
         ))}
       </div>
@@ -108,6 +108,7 @@ function AdminDashboard() {
       {activeTab === "users" && <UsersTab admin={admin} />}
       {activeTab === "config" && <ConfigTab admin={admin} />}
       {activeTab === "insights" && <InsightsTab admin={admin} />}
+      {activeTab === "feedback" && <FeedbackTab admin={admin} />}
     </div>
   );
 }
@@ -627,6 +628,69 @@ function InsightsTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Feedback Tab ──
+
+function FeedbackTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    admin.getFeedbacks()
+      .then(setFeedbacks)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading) return <div className={styles.loadingState}>Loading feedback...</div>;
+
+  return (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>User Feedback</span>
+      </div>
+      <div className={styles.sectionBody}>
+        {feedbacks.length === 0 ? (
+          <div className={styles.emptyState}>No feedback found.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Source</th>
+                  <th>User</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feedbacks.map((f) => (
+                  <tr key={f.id}>
+                    <td style={{ whiteSpace: "nowrap", fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
+                      {new Date(f.created_at).toLocaleString()}
+                    </td>
+                    <td>
+                      <span className={styles.badge} style={{ background: "rgba(106, 17, 203, 0.2)", color: "#c084fc" }}>
+                        {f.source}
+                      </span>
+                    </td>
+                    <td>
+                      <div>{f.name}</div>
+                      {f.email && <div className={styles.userEmail}>{f.email}</div>}
+                    </td>
+                    <td style={{ maxWidth: "400px", whiteSpace: "pre-wrap" }}>
+                      {f.message}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

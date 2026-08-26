@@ -17,7 +17,7 @@ from app.exceptions import (
 )
 
 # Voices router migrated to new models (UserAsset + CloneJob + Modal OmniVoice)
-from app.routers import health, webhooks, voices, history, separation, voice_library, tts, credits, admin, voice_insight
+from app.routers import health, webhooks, voices, history, separation, voice_library, tts, credits, admin, voice_insight, feedback
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tarang")
@@ -134,6 +134,7 @@ app.include_router(tts.router)
 app.include_router(credits.router)
 app.include_router(admin.router)
 app.include_router(voice_insight.router)
+app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 
 
 if __name__ == "__main__":

@@ -101,6 +101,12 @@ export function useAdmin() {
     return res.json();
   }, [adminFetch]);
 
+  const getFeedbacks = useCallback(async () => {
+    const res = await authFetch("/api/feedback/");
+    if (!res.ok) throw new Error("Failed to fetch feedbacks");
+    return res.json();
+  }, [authFetch]);
+
   return {
     listUsers,
     searchUsers,
@@ -112,5 +118,6 @@ export function useAdmin() {
     getTopSpenders,
     getServiceUsage,
     getIdleUsers,
+    getFeedbacks,
   };
 }

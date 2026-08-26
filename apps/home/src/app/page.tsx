@@ -9,6 +9,8 @@ import HowItWorks from "@/components/HowItWorks/HowItWorks";
 import Contact from "@/components/Contact/Contact";
 import Footer from "@/components/Footer/Footer";
 
+import FeedbackSection from "@/components/FeedbackSection/FeedbackSection";
+
 export default function HomePage() {
   return (
     <>
@@ -20,6 +22,7 @@ export default function HomePage() {
       <ProductSection />
       <SupportedLanguages />
       <HowItWorks />
+      <FeedbackSection />
       <Contact />
       <Footer />
     </>

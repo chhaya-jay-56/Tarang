@@ -29,6 +29,8 @@ function getPageName(pathname: string): string {
   return PAGE_NAMES[last] || last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+import FeedbackWidget from "@/components/FeedbackWidget/FeedbackWidget";
+
 /**
  * Sticky top bar — Neon-style breadcrumb showing:
  *   / username / plan / current page
@@ -88,6 +90,7 @@ export function TopBar() {
       <div className={styles.rightSection}>
         <Show when="signed-in">
           <CreditBar />
+          <FeedbackWidget />
           <UserButton />
         </Show>
         <Show when="signed-out">

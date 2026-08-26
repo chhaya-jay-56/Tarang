@@ -30,6 +30,7 @@ from app.models.custom_voice import CustomVoice
 from app.models.app_config import AppConfig
 from app.models.deleted_user import DeletedUser
 from app.models.call_analysis import CallAnalysis, AnalysisStatus
+from app.models.feedback import Feedback
 
 __all__ = [
     "Base",
@@ -52,5 +53,7 @@ __all__ = [
     "DeletedUser",
     # ── VoiceInsight ──
     "CallAnalysis", "AnalysisStatus",
+    # ── Feedback ──
+    "Feedback",
 ]
 
