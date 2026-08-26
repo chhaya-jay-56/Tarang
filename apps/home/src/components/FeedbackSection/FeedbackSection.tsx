@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import styles from "./FeedbackSection.module.css";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.trytarang.app";
-
 const FeedbackSection = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [name, setName] = useState("");
@@ -29,7 +27,7 @@ const FeedbackSection = () => {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/feedback/`, {
+      const response = await fetch("/api/feedback/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +41,8 @@ const FeedbackSection = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit feedback");
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || `Feedback could not be submitted (${response.status}).`);
       }
 
       setIsSuccess(true);
@@ -53,8 +52,8 @@ const FeedbackSection = () => {
         setEmail("");
         setMessage("");
       }, 5000);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }

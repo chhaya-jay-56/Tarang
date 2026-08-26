@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useApiClient } from "@/lib/api";
+import { useAuth, useUser } from "@clerk/nextjs";
 import styles from "./FeedbackWidget.module.css";
 
 const FeedbackWidget = () => {
   const { user } = useUser();
-  const { authFetch } = useApiClient();
+  const { getToken } = useAuth();
   
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -22,7 +21,7 @@ const FeedbackWidget = () => {
       if (!name) setName(user.fullName || "");
       if (!email) setEmail(user.primaryEmailAddress?.emailAddress || "");
     }
-  }, [user]);
+  }, [user, name, email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +34,13 @@ const FeedbackWidget = () => {
     setError("");
 
     try {
-      const response = await authFetch("/api/feedback/", {
+      const token = await getToken();
+      const response = await fetch("/api/feedback/", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           name,
           email,
@@ -46,7 +50,8 @@ const FeedbackWidget = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit feedback");
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || `Feedback could not be submitted (${response.status}).`);
       }
 
       setIsSuccess(true);
@@ -55,8 +60,8 @@ const FeedbackWidget = () => {
         setIsSuccess(false);
         setMessage("");
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +84,7 @@ const FeedbackWidget = () => {
             ) : (
               <form onSubmit={handleSubmit} suppressHydrationWarning>
                 <h3 className={styles.modalTitle}>Talk directly to the builder</h3>
-                <p className={styles.modalSubtitle}>What can we improve? What didn't you like?</p>
+                <p className={styles.modalSubtitle}>What can we improve? What didn&apos;t you like?</p>
                 
                 {error && <p style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '1rem' }}>{error}</p>}
 

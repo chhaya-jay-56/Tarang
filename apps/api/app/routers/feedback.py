@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy import desc
 from typing import List, Optional
 
-from app.database import get_db
+from app.dependencies import get_db
 from app.models.feedback import Feedback
 from app.schemas.feedback import FeedbackCreate, FeedbackResponse
 from app.utils.admin_auth import get_admin_user

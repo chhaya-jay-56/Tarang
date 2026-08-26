@@ -3,8 +3,6 @@
 import { useState } from "react";
 import styles from "./FeedbackWidget.module.css";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 const FeedbackWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -25,7 +23,7 @@ const FeedbackWidget = () => {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/feedback/`, {
+      const response = await fetch("/api/feedback/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +37,8 @@ const FeedbackWidget = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit feedback");
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || `Feedback could not be submitted (${response.status}).`);
       }
 
       setIsSuccess(true);
@@ -50,8 +49,8 @@ const FeedbackWidget = () => {
         setEmail("");
         setMessage("");
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +75,7 @@ const FeedbackWidget = () => {
             ) : (
               <form onSubmit={handleSubmit}>
                 <h3 className={styles.modalTitle}>Talk directly to the builder</h3>
-                <p className={styles.modalSubtitle}>What can we improve? What didn't you like?</p>
+                <p className={styles.modalSubtitle}>What can we improve? What didn&apos;t you like?</p>
                 
                 {error && <p style={{ color: '#ff4d4d', fontSize: '0.875rem', marginBottom: '1rem' }}>{error}</p>}
 
