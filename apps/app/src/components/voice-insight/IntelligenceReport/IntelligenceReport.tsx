@@ -94,7 +94,7 @@ function WholeCallSummary({ intel }: { intel: any }) {
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>
-        <LuFileText className={styles.sectionIcon} style={{ color: "#38bdf8" }} />
+        <LuFileText className={styles.sectionIcon} />
         Whole-Call Summary
       </h3>
       <p className={styles.summaryText}>{summary}</p>
@@ -109,7 +109,7 @@ function TimestampedSummary({ intel }: { intel: any }) {
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>
-        <LuClock className={styles.sectionIcon} style={{ color: "#38bdf8" }} />
+        <LuClock className={styles.sectionIcon} />
         Timestamped Summary
       </h3>
       <div className={styles.timeline}>
@@ -133,7 +133,7 @@ function EntityTable({ intel }: { intel: any }) {
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>
-        <LuUsers className={styles.sectionIcon} style={{ color: "#38bdf8" }} />
+        <LuUsers className={styles.sectionIcon} />
         Extracted Entities
       </h3>
       <div style={{ overflowX: "auto" }}>

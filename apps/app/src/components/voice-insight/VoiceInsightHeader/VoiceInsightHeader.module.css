@@ -23,7 +23,7 @@
 }
 
 .titleIcon {
-  color: #38bdf8;
+  color: var(--foreground);
   font-size: 22px;
 }
 
@@ -37,20 +37,21 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 10px;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 11px 18px;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
 
 .newAnalysisBtn:hover {
-  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+  background: transparent;
+  color: var(--foreground);
   transform: translateY(-1px);
 }

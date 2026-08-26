@@ -28,6 +28,11 @@ from app.config import settings
 
 logger = logging.getLogger("tarang.voice_insight")
 
+# Leave sufficient context for the instruction file and a complete JSON
+# response. Without this, a long Gladia transcript can fail before inference.
+_MAX_TRANSCRIPT_PROMPT_CHARS = 7_500
+_SARVAM_MAX_TOKENS = 2_048
+
 router = APIRouter(
     prefix="/api/v1/voice-insight",
     tags=["voice-insight"],
@@ -107,6 +112,17 @@ def _build_structured_transcript(transcript_data: dict) -> tuple[str, dict]:
     return "\n".join(lines), gladia_extras
 
 
+def _fit_transcript_for_prompt(transcript: str) -> str:
+    """Keep long calls within the deployed Modal model's context window."""
+    if len(transcript) <= _MAX_TRANSCRIPT_PROMPT_CHARS:
+        return transcript
+
+    marker = "\n\n[Middle of transcript omitted to fit the analysis window]\n\n"
+    head_length = int((_MAX_TRANSCRIPT_PROMPT_CHARS - len(marker)) * 0.65)
+    tail_length = _MAX_TRANSCRIPT_PROMPT_CHARS - len(marker) - head_length
+    return f"{transcript[:head_length]}{marker}{transcript[-tail_length:]}"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Synchronous Intelligence Extraction (Sarvam-30B FP8 via Modal)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -123,6 +139,7 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
 
     # Build structured transcript with timestamps
     conversation_text, gladia_extras = _build_structured_transcript(transcript_data)
+    conversation_text = _fit_transcript_for_prompt(conversation_text)
 
     # Build the analysis prompt with instruction file + transcript + Gladia extras
     extra_context = ""
@@ -135,7 +152,8 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
         f"Analyze the following call recording transcript.\n\n"
         f"## Transcript:\n{conversation_text}\n"
         f"{extra_context}\n\n"
-        f"Now analyze this transcript and output the structured JSON as specified in your instructions."
+        f"Now analyze this transcript and output the structured JSON as specified in your instructions. "
+        f"Keep arrays concise so the entire response remains valid JSON."
     )
 
     messages = [
@@ -148,19 +166,22 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
             raise ValueError("MODAL_SARVAM_INSIGHT_ENDPOINT not configured")
 
         async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
-            headers = {
-                "x-tarang-modal-secret": settings.MODAL_SHARED_SECRET,
-                "Content-Type": "application/json",
-            }
+            headers = {"Content-Type": "application/json"}
+            # Avoid sending an empty credential in local development.
+            if settings.MODAL_SHARED_SECRET:
+                headers["x-tarang-modal-secret"] = settings.MODAL_SHARED_SECRET
             body = {
                 "messages": messages,
                 "temperature": 0.1,
-                "max_tokens": 4096,
+                "max_tokens": _SARVAM_MAX_TOKENS,
             }
             resp = await client.post(settings.MODAL_SARVAM_INSIGHT_ENDPOINT, headers=headers, json=body)
             resp.raise_for_status()
             response_data = resp.json()
-            response_text = response_data.get("content", "").strip()
+            response_text = response_data.get("content", "")
+            if not isinstance(response_text, str) or not response_text.strip():
+                raise ValueError("Sarvam returned an empty response")
+            response_text = response_text.strip()
 
         # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
         raw = response_text
@@ -183,6 +204,12 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
     except json.JSONDecodeError:
         logger.error("Sarvam returned non-JSON: %s", response_text[:300] if 'response_text' in locals() else "N/A")
         return {"error": "Non-JSON response from LLM"}
+    except httpx.TimeoutException:
+        logger.error("Sarvam extraction timed out")
+        return {"error": "Sarvam analysis timed out. Please retry the analysis."}
+    except httpx.HTTPStatusError as e:
+        logger.error("Sarvam endpoint returned HTTP %s: %s", e.response.status_code, e.response.text[:500])
+        return {"error": f"Sarvam service returned HTTP {e.response.status_code}. Please retry the analysis."}
     except Exception as e:
         logger.error("Sarvam extraction failed: %s", e)
         return {"error": str(e)}
@@ -394,6 +421,9 @@ async def extract_intelligence(
 
     if not call.transcript:
         raise HTTPException(status_code=400, detail="No transcript available — transcription must complete first")
+
+    if call.status == AnalysisStatus.EXTRACTING:
+        raise HTTPException(status_code=409, detail="Intelligence extraction is already in progress")
 
     # Mark as extracting so the UI shows the right state
     call.status = AnalysisStatus.EXTRACTING

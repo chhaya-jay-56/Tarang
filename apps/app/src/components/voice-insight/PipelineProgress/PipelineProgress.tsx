@@ -1,7 +1,7 @@
 import { LuUpload, LuFileAudio, LuBrain, LuShieldCheck } from "react-icons/lu";
 import styles from "./PipelineProgress.module.css";
 
-type PipelineStatus = "pending" | "transcribing" | "transcript_ready" | "extracting" | "completed" | "failed";
+export type PipelineStatus = "pending" | "transcribing" | "transcript_ready" | "extracting" | "completed" | "failed";
 
 interface PipelineProgressProps {
   status: PipelineStatus;
@@ -85,4 +85,3 @@ export function PipelineProgress({ status, hasTranscript }: PipelineProgressProp
     </div>
   );
 }
-

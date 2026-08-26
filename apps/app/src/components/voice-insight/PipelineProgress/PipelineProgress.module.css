@@ -46,9 +46,9 @@
 }
 
 .stepCircle.active {
-  border-color: #38bdf8;
-  color: #38bdf8;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+  border-color: var(--foreground);
+  color: var(--foreground);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.12);
   animation: stepPulse 2s infinite;
 }
 
@@ -65,9 +65,9 @@
 }
 
 .stepCircle.waiting {
-  border-color: #f59e0b;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
+  border-color: var(--muted-foreground);
+  color: var(--muted-foreground);
+  background: var(--muted);
   animation: waitPulse 2.5s infinite;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .stepLabel.active {
-  color: #38bdf8;
+  color: var(--foreground);
   font-weight: 600;
 }
 
@@ -101,16 +101,15 @@
 }
 
 .connector.active {
-  background: linear-gradient(90deg, #22c55e, #38bdf8);
+  background: var(--foreground);
 }
 
 @keyframes stepPulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.2); }
-  50% { box-shadow: 0 0 24px rgba(56, 189, 248, 0.45); }
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 24px rgba(255, 255, 255, 0.24); }
 }
 
 @keyframes waitPulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.15); }
-  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.35); }
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.06); }
+  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.18); }
 }
-

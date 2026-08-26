@@ -127,7 +127,7 @@ export function AnalyticsDashboard({ authFetch }: AnalyticsDashboardProps) {
       {/* Keywords */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <LuTag style={{ color: "#38bdf8" }} /> Flagged Intelligence Keywords
+          <LuTag /> Flagged Intelligence Keywords
         </h3>
         {analytics.top_keywords && analytics.top_keywords.length > 0 ? (
           <div className={styles.keywordCloud}>

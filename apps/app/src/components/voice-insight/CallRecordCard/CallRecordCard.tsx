@@ -13,7 +13,7 @@ interface CallRecord {
 const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
   completed: { color: "#22c55e", bg: "rgba(34, 197, 94, 0.1)" },
   failed: { color: "#ef4444", bg: "rgba(239, 68, 68, 0.1)" },
-  extracting: { color: "#38bdf8", bg: "rgba(56, 189, 248, 0.1)" },
+  extracting: { color: "#d4d4d8", bg: "rgba(212, 212, 216, 0.1)" },
   transcribing: { color: "#eab308", bg: "rgba(234, 179, 8, 0.1)" },
   pending: { color: "#a1a1aa", bg: "rgba(161, 161, 170, 0.1)" },
 };

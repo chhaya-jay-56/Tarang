@@ -38,7 +38,7 @@
 }
 
 .titleIcon {
-  color: #38bdf8;
+  color: var(--foreground);
 }
 
 .subtitle {
@@ -76,9 +76,9 @@
 }
 
 .modeBtnActive {
-  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-  color: #fff;
-  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
 }
 
 .modeBtnInactive {
@@ -115,7 +115,7 @@
 }
 
 .textInput:focus {
-  border-color: #38bdf8;
+  border-color: color-mix(in srgb, var(--foreground) 45%, transparent);
 }
 
 .dropzone {
@@ -129,12 +129,12 @@
 }
 
 .dropzone:hover {
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: color-mix(in srgb, var(--foreground) 35%, transparent);
 }
 
 .dropzoneIcon {
   font-size: 30px;
-  color: #38bdf8;
+  color: var(--foreground);
   margin-bottom: 8px;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .progressText {
-  color: #38bdf8;
+  color: var(--muted-foreground);
   font-size: 12px;
   font-weight: 600;
 }
@@ -159,9 +159,9 @@
 .submitBtn {
   margin-top: 4px;
   padding: 13px;
-  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-  color: #fff;
-  border-radius: 10px;
+  background: var(--foreground);
+  color: var(--background);
+  border-radius: 999px;
   font-weight: 600;
   font-size: 13px;
   border: none;
@@ -171,11 +171,12 @@
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
-  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
 
 .submitBtn:hover:not(:disabled) {
-  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+  background: transparent;
+  color: var(--foreground);
   transform: translateY(-1px);
 }
 

@@ -1,0 +1,41 @@
+.page { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px 40px; }
+.statusPage { padding: 48px 16px; color: var(--muted-foreground); text-align: center; }
+.errorStatus { color: var(--destructive); }
+.header { display: flex; flex-direction: column; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.backLink { display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: var(--muted-foreground); font-size: 13px; text-decoration: none; transition: color .15s ease; }
+.backLink:hover { color: var(--foreground); }
+.headerRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.caseMeta h1 { margin: 0; color: var(--foreground); font-size: 22px; font-weight: 600; letter-spacing: .02em; overflow-wrap: anywhere; }
+.caseMeta p { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 0; color: var(--muted-foreground); font-size: 12px; }
+.caseMeta p span + span::before { content: "•"; margin-right: 8px; color: var(--border); }
+.exportActions { display: flex; gap: 8px; }
+.exportButton { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--muted-foreground); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: all .15s ease; }
+.exportButton:hover:not(:disabled) { color: var(--foreground); background: var(--muted); }
+.exportButton:disabled { opacity: .55; cursor: not-allowed; }
+.analysisCard { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: color-mix(in srgb, var(--card) 82%, transparent); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.analysisIcon { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 12px; background: var(--background); color: var(--foreground); font-size: 19px; }
+.analysisCopy h2 { margin: 2px 0 6px; font-size: 16px; font-weight: 600; color: var(--foreground); }
+.analysisCopy p { margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.analysisEyebrow { color: var(--muted-foreground) !important; font-size: 10px !important; font-weight: 700; letter-spacing: .12em; }
+.analyzeButton { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--foreground); border-radius: 999px; background: var(--foreground); color: var(--background); font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .18s ease; white-space: nowrap; }
+.analyzeButton:hover:not(:disabled) { background: transparent; color: var(--foreground); }
+.analyzeButton:disabled { opacity: .65; cursor: not-allowed; }
+.progressMessage, .errorMessage { grid-column: 2 / -1; margin: -6px 0 0; font-size: 12px; }
+.progressMessage { color: var(--muted-foreground); }
+.errorMessage { color: var(--destructive); }
+.extractingCard { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 76px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); color: var(--muted-foreground); font-size: 13px; }
+.spinner { animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.crossReferences { padding: 22px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+.crossReferences h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 5px; color: var(--foreground); font-size: 15px; font-weight: 600; }
+.crossReferences h2 span { padding: 1px 7px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 11px; }
+.crossReferences > p { margin: 0 0 16px; color: var(--muted-foreground); font-size: 12px; }
+.referenceList { display: flex; flex-direction: column; gap: 8px; }
+.referenceItem { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 13px 14px; border: 1px solid var(--border); border-radius: 10px; color: inherit; text-decoration: none; transition: background .15s ease; }
+.referenceItem:hover { background: var(--muted); }
+.referenceItem strong { display: block; color: var(--foreground); font-size: 13px; }
+.referenceItem small { color: var(--muted-foreground); font-size: 11px; white-space: nowrap; }
+.markers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.markers span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 999px; background: var(--background); color: var(--muted-foreground); font-size: 10px; }
+.markers svg { font-size: 11px; }
+@media (max-width: 700px) { .headerRow { flex-direction: column; } .analysisCard { grid-template-columns: auto 1fr; align-items: start; } .analyzeButton, .progressMessage, .errorMessage { grid-column: 1 / -1; width: 100%; } .exportActions { width: 100%; } .exportButton { flex: 1; justify-content: center; } }

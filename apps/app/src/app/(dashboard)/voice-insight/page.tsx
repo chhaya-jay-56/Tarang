@@ -48,8 +48,8 @@ export default function VoiceInsightPage() {
     cursor: "pointer" as const,
     border: "none" as const,
     background: active ? "var(--card)" : "transparent",
-    color: active ? "#38bdf8" : "var(--muted-foreground)",
-    boxShadow: active ? "0 1px 6px rgba(56, 189, 248, 0.08)" : "none",
+    color: active ? "var(--foreground)" : "var(--muted-foreground)",
+    boxShadow: active ? "0 1px 6px rgba(0, 0, 0, 0.12)" : "none",
     transition: "all 0.2s",
   });
 

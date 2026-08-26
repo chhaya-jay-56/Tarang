@@ -52,7 +52,7 @@
 }
 
 .speakerLabel {
-  color: #38bdf8;
+  color: var(--foreground);
   font-size: 12px;
   font-weight: 600;
 }

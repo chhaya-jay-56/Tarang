@@ -12,7 +12,7 @@ sys.path.insert(0, str(api_dir))
 from app.database import AsyncSessionLocal
 from app.models.user import User
 from app.models.call_analysis import CallAnalysis, AnalysisStatus
-from app.routers.voice_insight import _run_sarvam_extraction
+from app.routers.voice_insight import _run_sarvam_extraction_sync
 from sqlalchemy import select
 
 # Mock Gladia V2 transcript containing Gujarati and risk keywords
@@ -95,9 +95,21 @@ async def main():
         # 3. Execute Sarvam intelligence extraction (this calls Modal and runs inference)
         print("[INFO] Invoking intelligence extraction via Sarvam-30B (Modal)...")
         start_time = asyncio.get_event_loop().time()
-        await _run_sarvam_extraction(call_id, MOCK_TRANSCRIPT_DATA)
+        intelligence = await _run_sarvam_extraction_sync(MOCK_TRANSCRIPT_DATA)
         duration = asyncio.get_event_loop().time() - start_time
         print(f"[INFO] Extraction finished in {duration:.2f} seconds.")
+
+        # Persist the synchronous result exactly as the route handler does.
+        async with AsyncSessionLocal() as db:
+            res = await db.execute(select(CallAnalysis).where(CallAnalysis.id == call_id))
+            call_updated = res.scalar_one()
+            call_updated.intelligence = intelligence
+            call_updated.status = (
+                AnalysisStatus.COMPLETED
+                if "error" not in intelligence
+                else AnalysisStatus.FAILED
+            )
+            await db.commit()
         
         # 4. Fetch the results from database and assert structure
         async with AsyncSessionLocal() as db:
