@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useApiClient } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio } from "react-icons/lu";
+import { LuArrowLeft, LuShield, LuUpload, LuCloudUpload, LuFileAudio, LuLoaderCircle, LuCheck } from "react-icons/lu";
 import styles from "./UploadForm.module.css";
 
 export function UploadForm() {
@@ -18,6 +18,10 @@ export function UploadForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [translationEnabled, setTranslationEnabled] = useState(false);
+  const [sourceLanguage, setSourceLanguage] = useState("");
+  const [translationTargetLanguage, setTranslationTargetLanguage] = useState("hi");
+  const [progressStage, setProgressStage] = useState<"uploading" | "transcribing" | "redirecting">("uploading");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -30,6 +34,7 @@ export function UploadForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setProgressStage("uploading");
     setErrorMessage("");
     setUploadProgress("");
 
@@ -56,19 +61,28 @@ export function UploadForm() {
         audioR2Key = uploadData.r2_key;
       }
 
+      setProgressStage("transcribing");
       setUploadProgress("Starting Gladia transcription and Sarvam-30B analysis...");
       const res = await authFetch("/api/v1/voice-insight/analyze", {
         method: "POST",
-      body: JSON.stringify({ audio_url: finalAudioUrl, audio_r2_key: audioR2Key, filename }),
+      body: JSON.stringify({
+        audio_url: finalAudioUrl,
+        audio_r2_key: audioR2Key,
+        filename,
+        source_language: sourceLanguage || undefined,
+        translation: translationEnabled,
+        translation_target_language: translationEnabled ? translationTargetLanguage : undefined,
+      }),
       });
 
       if (res.ok) {
+        setProgressStage("redirecting");
         const data = await res.json();
         router.push(`/voice-insight/${data.id}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err.message || "Failed to initiate call analysis.");
+      setErrorMessage(err instanceof Error ? err.message : "Failed to initiate call analysis.");
     } finally {
       setIsLoading(false);
       setUploadProgress("");
@@ -109,7 +123,17 @@ export function UploadForm() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      {isLoading ? (
+        <section className={styles.progressPanel} aria-live="polite">
+          <div className={styles.progressHeading}><LuLoaderCircle className={styles.spinner} /> Processing your recording</div>
+          <div className={styles.progressSteps}>
+            <ProgressStep label="Audio uploaded" done={progressStage !== "uploading"} active={progressStage === "uploading"} />
+            <ProgressStep label="Language detection and transcription" done={progressStage === "redirecting"} active={progressStage === "transcribing"} />
+            <ProgressStep label="Opening case report" done={false} active={progressStage === "redirecting"} />
+          </div>
+          <p className={styles.progressText}>{uploadProgress || "Preparing your analysis..."}</p>
+        </section>
+      ) : <form onSubmit={handleSubmit} className={styles.form}>
         <div>
           <label className={styles.fieldLabel}>Case Identifier / Filename</label>
           <input
@@ -162,12 +186,63 @@ export function UploadForm() {
           </div>
         )}
 
+        <div className={styles.languageOption}>
+          <label className={styles.fieldLabel} htmlFor="source-language">Source language in audio</label>
+          <p className={styles.fieldHint}>Recommended for better accuracy. Leave as Auto-detect if the audio contains multiple languages.</p>
+          <select id="source-language" value={sourceLanguage} onChange={(e) => setSourceLanguage(e.target.value)} className={styles.textInput}>
+            <option value="">Auto-detect</option>
+            <option value="hi">Hindi</option><option value="ta">Tamil</option><option value="te">Telugu</option>
+            <option value="en">English</option><option value="gu">Gujarati</option><option value="mr">Marathi</option>
+            <option value="bn">Bengali</option><option value="kn">Kannada</option><option value="ml">Malayalam</option>
+            <option value="pa">Punjabi</option><option value="ur">Urdu</option>
+          </select>
+        </div>
+
+        <div className={styles.translationOption}>
+          <label className={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={translationEnabled}
+              onChange={(e) => setTranslationEnabled(e.target.checked)}
+            />
+            <span>
+              <strong>Translate transcript</strong>
+              <small>Auto-detect the spoken language and translate it into your chosen language.</small>
+            </span>
+          </label>
+          {translationEnabled && (
+            <label className={styles.targetLanguageLabel}>
+              Translate to
+              <select
+                value={translationTargetLanguage}
+                onChange={(e) => setTranslationTargetLanguage(e.target.value)}
+                className={styles.textInput}
+              >
+                <option value="hi">Hindi</option>
+                <option value="en">English</option>
+                <option value="ta">Tamil</option>
+                <option value="te">Telugu</option>
+                <option value="mr">Marathi</option>
+                <option value="bn">Bengali</option>
+                <option value="gu">Gujarati</option>
+                <option value="kn">Kannada</option>
+                <option value="ml">Malayalam</option>
+                <option value="pa">Punjabi</option>
+              </select>
+            </label>
+          )}
+        </div>
+
         {uploadProgress && <p className={styles.progressText}>{uploadProgress}</p>}
 
         <button type="submit" disabled={isLoading} className={styles.submitBtn}>
           <LuUpload /> {isLoading ? "Processing Pipeline..." : "Analyze Call Recording"}
         </button>
-      </form>
+      </form>}
     </div>
   );
+}
+
+function ProgressStep({ label, done, active }: { label: string; done: boolean; active: boolean }) {
+  return <div className={`${styles.progressStep} ${active ? styles.progressStepActive : ""}`}><span>{done ? <LuCheck /> : active ? <LuLoaderCircle className={styles.spinner} /> : ""}</span>{label}</div>;
 }

@@ -96,6 +96,27 @@
   border: 1px solid var(--border);
 }
 
+.progressPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: var(--card);
+  padding: 28px 24px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.progressHeading { display: flex; align-items: center; gap: 10px; color: var(--foreground); font-size: 16px; font-weight: 700; }
+.progressSteps { display: flex; flex-direction: column; gap: 14px; }
+.progressStep { display: flex; align-items: center; gap: 10px; color: var(--muted-foreground); font-size: 13px; }
+.progressStep span { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--border); border-radius: 50%; }
+.progressStepActive { color: var(--foreground); font-weight: 600; }
+.progressStepActive span { border-color: var(--foreground); }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.languageOption { display: flex; flex-direction: column; gap: 6px; }
+.fieldHint { margin: -2px 0 4px; color: var(--muted-foreground); font-size: 11px; }
+
 .fieldLabel {
   font-size: 13px;
   font-weight: 600;
@@ -130,6 +151,53 @@
 
 .dropzone:hover {
   border-color: color-mix(in srgb, var(--foreground) 35%, transparent);
+}
+
+.translationOption {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--foreground);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toggleLabel input {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: var(--foreground);
+}
+
+.toggleLabel span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggleLabel small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.targetLanguageLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0 26px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.targetLanguageLabel .textInput {
+  flex: 1;
 }
 
 .dropzoneIcon {

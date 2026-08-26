@@ -39,7 +39,12 @@ async def upload_audio_to_gladia(file_bytes: bytes, filename: str) -> str:
             raise ExternalServiceError("Gladia", f"Could not connect to Gladia upload API: {str(e)}")
 
 
-async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
+async def start_gladia_transcription(
+    audio_url: str,
+    source_language: str | None = None,
+    translation: bool = False,
+    translation_target_language: str | None = None,
+) -> Dict[str, Any]:
     """
     Starts an asynchronous transcription job on Gladia.
     Uses 'solaria-1' and enables intelligence flags (diarization, sentiment, NER, etc).
@@ -47,17 +52,18 @@ async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
     if not settings.GLADIA_API_KEY:
         raise ExternalServiceError("Gladia", "GLADIA_API_KEY is not configured.")
 
+    if translation and not translation_target_language:
+        raise ExternalServiceError("Gladia", "A target language is required when translation is enabled.")
+
     payload = {
         "audio_url": audio_url,
         "custom_vocabulary": False,
-        "translation": False,
+        "translation": translation,
         "custom_spelling": False,
-        # Let Gladia identify the spoken language instead of forcing Gujarati.
-        # With code switching off, it detects the primary language once and
-        # applies it consistently to this recording (ideal for Hindi calls).
+        # Omit a languages list so Gladia detects the spoken language at runtime.
+        # Code switching allows recordings that move between supported languages.
         "language_config": {
-            "languages": [],
-            "code_switching": False,
+            "code_switching": True,
         },
         "diarization": True,
         "diarization_config": {
@@ -70,6 +76,13 @@ async def start_gladia_transcription(audio_url: str) -> Dict[str, Any]:
         "model": "solaria-1",
         "callback": False,             # We poll — no webhook needed
     }
+    if translation:
+        payload["translation_config"] = {
+            "target_languages": [translation_target_language],
+            "model": "base",
+        }
+    if source_language:
+        payload["language_config"]["languages"] = [source_language]
 
     headers = {
         "Content-Type": "application/json",

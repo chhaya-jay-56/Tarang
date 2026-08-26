@@ -10,6 +10,9 @@ class CallAnalysisCreate(BaseModel):
     audio_url: HttpUrl
     audio_r2_key: Optional[str] = None
     filename: Optional[str] = None
+    source_language: Optional[str] = None
+    translation: bool = False
+    translation_target_language: Optional[str] = None
 
 class CallAnalysisResponse(BaseModel):
     """Schema for returning call analysis data."""

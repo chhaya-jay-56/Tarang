@@ -94,7 +94,7 @@ export default function VoiceInsightDetail() {
     }
   };
 
-  const handleExport = async (format: "json" | "csv") => {
+  const handleExport = async (format: "pdf" | "docx") => {
     setIsExporting(true);
     try {
       const res = await authFetch(`/api/v1/voice-insight/calls/${id}/export?format=${format}`);
@@ -131,8 +131,8 @@ export default function VoiceInsightDetail() {
             <p><span>{new Date(call.created_at).toLocaleString()}</span>{call.duration_seconds && <span>{Math.round(call.duration_seconds)} sec</span>}</p>
           </div>
           <div className={styles.exportActions}>
-            <button onClick={() => handleExport("json")} disabled={isExporting} className={styles.exportButton}><LuDownload /> JSON</button>
-            <button onClick={() => handleExport("csv")} disabled={isExporting} className={styles.exportButton}><LuDownload /> CSV</button>
+            <button onClick={() => handleExport("pdf")} disabled={isExporting} className={styles.exportButton}><LuDownload /> PDF</button>
+            <button onClick={() => handleExport("docx")} disabled={isExporting} className={styles.exportButton}><LuDownload /> Word</button>
           </div>
         </div>
       </header>

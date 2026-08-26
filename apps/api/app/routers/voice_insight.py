@@ -296,7 +296,12 @@ async def analyze_call(
         raise HTTPException(status_code=404, detail="User not found")
 
     try:
-        gladia_response = await start_gladia_transcription(str(body.audio_url))
+        gladia_response = await start_gladia_transcription(
+            str(body.audio_url),
+            source_language=body.source_language,
+            translation=body.translation,
+            translation_target_language=body.translation_target_language,
+        )
         gladia_job_id = gladia_response.get("id")
     except ExternalServiceError as e:
         logger.error("Gladia service error: %s", e.message)
@@ -487,11 +492,11 @@ async def extract_intelligence(
 @router.get("/calls/{call_id}/export")
 async def export_call(
     call_id: uuid.UUID,
-    format: str = Query("json", description="Export format: json or csv"),
+    format: str = Query("pdf", description="Export format: pdf or docx"),
     clerk_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Export a call analysis as JSON or CSV."""
+    """Export a complete call analysis report as PDF or Word document."""
     try:
         user_id = await clone_service.resolve_user_id(db, clerk_user_id)
     except ValueError:
@@ -528,27 +533,73 @@ async def export_call(
         else:
             export_data["transcript_text"] = str(res_obj.get("transcription", ""))
 
-    if format == "csv":
-        import csv
-        import io
-        from fastapi.responses import StreamingResponse
+    if format not in {"pdf", "docx"}:
+        raise HTTPException(status_code=400, detail="Export format must be pdf or docx")
 
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(export_data.keys())
-        writer.writerow([
-            v if not isinstance(v, dict) else json.dumps(v) for v in export_data.values()
-        ])
+    import io
+    import textwrap
+    from fastapi.responses import StreamingResponse
+
+    report_lines = [
+        "VOICEINSIGHT CASE REPORT",
+        f"Case ID: {export_data['case_id']}",
+        f"Filename: {export_data['filename'] or 'N/A'}",
+        f"Status: {export_data['status'] or 'N/A'}",
+        f"Created: {export_data['created_at'] or 'N/A'}",
+        f"Duration: {export_data['duration_seconds'] or 'N/A'} seconds",
+        "",
+        "INTELLIGENCE",
+        json.dumps(export_data["intelligence"] or {}, indent=2, ensure_ascii=False),
+        "",
+        "TRANSCRIPT",
+        export_data["transcript_text"] or "No transcript available.",
+    ]
+
+    if format == "docx":
+        from docx import Document
+
+        document = Document()
+        document.add_heading("VoiceInsight Case Report", 0)
+        for line in report_lines[1:]:
+            if line in {"INTELLIGENCE", "TRANSCRIPT"}:
+                document.add_heading(line.title(), level=1)
+            elif line:
+                document.add_paragraph(line)
+        output = io.BytesIO()
+        document.save(output)
         output.seek(0)
         return StreamingResponse(
-            iter([output.getvalue()]),
-            media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename={call.filename or call_id}.csv"},
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=Case_{call.filename or call_id}.docx"},
         )
 
-    return JSONResponse(
-        content=export_data,
-        headers={"Content-Disposition": f"attachment; filename={call.filename or call_id}.json"},
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+
+    output = io.BytesIO()
+    pdf = canvas.Canvas(output, pagesize=letter)
+    _, height = letter
+    y = height - 48
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(48, y, report_lines[0])
+    y -= 28
+    pdf.setFont("Helvetica", 9)
+    for line in "\n".join(report_lines[1:]).splitlines():
+        wrapped_lines = textwrap.wrap(line, width=115) or [""]
+        for wrapped_line in wrapped_lines:
+            if y < 48:
+                pdf.showPage()
+                pdf.setFont("Helvetica", 9)
+                y = height - 48
+            pdf.drawString(48, y, wrapped_line)
+            y -= 13
+    pdf.save()
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=Case_{call.filename or call_id}.pdf"},
     )
 
 
