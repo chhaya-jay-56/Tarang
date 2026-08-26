@@ -45,7 +45,12 @@ class CallAnalysis(Base):
     
     # Metadata about the audio file
     filename = Column(String(255), nullable=True)
-    audio_url = Column(String(1024), nullable=True) # S3/ImageKit/Gladia URL
+    # Source URL used by Gladia for transcription. It is not guaranteed to be
+    # playable by a browser after ingestion.
+    audio_url = Column(String(1024), nullable=True)
+    # Permanent R2 object key for playback. A short-lived signed URL is made
+    # only when a user opens the call detail page.
+    audio_r2_key = Column(String(1024), nullable=True)
     duration_seconds = Column(Float, nullable=True)
     
     # IDs for external services

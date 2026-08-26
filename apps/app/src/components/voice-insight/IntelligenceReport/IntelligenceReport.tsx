@@ -45,8 +45,10 @@ export function IntelligenceReport({ intelligence }: IntelligenceReportProps) {
     <>
       <MetricCards intel={intel} threatColor={threatColor} />
       <WholeCallSummary intel={intel} />
+      <IncidentAssessment intel={intel} />
       <TimestampedSummary intel={intel} />
       <EntityTable intel={intel} />
+      <IncidentLeads intel={intel} />
       <RiskKeywords intel={intel} />
       <ActionableIntelligence intel={intel} />
     </>
@@ -98,6 +100,24 @@ function WholeCallSummary({ intel }: { intel: any }) {
         Whole-Call Summary
       </h3>
       <p className={styles.summaryText}>{summary}</p>
+    </div>
+  );
+}
+
+function IncidentAssessment({ intel }: { intel: any }) {
+  const assessment = intel.incident_assessment;
+  if (!assessment || typeof assessment !== "object") return null;
+
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}><LuShieldAlert className={styles.sectionIcon} /> Incident Assessment</h3>
+      <div className={styles.assessmentGrid}>
+        <div><span>Classification</span><strong>{assessment.incident_type || "unknown"}</strong></div>
+        <div><span>Immediacy</span><strong>{assessment.immediacy || "unknown"}</strong></div>
+        <div><span>Confidence</span><strong>{assessment.confidence || "unknown"}</strong></div>
+      </div>
+      {assessment.what_happened && <p className={styles.summaryText}>{assessment.what_happened}</p>}
+      {intel.threat_rationale && <p className={styles.rationale}><b>Assessment basis:</b> {intel.threat_rationale}</p>}
     </div>
   );
 }
@@ -170,6 +190,26 @@ function EntityTable({ intel }: { intel: any }) {
             })}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function IncidentLeads({ intel }: { intel: any }) {
+  const leads = intel.incident_leads;
+  if (!Array.isArray(leads) || leads.length === 0) return null;
+
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}><LuShieldAlert className={styles.sectionIcon} /> Incident Leads</h3>
+      <div className={styles.leadList}>
+        {leads.map((lead: any, index: number) => (
+          <div key={index} className={styles.leadItem}>
+            <div className={styles.leadHeader}><strong>{lead.value || "Unspecified lead"}</strong><span>{lead.lead_type || "lead"}</span>{lead.timestamp && <time>{lead.timestamp}</time>}</div>
+            {lead.why_it_matters && <p>{lead.why_it_matters}</p>}
+            {lead.recommended_follow_up && <p className={styles.leadFollowup}><b>Follow up:</b> {lead.recommended_follow_up}</p>}
+          </div>
+        ))}
       </div>
     </div>
   );

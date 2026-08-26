@@ -8,6 +8,7 @@ from app.models.call_analysis import AnalysisStatus
 class CallAnalysisCreate(BaseModel):
     """Schema for initiating a new call analysis."""
     audio_url: HttpUrl
+    audio_r2_key: Optional[str] = None
     filename: Optional[str] = None
 
 class CallAnalysisResponse(BaseModel):
@@ -29,6 +30,7 @@ class CallAnalysisDetailResponse(CallAnalysisResponse):
     """Schema for returning full details including transcripts and intelligence."""
     transcript: Optional[Dict[str, Any]] = None
     intelligence: Optional[Dict[str, Any]] = None
+    playback_url: Optional[str] = None
 
 class CallAnalysisListResponse(BaseModel):
     """Schema for a paginated list of calls."""

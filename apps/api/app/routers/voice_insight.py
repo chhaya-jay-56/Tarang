@@ -1,6 +1,7 @@
 import logging
 import uuid
 import json
+import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File
@@ -123,6 +124,50 @@ def _fit_transcript_for_prompt(transcript: str) -> str:
     return f"{transcript[:head_length]}{marker}{transcript[-tail_length:]}"
 
 
+def _json_candidates(raw: str):
+    """Yield complete JSON-object candidates without being confused by braces in strings."""
+    for start in (match.start() for match in re.finditer(r"\{", raw)):
+        depth = 0
+        in_string = False
+        escaped = False
+        for index in range(start, len(raw)):
+            char = raw[index]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+            if char == '"':
+                in_string = True
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    yield raw[start:index + 1]
+                    break
+
+
+def _parse_sarvam_json(response_text: str) -> dict:
+    """Recover the report JSON from common model wrappers and minor JSON defects."""
+    raw = re.sub(r"<think>.*?</think>", "", response_text, flags=re.DOTALL).strip()
+    raw = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE).replace("```", "")
+
+    candidates = list(_json_candidates(raw))
+    for candidate in candidates:
+        for attempt in (candidate, re.sub(r",\s*([}\]])", r"\1", candidate)):
+            try:
+                decoded = json.loads(attempt)
+                if isinstance(decoded, dict):
+                    return decoded
+            except json.JSONDecodeError:
+                continue
+    raise json.JSONDecodeError("No valid JSON object in Sarvam response", raw, 0)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Synchronous Intelligence Extraction (Sarvam-30B FP8 via Modal)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -174,6 +219,7 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
                 "messages": messages,
                 "temperature": 0.1,
                 "max_tokens": _SARVAM_MAX_TOKENS,
+                "response_format": {"type": "json_object"},
             }
             resp = await client.post(settings.MODAL_SARVAM_INSIGHT_ENDPOINT, headers=headers, json=body)
             resp.raise_for_status()
@@ -183,21 +229,7 @@ async def _run_sarvam_extraction_sync(transcript_data: dict) -> dict:
                 raise ValueError("Sarvam returned an empty response")
             response_text = response_text.strip()
 
-        # Parse JSON cleanly (strip <think> tags, markdown fences, etc.)
-        raw = response_text
-        if "<think>" in raw and "</think>" in raw:
-            raw = raw.split("</think>")[-1].strip()
-        if "```json" in raw:
-            raw = raw.split("```json")[1].split("```")[0].strip()
-        elif "```" in raw:
-            raw = raw.split("```")[1].split("```")[0].strip()
-
-        start_idx = raw.find("{")
-        end_idx = raw.rfind("}")
-        if start_idx != -1 and end_idx != -1:
-            raw = raw[start_idx : end_idx + 1]
-
-        intelligence_json = json.loads(raw)
+        intelligence_json = _parse_sarvam_json(response_text)
         logger.info("[OK] Sarvam-30B intelligence extracted successfully")
         return intelligence_json
 
@@ -231,7 +263,7 @@ async def upload_audio_to_r2(
 
     # 1. Store in Cloudflare R2 for permanent archive
     r2_key = f"voice_insight/{uuid.uuid4()}_{file.filename}"
-    upload_to_r2(file_bytes, r2_key)
+    upload_to_r2(file_bytes, r2_key, file.content_type or "application/octet-stream")
 
     # 2. Upload directly to Gladia API to ensure 100% accessible transcription URL
     try:
@@ -277,6 +309,7 @@ async def analyze_call(
         user_id=user_id,
         filename=body.filename,
         audio_url=str(body.audio_url),
+        audio_r2_key=body.audio_r2_key,
         status=AnalysisStatus.TRANSCRIBING,
         gladia_job_id=gladia_job_id,
     )
@@ -389,7 +422,10 @@ async def get_call_detail(
         await db.commit()
         await db.refresh(call)
 
-    return call
+    response = CallAnalysisDetailResponse.model_validate(call)
+    if call.audio_r2_key:
+        response.playback_url = get_download_presigned_url(call.audio_r2_key, expiration=3600)
+    return response
 
 
 @router.post("/calls/{call_id}/extract-intelligence", response_model=CallAnalysisDetailResponse)
@@ -442,7 +478,10 @@ async def extract_intelligence(
     await db.refresh(call)
 
     logger.info("Intelligence extraction complete for call %s -> %s", call_id, call.status)
-    return call
+    response = CallAnalysisDetailResponse.model_validate(call)
+    if call.audio_r2_key:
+        response.playback_url = get_download_presigned_url(call.audio_r2_key, expiration=3600)
+    return response
 
 
 @router.get("/calls/{call_id}/export")

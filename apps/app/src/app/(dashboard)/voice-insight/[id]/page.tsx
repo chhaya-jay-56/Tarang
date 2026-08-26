@@ -18,6 +18,7 @@ type CallData = {
   created_at: string;
   duration_seconds?: number;
   audio_url?: string;
+  playback_url?: string;
   transcript?: unknown;
   intelligence?: Intelligence;
 };
@@ -158,7 +159,7 @@ export default function VoiceInsightDetail() {
       {call.status === "extracting" && !isExtracting && <section className={styles.extractingCard} aria-live="polite"><LuLoaderCircle className={styles.spinner} /> Intelligence extraction is in progress…</section>}
 
       {call.status === "completed" && call.intelligence && <><IntelligenceReport intelligence={call.intelligence} /><CrossReferences crossRefs={crossRefs} /></>}
-      <TranscriptViewer transcript={call.transcript} audioUrl={call.audio_url} status={call.status} />
+      <TranscriptViewer transcript={call.transcript} audioUrl={call.playback_url || call.audio_url} status={call.status} />
     </div>
   );
 }

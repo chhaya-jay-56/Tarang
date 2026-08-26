@@ -35,6 +35,7 @@ export function UploadForm() {
 
     try {
       let finalAudioUrl = audioUrl;
+      let audioR2Key: string | undefined;
 
       if (uploadMode === "file") {
         if (!selectedFile) {
@@ -52,12 +53,13 @@ export function UploadForm() {
         });
         const uploadData = await uploadRes.json();
         finalAudioUrl = uploadData.audio_url;
+        audioR2Key = uploadData.r2_key;
       }
 
       setUploadProgress("Starting Gladia transcription and Sarvam-30B analysis...");
       const res = await authFetch("/api/v1/voice-insight/analyze", {
         method: "POST",
-        body: JSON.stringify({ audio_url: finalAudioUrl, filename }),
+      body: JSON.stringify({ audio_url: finalAudioUrl, audio_r2_key: audioR2Key, filename }),
       });
 
       if (res.ok) {

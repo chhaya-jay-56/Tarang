@@ -70,6 +70,27 @@
   line-height: 1.75;
 }
 
+.assessmentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.assessmentGrid div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--background);
+}
+
+.assessmentGrid span, .rationale { color: var(--muted-foreground); font-size: 11px; }
+.assessmentGrid strong { color: var(--foreground); font-size: 12px; text-transform: capitalize; }
+.rationale { margin: 12px 0 0; line-height: 1.5; }
+
 /* -- Timeline -- */
 .timeline {
   display: flex;
@@ -154,6 +175,16 @@
   color: var(--muted-foreground);
   max-width: 280px;
 }
+
+.leadList { display: flex; flex-direction: column; gap: 8px; }
+.leadItem { padding: 13px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); }
+.leadHeader { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.leadHeader strong { color: var(--foreground); font-size: 13px; }
+.leadHeader span, .leadHeader time { padding: 2px 7px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 10px; }
+.leadItem p { margin: 8px 0 0; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+.leadItem .leadFollowup { color: var(--foreground); }
+
+@media (max-width: 560px) { .assessmentGrid { grid-template-columns: 1fr; } }
 
 /* -- Risk Keywords -- */
 .keywordRow {

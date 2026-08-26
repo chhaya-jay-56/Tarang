@@ -15,11 +15,13 @@ def get_r2_client():
     )
 
 
-def upload_file(file_bytes: bytes, filename: str) -> str:
+def upload_file(
+    file_bytes: bytes,
+    filename: str,
+    content_type: str = "application/octet-stream",
+) -> str:
     """Uploads a file to R2 and returns the object key."""
     s3 = get_r2_client()
-    content_type = "audio/wav"
-    
     s3.put_object(
         Bucket=settings.R2_BUCKET_NAME,
         Key=filename,

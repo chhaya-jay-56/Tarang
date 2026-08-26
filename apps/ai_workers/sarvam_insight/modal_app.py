@@ -51,7 +51,7 @@ MODEL_DIR = "/model-cache"
 VLLM_PORT = 8000
 
 # Bump this to force Modal to re-create the snapshot after code changes
-SNAPSHOT_KEY = "sarvam-insight-v2"
+SNAPSHOT_KEY = "sarvam-insight-v3"
 
 
 def _download_model():
@@ -166,9 +166,11 @@ def _verify_modal_secret(request: Request) -> None:
     timeout=600,       # 10 min ceiling for long transcripts
     min_containers=0,  # True serverless ($0 when idle)
     scaledown_window=10,  # 10s wait before scaling down
+    enable_memory_snapshot=True,
+    experimental_options={"enable_gpu_snapshot": True},
 )
 class SarvamInsightModel:
-    @modal.enter()
+    @modal.enter(snap=True)
     def start_vllm_server(self):
         """Start vLLM as a background process and warm up CUDA kernels.
 
@@ -246,7 +248,13 @@ class SarvamInsightModel:
 
 
     @modal.method()
-    def analyze(self, messages: list[dict], temperature: float = 0.1, max_tokens: int = 4096) -> str:
+    def analyze(
+        self,
+        messages: list[dict],
+        temperature: float = 0.1,
+        max_tokens: int = 4096,
+        response_format: dict | None = None,
+    ) -> str:
         """Forward a chat completion request to the local vLLM server."""
         import httpx
 
@@ -257,6 +265,8 @@ class SarvamInsightModel:
             "max_tokens": max_tokens,
             "stream": False,
         }
+        if response_format:
+            body["response_format"] = response_format
 
         with httpx.Client(timeout=300.0) as client:
             resp = client.post(
@@ -293,12 +303,13 @@ async def analyze_api(request: Request):
         messages = payload.get("messages", [])
         temperature = float(payload.get("temperature", 0.1))
         max_tokens = int(payload.get("max_tokens", 4096))
+        response_format = payload.get("response_format")
 
         if not messages:
             raise HTTPException(status_code=400, detail="Missing messages")
 
         model = SarvamInsightModel()
-        content = await model.analyze.remote.aio(messages, temperature, max_tokens)
+        content = await model.analyze.remote.aio(messages, temperature, max_tokens, response_format)
 
         return JSONResponse(content={"content": content})
 
