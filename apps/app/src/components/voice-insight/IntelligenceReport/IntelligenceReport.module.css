@@ -93,7 +93,8 @@
 
 /* -- Timeline -- */
 .timeline {
-  display: flex;
+  display: grid;
+  grid-template-columns: 64px 16px minmax(0, 1fr);
   flex-direction: column;
   gap: 0;
   position: relative;
@@ -101,7 +102,7 @@
 
 .timelineLine {
   position: absolute;
-  left: 36px;
+  left: 71px;
   top: 8px;
   bottom: 8px;
   width: 2px;
@@ -109,15 +110,18 @@
 }
 
 .timelineItem {
-  display: flex;
-  gap: 14px;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 64px 16px minmax(0, 1fr);
+  column-gap: 0;
   align-items: flex-start;
   padding: 8px 0;
   position: relative;
 }
 
 .timelineTs {
-  min-width: 48px;
+  min-width: 0;
+  grid-column: 1;
   font-size: 12px;
   font-weight: 700;
   color: var(--foreground);
@@ -127,6 +131,7 @@
 }
 
 .timelineDot {
+  grid-column: 2;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -138,6 +143,9 @@
 }
 
 .timelineText {
+  grid-column: 3;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--foreground);
   font-size: 13px;
   line-height: 1.5;
@@ -184,7 +192,14 @@
 .leadItem p { margin: 8px 0 0; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
 .leadItem .leadFollowup { color: var(--foreground); }
 
-@media (max-width: 560px) { .assessmentGrid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .assessmentGrid { grid-template-columns: 1fr; }
+  .timeline { grid-template-columns: 54px 14px minmax(0, 1fr); }
+  .timelineItem { grid-template-columns: 54px 14px minmax(0, 1fr); }
+  .timelineLine { left: 60px; }
+  .timelineTs { font-size: 11px; }
+  .timelineText { font-size: 12px; }
+}
 
 /* -- Risk Keywords -- */
 .keywordRow {

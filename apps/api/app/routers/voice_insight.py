@@ -537,34 +537,67 @@ async def export_call(
         raise HTTPException(status_code=400, detail="Export format must be pdf or docx")
 
     import io
-    import textwrap
+    from xml.sax.saxutils import escape
     from fastapi.responses import StreamingResponse
 
-    report_lines = [
-        "VOICEINSIGHT CASE REPORT",
-        f"Case ID: {export_data['case_id']}",
-        f"Filename: {export_data['filename'] or 'N/A'}",
-        f"Status: {export_data['status'] or 'N/A'}",
-        f"Created: {export_data['created_at'] or 'N/A'}",
-        f"Duration: {export_data['duration_seconds'] or 'N/A'} seconds",
-        "",
-        "INTELLIGENCE",
-        json.dumps(export_data["intelligence"] or {}, indent=2, ensure_ascii=False),
-        "",
-        "TRANSCRIPT",
-        export_data["transcript_text"] or "No transcript available.",
+    def display_label(value: object) -> str:
+        return str(value).replace("_", " ").strip().title()
+
+    def scalar_text(value: object) -> str:
+        if value is None:
+            return "N/A"
+        if isinstance(value, bool):
+            return "Yes" if value else "No"
+        return str(value)
+
+    def iter_report_items(value: object, level: int = 0):
+        """Yield readable label/value pairs instead of dumping nested JSON."""
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if isinstance(item, (dict, list)):
+                    yield (level, display_label(key), None)
+                    yield from iter_report_items(item, level + 1)
+                else:
+                    yield (level, display_label(key), scalar_text(item))
+        elif isinstance(value, list):
+            for index, item in enumerate(value, start=1):
+                if isinstance(item, (dict, list)):
+                    yield (level, f"Item {index}", None)
+                    yield from iter_report_items(item, level + 1)
+                else:
+                    yield (level, f"Item {index}", scalar_text(item))
+
+    metadata = [
+        ("Case ID", export_data["case_id"]),
+        ("Filename", export_data["filename"] or "N/A"),
+        ("Status", export_data["status"] or "N/A"),
+        ("Created", export_data["created_at"] or "N/A"),
+        ("Duration", f"{export_data['duration_seconds'] or 'N/A'} seconds"),
     ]
+    intelligence_items = list(iter_report_items(export_data["intelligence"] or {}))
+    transcript_text = export_data["transcript_text"] or "No transcript available."
 
     if format == "docx":
         from docx import Document
+        from docx.shared import Inches
 
         document = Document()
         document.add_heading("VoiceInsight Case Report", 0)
-        for line in report_lines[1:]:
-            if line in {"INTELLIGENCE", "TRANSCRIPT"}:
-                document.add_heading(line.title(), level=1)
-            elif line:
-                document.add_paragraph(line)
+        document.add_heading("Case Details", level=1)
+        for label, value in metadata:
+            paragraph = document.add_paragraph()
+            paragraph.add_run(f"{label}: ").bold = True
+            paragraph.add_run(scalar_text(value))
+        document.add_heading("Intelligence", level=1)
+        for level, label, value in intelligence_items:
+            paragraph = document.add_paragraph(style="List Bullet" if level else None)
+            paragraph.paragraph_format.left_indent = Inches(0.25 * level)
+            paragraph.add_run(f"{label}: ").bold = value is not None
+            if value is not None:
+                paragraph.add_run(value)
+        document.add_heading("Transcript", level=1)
+        for line in transcript_text.splitlines():
+            document.add_paragraph(line)
         output = io.BytesIO()
         document.save(output)
         output.seek(0)
@@ -574,27 +607,28 @@ async def export_call(
             headers={"Content-Disposition": f"attachment; filename=Case_{call.filename or call_id}.docx"},
         )
 
+    from reportlab.lib import colors
     from reportlab.lib.pagesizes import letter
-    from reportlab.pdfgen import canvas
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
     output = io.BytesIO()
-    pdf = canvas.Canvas(output, pagesize=letter)
-    _, height = letter
-    y = height - 48
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.drawString(48, y, report_lines[0])
-    y -= 28
-    pdf.setFont("Helvetica", 9)
-    for line in "\n".join(report_lines[1:]).splitlines():
-        wrapped_lines = textwrap.wrap(line, width=115) or [""]
-        for wrapped_line in wrapped_lines:
-            if y < 48:
-                pdf.showPage()
-                pdf.setFont("Helvetica", 9)
-                y = height - 48
-            pdf.drawString(48, y, wrapped_line)
-            y -= 13
-    pdf.save()
+    document = SimpleDocTemplate(output, pagesize=letter, rightMargin=0.65 * inch, leftMargin=0.65 * inch, topMargin=0.6 * inch, bottomMargin=0.6 * inch)
+    styles = getSampleStyleSheet()
+    body_style = ParagraphStyle("ReportBody", parent=styles["BodyText"], fontName="Helvetica", fontSize=9, leading=13, spaceAfter=4)
+    heading_style = ParagraphStyle("ReportHeading", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=12, leading=15, spaceBefore=12, spaceAfter=7)
+    story = [Paragraph("VoiceInsight Case Report", styles["Title"]), Spacer(1, 10), Paragraph("Case Details", heading_style)]
+    story.append(Table([[Paragraph(f"<b>{escape(label)}</b>", body_style), Paragraph(escape(scalar_text(value)), body_style)] for label, value in metadata], colWidths=[1.25 * inch, 5.8 * inch], style=TableStyle([("GRID", (0, 0), (-1, -1), 0.3, colors.lightgrey), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke)])))
+    story.append(Paragraph("Intelligence", heading_style))
+    for level, label, value in intelligence_items:
+        prefix = "&nbsp;" * (level * 4)
+        text = f"{prefix}<b>{escape(label)}:</b> {escape(value)}" if value is not None else f"{prefix}<b>{escape(label)}</b>"
+        story.append(Paragraph(text, body_style))
+    story.append(Paragraph("Transcript", heading_style))
+    for line in transcript_text.splitlines():
+        story.append(Paragraph(escape(line), body_style))
+    document.build(story)
     output.seek(0)
     return StreamingResponse(
         output,
