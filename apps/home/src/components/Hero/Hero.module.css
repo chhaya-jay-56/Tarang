@@ -130,7 +130,7 @@
     .heroTitle {
         font-size: clamp(2.5rem, 12vw, 4rem);
         margin-bottom: 1.25rem;
-        margin-top: 0.5rem;
+        margin-top: 1.5rem;
         gap: 1vw;
     }
 

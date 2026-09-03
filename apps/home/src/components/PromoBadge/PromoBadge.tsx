@@ -28,8 +28,7 @@ const PromoBadge = () => {
 
       <span className={styles.text}>
         Sign up & get{" "}
-        <span className={styles.highlight}>5,000 free Credits</span>{" "}
-        <span className={styles.subtext}>(~1 hour)</span>
+        <span className={styles.highlight}>5,000 free Credits</span>
       </span>
     </div>
   );
