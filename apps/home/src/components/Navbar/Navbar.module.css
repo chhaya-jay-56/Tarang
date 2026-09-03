@@ -24,6 +24,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem 2rem;
+    position: relative;
 }
 
 /* ─── Logo ─── */
@@ -91,11 +92,14 @@
     color: var(--text-primary);
 }
 
-/* ─── Nav Links ─── */
+/* ─── Nav Links (centered) ─── */
 .navLinks {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .navLink {

@@ -67,12 +67,12 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
 
     // Clear container to prevent double-initialization DOM issues in Strict Mode / HMR
     // React 19 handles this properly, manual DOM mutation causes removeChild errors
-    
+
     import("wavesurfer.js").then((WaveSurferModule) => {
       if (!isMounted || !containerRef.current) return;
-      
+
       const WaveSurfer = WaveSurferModule.default;
-      
+
       try {
         const ws = WaveSurfer.create({
           container: containerRef.current,
@@ -85,7 +85,7 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
           cursorWidth: 0,
           interact: false,
         });
-        
+
         ws.load("", [generatePeaks(seed)], 12);
         wsRef.current = ws;
       } catch (e) {
@@ -116,14 +116,14 @@ const WaveformPlayer = ({ seed, color, height = 32 }: { seed: number, color: str
       if (wsRef.current) {
         try {
           wsRef.current.seekTo(progress);
-        } catch(e) {
+        } catch (e) {
           // ignore errors on destroyed instances
         }
       }
       animationFrame = requestAnimationFrame(animate);
     };
     animationFrame = requestAnimationFrame(animate);
-    
+
     return () => cancelAnimationFrame(animationFrame);
   }, []);
 
@@ -166,44 +166,44 @@ const SeparationVisual = () => (
   <div className={styles.separationLayout}>
     {/* Left Side */}
     <div className={styles.sepCardBox}>
-       <div className={styles.sepHeader}>
-         <span className={styles.sepDot} style={{ background: "#7828ff" }} />
-         <span className={styles.sepTitle}>Original Mix</span>
-       </div>
-       <WaveformPlayer seed={3} color="#7828ff" height={24} />
+      <div className={styles.sepHeader}>
+        <span className={styles.sepDot} style={{ background: "#7828ff" }} />
+        <span className={styles.sepTitle}>Original Mix</span>
+      </div>
+      <WaveformPlayer seed={3} color="#7828ff" height={24} />
     </div>
-    
+
     {/* Branching SVG Desktop */}
     <div className={styles.sepBranchDesktop}>
       <svg viewBox="0 0 40 80" fill="none" className={styles.branchSvg}>
-         <path d="M 0 40 L 10 40 C 20 40 20 15 30 15 L 40 15" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
-         <path d="M 0 40 L 10 40 C 20 40 20 65 30 65 L 40 65" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
+        <path d="M 0 40 L 10 40 C 20 40 20 15 30 15 L 40 15" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
+        <path d="M 0 40 L 10 40 C 20 40 20 65 30 65 L 40 65" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
       </svg>
     </div>
 
     {/* Branching SVG Mobile */}
     <div className={styles.sepBranchMobile}>
       <svg viewBox="0 0 24 40" fill="none" className={styles.branchSvgMobile}>
-         <path d="M 12 0 L 12 40" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
-         <path d="M 6 34 L 12 40 L 18 34" stroke="rgba(255,255,255,0.2)" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M 12 0 L 12 40" stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
+        <path d="M 6 34 L 12 40 L 18 34" stroke="rgba(255,255,255,0.2)" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
 
     {/* Right Side */}
     <div className={styles.sepRight}>
       <div className={styles.sepCardBox}>
-         <div className={styles.sepHeader}>
-           <span className={styles.sepDot} style={{ background: "#9945ff" }} />
-           <span className={styles.sepTitle}>Vocals (Isolated)</span>
-         </div>
-         <WaveformPlayer seed={4} color="#9945ff" height={20} />
+        <div className={styles.sepHeader}>
+          <span className={styles.sepDot} style={{ background: "#9945ff" }} />
+          <span className={styles.sepTitle}>Vocals (Isolated)</span>
+        </div>
+        <WaveformPlayer seed={4} color="#9945ff" height={20} />
       </div>
       <div className={styles.sepCardBox}>
-         <div className={styles.sepHeader}>
-           <span className={styles.sepDot} style={{ background: "#e040fb" }} />
-           <span className={styles.sepTitle}>Instrumental</span>
-         </div>
-         <WaveformPlayer seed={5} color="#e040fb" height={20} />
+        <div className={styles.sepHeader}>
+          <span className={styles.sepDot} style={{ background: "#e040fb" }} />
+          <span className={styles.sepTitle}>Instrumental</span>
+        </div>
+        <WaveformPlayer seed={5} color="#e040fb" height={20} />
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import AnimatedTagline from "@/components/AnimatedTagline/AnimatedTagline";
+import PromoBadge from "@/components/PromoBadge/PromoBadge";
 import styles from "./Hero.module.css";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
@@ -9,6 +10,7 @@ const Hero = () => {
   return (
     <main className={styles.hero}>
       <div className={styles.heroContent}>
+        <PromoBadge />
 
         <h1 className={`${styles.heroTitle} fade-in-up`} style={{ animationDelay: '0.2s' }}>
           <span className={styles.gradientText}>Voice</span>

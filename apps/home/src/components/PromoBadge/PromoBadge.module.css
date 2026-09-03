@@ -1,0 +1,248 @@
+/* ─── Badge Container ─── */
+.promoBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 1.5rem;
+    border-radius: 100px;
+    background: radial-gradient(
+        ellipse at 30% 50%,
+        rgba(190, 242, 2, 0.08) 0%,
+        rgba(190, 242, 2, 0.03) 60%,
+        transparent 100%
+    );
+    border: 1px solid rgba(190, 242, 2, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    margin-bottom: 0.75rem;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    animation: badgeEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+               breatheGlow 4s ease-in-out 1.2s infinite;
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+}
+
+/* Breathing glow on border & shadow */
+@keyframes breatheGlow {
+    0%, 100% {
+        border-color: rgba(190, 242, 2, 0.15);
+        box-shadow:
+            0 0 0px rgba(190, 242, 2, 0),
+            inset 0 0 12px rgba(190, 242, 2, 0.02);
+    }
+    50% {
+        border-color: rgba(190, 242, 2, 0.35);
+        box-shadow:
+            0 0 24px rgba(190, 242, 2, 0.08),
+            0 0 60px rgba(190, 242, 2, 0.03),
+            inset 0 0 16px rgba(190, 242, 2, 0.04);
+    }
+}
+
+/* Entry animation */
+@keyframes badgeEntrance {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Shimmer sweep — faster, more visible */
+.promoBadge::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(190, 242, 2, 0.1) 40%,
+        rgba(255, 255, 255, 0.06) 50%,
+        rgba(190, 242, 2, 0.1) 60%,
+        transparent 100%
+    );
+    animation: shimmer 3.5s ease-in-out 1.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+}
+
+.promoBadge:hover {
+    border-color: rgba(190, 242, 2, 0.45);
+    box-shadow:
+        0 0 30px rgba(190, 242, 2, 0.12),
+        0 0 80px rgba(190, 242, 2, 0.04);
+}
+
+/* ─── Sparkle icon ─── */
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(190, 242, 2, 0.12);
+    flex-shrink: 0;
+    position: relative;
+    animation: iconPulse 3s ease-in-out 1.5s infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        background: rgba(190, 242, 2, 0.12);
+        box-shadow: 0 0 0px rgba(190, 242, 2, 0);
+    }
+    50% {
+        background: rgba(190, 242, 2, 0.2);
+        box-shadow: 0 0 10px rgba(190, 242, 2, 0.15);
+    }
+}
+
+.iconSvg {
+    width: 12px;
+    height: 12px;
+    color: var(--accent-color);
+}
+
+/* ─── Typography — Instrument Serif + system blend ─── */
+.text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 0.92rem;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    position: relative;
+    z-index: 1;
+}
+
+.highlight {
+    color: var(--accent-color);
+    font-weight: 400;
+    font-style: italic;
+    position: relative;
+}
+
+/* Animated underline on highlight */
+.highlight::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--accent-color);
+    opacity: 0.4;
+    animation: underlineReveal 1s ease-out 1.8s forwards;
+}
+
+@keyframes underlineReveal {
+    to { width: 100%; }
+}
+
+.subtext {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+    font-size: 0.82rem;
+    font-style: normal;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ─── Floating sparkle particles ─── */
+.sparkleOne,
+.sparkleTwo {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.sparkleOne {
+    top: 20%;
+    right: 12%;
+    animation: sparkleFloat 4s ease-in-out 2s infinite;
+}
+
+.sparkleTwo {
+    bottom: 25%;
+    left: 8%;
+    animation: sparkleFloat 4s ease-in-out 3.5s infinite;
+}
+
+@keyframes sparkleFloat {
+    0%   { opacity: 0; transform: translateY(0) scale(0); }
+    20%  { opacity: 0.7; transform: translateY(-4px) scale(1); }
+    50%  { opacity: 0.3; transform: translateY(-8px) scale(0.6); }
+    100% { opacity: 0; transform: translateY(-14px) scale(0); }
+}
+
+/* ─── Responsive: Tablet ─── */
+@media (max-width: 768px) {
+    .promoBadge {
+        padding: 0.45rem 1.15rem;
+        gap: 0.55rem;
+    }
+
+    .text {
+        font-size: 0.82rem;
+    }
+
+    .subtext {
+        font-size: 0.72rem;
+    }
+
+    .icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .iconSvg {
+        width: 11px;
+        height: 11px;
+    }
+}
+
+/* ─── Responsive: Phone ─── */
+@media (max-width: 480px) {
+    .promoBadge {
+        padding: 0.4rem 1rem;
+        gap: 0.45rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .text {
+        font-size: 0.75rem;
+    }
+
+    .subtext {
+        font-size: 0.65rem;
+    }
+
+    .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .iconSvg {
+        width: 10px;
+        height: 10px;
+    }
+
+    .sparkleOne,
+    .sparkleTwo {
+        display: none;
+    }
+}

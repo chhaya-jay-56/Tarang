@@ -101,3 +101,6 @@ apps/test_sep.py
 **/.pytest_cache/
 .vercel
 .env*
+
+apps/api/migrations/versions/g1h2i3j4k5l6_add_performance_indexes.py
+
