@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "@fontsource-variable/jetbrains-mono";
 import "../index.css";
 
@@ -157,6 +158,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         {children}
+        <Analytics />
       </body>
     </html>
   );
