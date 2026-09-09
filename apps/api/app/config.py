@@ -95,6 +95,11 @@ class Settings:
     # Deploy: modal deploy apps/ai_workers/sarvam_insight/modal_app.py
     MODAL_SARVAM_INSIGHT_ENDPOINT: str = os.getenv("MODAL_SARVAM_INSIGHT_ENDPOINT", "")
 
+    # Resend — email service for user engagement emails
+    # Free tier: 3,000 emails/month. Domain: trytarang.app (verified)
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    RESEND_FROM_EMAIL: str = os.getenv("RESEND_FROM_EMAIL", "Jay from Tarang <jay@trytarang.app>")
+
     # Dubbing validation limits
     MAX_VIDEO_DURATION_SEC: int = int(os.getenv("MAX_VIDEO_DURATION_SEC", "300"))  # 5 min
     MAX_VIDEO_SIZE_MB: int = int(os.getenv("MAX_VIDEO_SIZE_MB", "100"))

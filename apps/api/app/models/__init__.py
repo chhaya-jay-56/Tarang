@@ -31,6 +31,7 @@ from app.models.app_config import AppConfig
 from app.models.deleted_user import DeletedUser
 from app.models.call_analysis import CallAnalysis, AnalysisStatus
 from app.models.feedback import Feedback
+from app.models.email_event import EmailEvent
 
 __all__ = [
     "Base",
@@ -55,5 +56,7 @@ __all__ = [
     "CallAnalysis", "AnalysisStatus",
     # ── Feedback ──
     "Feedback",
+    # ── Email tracking ──
+    "EmailEvent",
 ]
 

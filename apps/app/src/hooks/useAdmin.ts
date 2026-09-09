@@ -107,6 +107,64 @@ export function useAdmin() {
     return res.json();
   }, [authFetch]);
 
+  // ── Email Admin Methods ──
+
+  const getEmailSegments = useCallback(async () => {
+    const res = await authFetch("/api/admin/email/segments");
+    if (!res.ok) throw new Error("Failed to fetch email segments");
+    return res.json();
+  }, [authFetch]);
+
+  const previewEmail = useCallback(
+    async (emailType: string, userId?: string, subject?: string, body?: string, highlightFeature?: string) => {
+      const res = await authFetch("/api/admin/email/preview", {
+        method: "POST",
+        body: JSON.stringify({
+          email_type: emailType,
+          user_id: userId,
+          subject,
+          body,
+          highlight_feature: highlightFeature,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to preview email");
+      return res.json();
+    },
+    [authFetch]
+  );
+
+  const sendEmails = useCallback(
+    async (
+      segment: string,
+      emailType: string,
+      dryRun: boolean = false,
+      subject?: string,
+      body?: string,
+      highlightFeature?: string,
+    ) => {
+      const res = await authFetch("/api/admin/email/send", {
+        method: "POST",
+        body: JSON.stringify({
+          segment,
+          email_type: emailType,
+          dry_run: dryRun,
+          subject,
+          body,
+          highlight_feature: highlightFeature,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to send emails");
+      return res.json();
+    },
+    [authFetch]
+  );
+
+  const getEmailHistory = useCallback(async () => {
+    const res = await authFetch("/api/admin/email/history");
+    if (!res.ok) throw new Error("Failed to fetch email history");
+    return res.json();
+  }, [authFetch]);
+
   return {
     listUsers,
     searchUsers,
@@ -119,5 +177,9 @@ export function useAdmin() {
     getServiceUsage,
     getIdleUsers,
     getFeedbacks,
+    getEmailSegments,
+    previewEmail,
+    sendEmails,
+    getEmailHistory,
   };
 }

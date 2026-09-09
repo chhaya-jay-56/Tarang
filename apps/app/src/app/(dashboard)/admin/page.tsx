@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useAdmin } from "@/hooks/useAdmin";
 import styles from "./admin.module.css";
+import EmailTab from "./EmailTab/EmailTab";
 
 // ── Types ──
 
@@ -26,7 +27,7 @@ interface ConfigEntry {
   updated_at: string | null;
 }
 
-type TabKey = "users" | "config" | "insights" | "feedback";
+type TabKey = "users" | "config" | "insights" | "feedback" | "email";
 
 
 // ── Main Page ──
@@ -93,13 +94,13 @@ function AdminDashboard() {
 
       {/* Tab Navigation */}
       <div className={styles.tabBar}>
-        {(["users", "config", "insights", "feedback"] as TabKey[]).map((tab) => (
+        {(["users", "config", "insights", "feedback", "email"] as TabKey[]).map((tab) => (
           <button
             key={tab}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ""}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : tab === "insights" ? "Insights" : "Feedback"}
+            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : tab === "insights" ? "Insights" : tab === "feedback" ? "Feedback" : "📧 Email"}
           </button>
         ))}
       </div>
@@ -109,6 +110,7 @@ function AdminDashboard() {
       {activeTab === "config" && <ConfigTab admin={admin} />}
       {activeTab === "insights" && <InsightsTab admin={admin} />}
       {activeTab === "feedback" && <FeedbackTab admin={admin} />}
+      {activeTab === "email" && <EmailTab admin={admin} />}
     </div>
   );
 }
