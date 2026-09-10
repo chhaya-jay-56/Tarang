@@ -37,11 +37,20 @@ class EmailSendRequest(BaseModel):
     body: Optional[str] = None  # required for "custom"
     highlight_feature: Optional[str] = None  # optional for "credit_grant"
     dry_run: bool = False
+    send_test_to: Optional[str] = None  # optional address to receive 1 real test email during dry run
 
 
 class EmailPreviewRequest(BaseModel):
     email_type: str
     user_id: Optional[str] = None  # preview for specific user, or use first in segment
+    subject: Optional[str] = None
+    body: Optional[str] = None
+    highlight_feature: Optional[str] = None
+
+
+class EmailSendTestRequest(BaseModel):
+    to_email: str
+    email_type: str = "custom"
     subject: Optional[str] = None
     body: Optional[str] = None
     highlight_feature: Optional[str] = None
@@ -97,7 +106,8 @@ async def preview_email(
         # Use the admin user themselves for preview
         user = admin
 
-    name = user.name or user.email.split("@")[0]
+    name = user.name or (user.email.split("@")[0] if user.email else "Jay")
+    credits = user.credit_balance if user.credit_balance is not None else 100
 
     # Get used features for re-engagement preview
     used_features = []
@@ -107,13 +117,14 @@ async def preview_email(
     subject, html_body = email_service._render_email(
         email_type=body.email_type,
         name=name,
-        credit_balance=user.credit_balance,
+        credit_balance=credits,
         user_id=user.id,
         db=db,
-        custom_subject=body.subject,
-        custom_body=body.body,
+        custom_subject=body.subject or "Tarang Preview",
+        custom_body=body.body or "<p>Preview content</p>",
         highlight_feature=body.highlight_feature,
         used_features=used_features,
+        email=user.email or "jaychhaya3489@gmail.com",
     )
 
     return {
@@ -126,6 +137,54 @@ async def preview_email(
     }
 
 
+# ── Send Test ────────────────────────────────────────────────────────────────
+
+@router.post("/send-test")
+async def send_test_email(
+    body: EmailSendTestRequest,
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Send a real test email to verify rendering and inbox deliverability."""
+    if not body.to_email:
+        raise HTTPException(status_code=400, detail="Recipient email address is required")
+
+    name = admin.name or (admin.email.split("@")[0] if admin.email else "Jay")
+    credits = admin.credit_balance if admin.credit_balance is not None else 100
+
+    subject, html_body = email_service._render_email(
+        email_type=body.email_type,
+        name=name,
+        credit_balance=credits,
+        user_id=admin.id,
+        db=db,
+        custom_subject=body.subject or "Tarang Preview Test",
+        custom_body=body.body or "<p>Test email from Tarang Admin.</p>",
+        highlight_feature=body.highlight_feature,
+        email=body.to_email,
+    )
+
+    test_subject = subject if subject.startswith("[TEST]") else f"[TEST] {subject}"
+
+    try:
+        response = await email_service.send_single_email(
+            to_email=body.to_email,
+            subject=test_subject,
+            html_body=html_body,
+        )
+        logger.info("🧪 Test email sent to %s: %s", body.to_email, test_subject)
+        return {
+            "success": True,
+            "to_email": body.to_email,
+            "subject": test_subject,
+            "message": f"Test email sent to {body.to_email}",
+            "resend_response": response,
+        }
+    except Exception as e:
+        logger.error("❌ Failed to send test email to %s: %s", body.to_email, str(e))
+        raise HTTPException(status_code=500, detail=f"Resend error: {str(e)}")
+
+
 # ── Send ─────────────────────────────────────────────────────────────────────
 
 @router.post("/send")
@@ -134,7 +193,7 @@ async def send_emails(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Send emails to a segment. Supports dry_run to preview recipients."""
+    """Send emails to a segment. Supports dry_run to preview recipients and test send."""
     # Validate segment
     if body.segment not in ("never_used", "used_once", "all"):
         raise HTTPException(status_code=400, detail="Invalid segment")
@@ -149,9 +208,9 @@ async def send_emails(
         raise HTTPException(status_code=400, detail="Custom emails require subject and body")
 
     logger.info(
-        "📧 Admin email %s: segment=%s, type=%s, dry_run=%s, by=%s",
+        "📧 Admin email %s: segment=%s, type=%s, dry_run=%s, test_to=%s, by=%s",
         "dry run" if body.dry_run else "send",
-        body.segment, body.email_type, body.dry_run, admin.clerk_user_id,
+        body.segment, body.email_type, body.dry_run, body.send_test_to, admin.clerk_user_id,
     )
 
     result = await email_service.send_to_segment_with_features(
@@ -164,6 +223,35 @@ async def send_emails(
         highlight_feature=body.highlight_feature,
     )
 
+    # If dry run and send_test_to requested, send 1 test email to verify
+    test_result = None
+    if body.dry_run and body.send_test_to:
+        try:
+            name = admin.name or (admin.email.split("@")[0] if admin.email else "Jay")
+            credits = admin.credit_balance if admin.credit_balance is not None else 100
+            test_subj, test_html = email_service._render_email(
+                email_type=body.email_type,
+                name=name,
+                credit_balance=credits,
+                user_id=admin.id,
+                db=db,
+                custom_subject=body.subject or "Tarang Preview Test",
+                custom_body=body.body or "<p>Test email</p>",
+                highlight_feature=body.highlight_feature,
+                email=body.send_test_to,
+            )
+            test_subject = test_subj if test_subj.startswith("[TEST]") else f"[TEST] {test_subj}"
+            await email_service.send_single_email(
+                to_email=body.send_test_to,
+                subject=test_subject,
+                html_body=test_html,
+            )
+            test_result = {"sent": True, "to": body.send_test_to, "subject": test_subject}
+        except Exception as e:
+            logger.error("❌ Dry run test send to %s failed: %s", body.send_test_to, str(e))
+            test_result = {"sent": False, "to": body.send_test_to, "error": str(e)}
+
+    result["test_email"] = test_result
     return result
 
 
@@ -177,3 +265,28 @@ async def get_email_history(
     """Get past email campaigns with send counts."""
     history = await email_service.get_email_history(db)
     return {"history": history}
+
+
+# ── Resend Audience Sync ────────────────────────────────────────────────────
+
+@router.post("/sync-audience")
+async def sync_audience(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sync all active users to a Resend Audience.
+
+    This creates/updates a contact list on Resend so you can:
+    - Send broadcasts directly from resend.com/audiences
+    - Track open rates, click rates per email
+    - Manage unsubscribes from the Resend dashboard
+    """
+    logger.info("📋 Audience sync triggered by admin: %s", admin.clerk_user_id)
+
+    try:
+        result = await email_service.sync_audience_to_resend(db)
+        return result
+    except Exception as e:
+        logger.error("❌ Audience sync failed: %s", str(e))
+        raise HTTPException(status_code=500, detail=f"Audience sync failed: {str(e)}")
+

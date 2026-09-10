@@ -103,6 +103,9 @@ export default function EmailTab({ admin }: { admin: ReturnType<typeof useAdmin>
         onSent={(msg) => { setSendResult(msg); fetchData(); }}
       />
 
+      {/* Resend Audience Sync */}
+      <AudienceSync admin={admin} />
+
       {/* Send History */}
       <EmailHistory history={history} />
     </div>
@@ -250,46 +253,100 @@ function CustomComposer({
   const [segment, setSegment] = useState<SegmentKey>("all");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [sending, setSending] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testEmail, setTestEmail] = useState("jaychhaya3489@gmail.com");
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   const handlePreview = useCallback(async () => {
-    if (!subject || !body) {
-      alert("Subject and body are required");
+    if (!body.trim()) {
+      alert("Please enter body content or HTML to preview");
       return;
     }
     try {
-      const data = await admin.previewEmail("custom", undefined, subject, body);
+      const data = await admin.previewEmail(
+        "custom",
+        undefined,
+        subject.trim() || "Tarang Email Preview",
+        body
+      );
       setPreviewHtml(data.html);
-    } catch (err) {
-      alert("Preview failed");
+    } catch (err: any) {
+      alert(err?.message || "Preview failed");
       console.error(err);
     }
   }, [admin, subject, body]);
 
+  const handleSendTest = useCallback(async () => {
+    if (!body.trim()) {
+      alert("Please enter email body or HTML before sending a test");
+      return;
+    }
+    if (!testEmail || !testEmail.includes("@")) {
+      alert("Please enter a valid test recipient email address");
+      return;
+    }
+    setSendingTest(true);
+    try {
+      await admin.sendTestEmail(
+        testEmail.trim(),
+        "custom",
+        subject.trim() || "Tarang Email Preview",
+        body
+      );
+      alert(`✅ Test email successfully sent to ${testEmail}!\n\nPlease check your inbox to verify rendering, styling, and deliverability.`);
+    } catch (err: any) {
+      alert(`❌ Test send failed: ${err?.message || "Check console"}`);
+      console.error(err);
+    } finally {
+      setSendingTest(false);
+    }
+  }, [admin, testEmail, subject, body]);
+
   const handleDryRun = useCallback(async () => {
-    if (!subject || !body) {
-      alert("Subject and body are required");
+    if (!body.trim()) {
+      alert("Please enter email body or HTML before running a dry run");
       return;
     }
     try {
-      const result = await admin.sendEmails(segment, "custom", true, subject, body);
-      alert(`Dry run: Would send to ${result.sent_count} users\n\nRecipients:\n${
-        result.recipients.map((r: { email: string }) => r.email).join("\n")
-      }`);
-    } catch (err) {
-      alert("Dry run failed");
+      const result = await admin.sendEmails(
+        segment,
+        "custom",
+        true,
+        subject.trim() || "Tarang Email",
+        body,
+        undefined,
+        testEmail.trim()
+      );
+
+      let msg = "📋 DRY RUN & VERIFICATION REPORT\n\n";
+      if (result.test_email?.sent) {
+        msg += `✅ Real test email sent to: ${testEmail}\n(Check your inbox now to verify!)\n\n`;
+      } else if (result.test_email && !result.test_email.sent) {
+        msg += `⚠️ Test email send error: ${result.test_email.error}\n\n`;
+      }
+      msg += `Target segment: "${segment}" (${result.sent_count} users would receive this)\n\n`;
+      if (result.recipients && result.recipients.length > 0) {
+        msg += `Sample recipients:\n${result.recipients.slice(0, 8).map((r: { email: string }) => `• ${r.email}`).join("\n")}`;
+        if (result.recipients.length > 8) {
+          msg += `\n...and ${result.recipients.length - 8} more`;
+        }
+      }
+      alert(msg);
+    } catch (err: any) {
+      alert(`Dry run failed: ${err?.message || "Check console"}`);
       console.error(err);
     }
-  }, [admin, segment, subject, body]);
+  }, [admin, segment, subject, body, testEmail]);
 
   const handleSend = useCallback(async () => {
-    if (!subject || !body) {
-      alert("Subject and body are required");
+    if (!subject.trim() || !body.trim()) {
+      alert("Subject and body are required for sending a broadcast");
       return;
     }
     const count = segments?.[segment]?.count ?? 0;
-    if (!confirm(`Send custom email to ${count} users in "${segment}" segment?`)) {
+    if (!confirm(`Send custom email to ${count} users in "${segment}" segment?\n\nMake sure you have tested with Dry Run first!`)) {
       return;
     }
 
@@ -299,8 +356,8 @@ function CustomComposer({
       onSent(`✅ Custom email sent to ${result.sent_count} users`);
       setSubject("");
       setBody("");
-    } catch (err) {
-      alert("Send failed. Check console.");
+    } catch (err: any) {
+      alert(`Send failed: ${err?.message || "Check console"}`);
       console.error(err);
     } finally {
       setSending(false);
@@ -330,6 +387,25 @@ function CustomComposer({
             </div>
           </div>
 
+          {/* Mode Toggle */}
+          <div className={styles.composerField}>
+            <span className={styles.composerLabel}>Mode</span>
+            <div className={styles.modeToggle}>
+              <button
+                className={`${styles.modeBtn} ${!isHtmlMode ? styles.modeBtnActive : ""}`}
+                onClick={() => setIsHtmlMode(false)}
+              >
+                📝 Plain Text
+              </button>
+              <button
+                className={`${styles.modeBtn} ${isHtmlMode ? styles.modeBtnActive : ""}`}
+                onClick={() => setIsHtmlMode(true)}
+              >
+                🧑‍💻 HTML
+              </button>
+            </div>
+          </div>
+
           {/* Subject */}
           <div className={styles.composerField}>
             <span className={styles.composerLabel}>Subject</span>
@@ -344,16 +420,53 @@ function CustomComposer({
 
           {/* Body */}
           <div className={styles.composerField}>
-            <span className={styles.composerLabel}>Body</span>
+            <span className={styles.composerLabel}>
+              {isHtmlMode ? "HTML Body" : "Body"}
+            </span>
             <textarea
-              className={styles.composerTextarea}
-              placeholder={`Hey {name},\n\nYour message here...\n\n— Jay, builder of Tarang`}
+              className={`${styles.composerTextarea} ${isHtmlMode ? styles.composerTextareaHtml : ""}`}
+              placeholder={
+                isHtmlMode
+                  ? '<!DOCTYPE html>\n<html>\n<head>...</head>\n<body>\n  <h1>Hey {{first_name}}</h1>\n  <p>Your HTML here...</p>\n</body>\n</html>'
+                  : `Hey {{first_name}},\n\nYour message here...\n\n— Jay, builder of Tarang`
+              }
               value={body}
               onChange={(e) => setBody(e.target.value)}
               id="custom-email-body"
+              spellCheck={!isHtmlMode}
             />
             <span className={styles.composerHint}>
-              Placeholders: {"{name}"} → user&apos;s first name, {"{credit_balance}"} → their credit balance
+              {isHtmlMode
+                ? "Paste your full HTML email. Placeholders: {{first_name}}, {{name}}, {{credit_balance}}, {{email}}. HTML is sent as-is with full responsive styling."
+                : "Placeholders: {{first_name}} → first name, {{credit_balance}} → balance, {{email}} → email. Wrapped in mobile-friendly Tarang template."
+              }
+            </span>
+          </div>
+
+          {/* Test / Dry Run Email Address */}
+          <div className={styles.composerField}>
+            <span className={styles.composerLabel}>🧪 Dry Run &amp; Test Recipient</span>
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+              <input
+                className={styles.composerInput}
+                style={{ maxWidth: "340px" }}
+                placeholder="jaychhaya3489@gmail.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                id="custom-email-test-address"
+              />
+              <button
+                type="button"
+                className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
+                onClick={handleSendTest}
+                disabled={sendingTest || !body.trim()}
+                id="custom-email-send-test-btn"
+              >
+                {sendingTest ? "Sending Test..." : `Send Test to Me`}
+              </button>
+            </div>
+            <span className={styles.composerHint}>
+              Sends a real test email via Resend to this address so you can inspect fonts, colors, and layout directly in your inbox.
             </span>
           </div>
 
@@ -362,26 +475,26 @@ function CustomComposer({
             <button
               className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
               onClick={handlePreview}
-              disabled={!subject || !body}
+              disabled={!body.trim()}
               id="custom-email-preview"
             >
-              Preview
+              👁️ Preview
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
               onClick={handleDryRun}
-              disabled={!subject || !body}
+              disabled={!body.trim()}
               id="custom-email-dryrun"
             >
-              Dry Run
+              📋 Dry Run &amp; Verify
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
               onClick={handleSend}
-              disabled={sending || !subject || !body}
+              disabled={sending || !subject.trim() || !body.trim()}
               id="custom-email-send"
             >
-              {sending ? "Sending..." : `Send to ${segments?.[segment]?.count ?? 0} users`}
+              {sending ? "Sending Broadcast..." : `🚀 Send to ${segments?.[segment]?.count ?? 0} users`}
             </button>
           </div>
         </div>
@@ -391,7 +504,9 @@ function CustomComposer({
       {previewHtml && (
         <PreviewModal
           html={previewHtml}
+          subject={subject.trim() || "Tarang Email Preview"}
           onClose={() => setPreviewHtml(null)}
+          onSendTest={handleSendTest}
         />
       )}
     </>
@@ -436,40 +551,121 @@ function EmailHistory({ history }: { history: HistoryEntry[] }) {
 }
 
 
+// ── Resend Audience Sync ──
+
+function AudienceSync({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+  const [syncing, setSyncing] = useState(false);
+  const [result, setResult] = useState<{
+    synced: number;
+    errors: number;
+    total_users: number;
+    audience_name: string;
+  } | null>(null);
+
+  const handleSync = useCallback(async () => {
+    if (!confirm("Sync all active users to Resend Audience? This enables open/click tracking from the Resend dashboard.")) {
+      return;
+    }
+    setSyncing(true);
+    try {
+      const data = await admin.syncAudience();
+      setResult(data);
+    } catch (err) {
+      alert("Audience sync failed. Check console.");
+      console.error(err);
+    } finally {
+      setSyncing(false);
+    }
+  }, [admin]);
+
+  return (
+    <div className={adminStyles.section}>
+      <div className={adminStyles.sectionHeader}>
+        <span className={adminStyles.sectionTitle}>📋 Resend Audience Sync</span>
+      </div>
+      <div className={adminStyles.sectionBody}>
+        <p className={styles.syncDesc}>
+          Push all active users to a Resend Audience for direct broadcasting from{" "}
+          <a href="https://resend.com/audiences" target="_blank" rel="noopener noreferrer" className={styles.syncLink}>
+            resend.com/audiences
+          </a>.
+          Enables open rate &amp; click tracking per email.
+        </p>
+
+        <button
+          className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
+          onClick={handleSync}
+          disabled={syncing}
+          id="sync-audience-btn"
+        >
+          {syncing ? "Syncing..." : "Sync Users to Resend"}
+        </button>
+
+        {result && (
+          <div className={styles.syncResult}>
+            ✅ Synced <strong>{result.synced}</strong> of {result.total_users} users to
+            &ldquo;{result.audience_name}&rdquo;
+            {result.errors > 0 && <span className={styles.syncErrors}> ({result.errors} errors)</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // ── Preview Modal ──
 
-function PreviewModal({ html, onClose }: { html: string; onClose: () => void }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    if (iframeRef.current) {
-      const doc = iframeRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(html);
-        doc.close();
-      }
-    }
-  }, [html]);
-
+function PreviewModal({
+  html,
+  subject,
+  onClose,
+  onSendTest,
+}: {
+  html: string;
+  subject?: string;
+  onClose: () => void;
+  onSendTest?: () => void;
+}) {
   return (
     <div className={adminStyles.modalOverlay} onClick={onClose}>
       <div
         className={adminStyles.modal}
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "min(640px, 95vw)", maxHeight: "85vh" }}
+        style={{ width: "min(680px, 95vw)", maxHeight: "90vh" }}
       >
-        <h3 className={adminStyles.modalTitle}>Email Preview</h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+          <h3 className={adminStyles.modalTitle} style={{ margin: 0 }}>Email Preview</h3>
+          {subject && (
+            <span style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", maxWidth: "320px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              Subject: <strong>{subject}</strong>
+            </span>
+          )}
+        </div>
         <div className={styles.previewFrame}>
           <iframe
-            ref={iframeRef}
+            srcDoc={html}
             title="Email Preview"
-            sandbox="allow-same-origin"
-            style={{ width: "100%", minHeight: "450px", border: "none", borderRadius: "8px" }}
+            sandbox="allow-same-origin allow-popups"
+            style={{ width: "100%", height: "520px", border: "none", borderRadius: "8px", background: "#ffffff" }}
           />
         </div>
-        <div className={adminStyles.modalActions}>
-          <button className={`${adminStyles.btn} ${adminStyles.btnSecondary}`} onClick={onClose}>
+        <div className={adminStyles.modalActions} style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+          {onSendTest ? (
+            <button
+              type="button"
+              className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
+              onClick={onSendTest}
+              id="preview-send-test-btn"
+            >
+              🧪 Send Test to Me
+            </button>
+          ) : <div />}
+          <button
+            type="button"
+            className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
+            onClick={onClose}
+          >
             Close
           </button>
         </div>
@@ -477,3 +673,4 @@ function PreviewModal({ html, onClose }: { html: string; onClose: () => void }) 
     </div>
   );
 }
+

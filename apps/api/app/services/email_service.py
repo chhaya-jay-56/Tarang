@@ -10,6 +10,7 @@
 #   - Used features derived from credit_transactions.service_type
 # ─────────────────────────────────────────────────────────────────────────────
 
+import asyncio
 import logging
 import uuid
 from typing import Optional
@@ -167,12 +168,15 @@ async def send_single_email(
     _init_resend()
 
     try:
-        response = resend.Emails.send({
-            "from": settings.RESEND_FROM_EMAIL,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_body,
-        })
+        response = await asyncio.to_thread(
+            resend.Emails.send,
+            {
+                "from": settings.RESEND_FROM_EMAIL,
+                "to": [to_email],
+                "subject": subject,
+                "html": html_body,
+            },
+        )
         logger.info("📧 Email sent to %s: %s", to_email, subject)
         return response
     except Exception as e:
@@ -219,6 +223,7 @@ async def send_to_segment(
             custom_subject=custom_subject,
             custom_body=custom_body,
             highlight_feature=highlight_feature,
+            email=user.email,
         )
 
         recipients.append({
@@ -262,6 +267,7 @@ def _render_email(
     custom_body: Optional[str] = None,
     highlight_feature: Optional[str] = None,
     used_features: Optional[list[str]] = None,
+    email: Optional[str] = None,
 ) -> tuple[str, str]:
     """Render email subject + HTML based on type."""
     if email_type == "onboarding_nudge":
@@ -274,9 +280,15 @@ def _render_email(
     elif email_type == "credit_grant":
         return email_templates.credit_grant(name, credit_balance, highlight_feature)
     elif email_type == "custom":
-        if not custom_subject or not custom_body:
-            raise ValueError("Custom emails require subject and body")
-        return email_templates.custom_email(name, credit_balance, custom_subject, custom_body)
+        subj = custom_subject or "Update from Tarang"
+        body = custom_body or "<p>Tarang update</p>"
+        return email_templates.custom_email(
+            name=name,
+            credit_balance=credit_balance,
+            subject=subj,
+            body_text=body,
+            email=email or "",
+        )
     else:
         raise ValueError(f"Unknown email type: {email_type}")
 
@@ -321,6 +333,7 @@ async def send_to_segment_with_features(
             custom_body=custom_body,
             highlight_feature=highlight_feature,
             used_features=used_features,
+            email=user.email,
         )
 
         recipients.append({
@@ -381,3 +394,75 @@ async def get_email_history(db: AsyncSession, limit: int = 50) -> list[dict]:
         }
         for row in result.all()
     ]
+
+
+# ── Resend Audience Sync ─────────────────────────────────────────────────────
+
+AUDIENCE_NAME = "Tarang Active Users"
+
+
+async def sync_audience_to_resend(db: AsyncSession) -> dict:
+    """Sync all active users to a Resend Audience for direct broadcasting.
+
+    Creates the audience if it doesn't exist, then upserts all active users
+    as contacts. This lets you send broadcasts directly from resend.com/audiences.
+    """
+    _init_resend()
+
+    # Get or create the audience
+    audience_id = None
+    try:
+        audiences = resend.Audiences.list()
+        existing = [a for a in (audiences.data if hasattr(audiences, 'data') else audiences.get("data", [])) if a.get("name") == AUDIENCE_NAME or getattr(a, "name", None) == AUDIENCE_NAME]
+        if existing:
+            audience_id = existing[0].get("id") or getattr(existing[0], "id", None)
+    except Exception as e:
+        logger.warning("Could not list audiences: %s", e)
+
+    if not audience_id:
+        try:
+            result = resend.Audiences.create({"name": AUDIENCE_NAME})
+            audience_id = result.get("id") if isinstance(result, dict) else getattr(result, "id", None)
+            logger.info("📋 Created Resend audience: %s (id=%s)", AUDIENCE_NAME, audience_id)
+        except Exception as e:
+            logger.error("❌ Failed to create audience: %s", e)
+            raise
+
+    # Get all active users
+    result = await db.execute(
+        select(User).where(User.credit_limit > 0).order_by(User.created_at.asc())
+    )
+    users = list(result.scalars().all())
+
+    synced = 0
+    errors = 0
+    for user in users:
+        name = user.name or user.email.split("@")[0]
+        first_name = name.split()[0] if name else ""
+        last_name = " ".join(name.split()[1:]) if name and len(name.split()) > 1 else ""
+
+        try:
+            resend.Contacts.create(
+                audience_id=audience_id,
+                params={
+                    "email": user.email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "unsubscribed": False,
+                },
+            )
+            synced += 1
+        except Exception as e:
+            logger.warning("Failed to sync contact %s: %s", user.email, e)
+            errors += 1
+
+    logger.info("📋 Synced %d contacts to Resend audience (errors: %d)", synced, errors)
+
+    return {
+        "audience_id": audience_id,
+        "audience_name": AUDIENCE_NAME,
+        "synced": synced,
+        "errors": errors,
+        "total_users": len(users),
+    }
+

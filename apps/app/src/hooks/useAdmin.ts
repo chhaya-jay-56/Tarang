@@ -141,6 +141,7 @@ export function useAdmin() {
       subject?: string,
       body?: string,
       highlightFeature?: string,
+      sendTestTo?: string,
     ) => {
       const res = await authFetch("/api/admin/email/send", {
         method: "POST",
@@ -151,9 +152,40 @@ export function useAdmin() {
           subject,
           body,
           highlight_feature: highlightFeature,
+          send_test_to: sendTestTo,
         }),
       });
-      if (!res.ok) throw new Error("Failed to send emails");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ detail: "Failed to send emails" }));
+        throw new Error(data.detail || "Failed to send emails");
+      }
+      return res.json();
+    },
+    [authFetch]
+  );
+
+  const sendTestEmail = useCallback(
+    async (
+      toEmail: string,
+      emailType: string = "custom",
+      subject?: string,
+      body?: string,
+      highlightFeature?: string,
+    ) => {
+      const res = await authFetch("/api/admin/email/send-test", {
+        method: "POST",
+        body: JSON.stringify({
+          to_email: toEmail,
+          email_type: emailType,
+          subject,
+          body,
+          highlight_feature: highlightFeature,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ detail: "Failed to send test email" }));
+        throw new Error(data.detail || "Failed to send test email");
+      }
       return res.json();
     },
     [authFetch]
@@ -162,6 +194,14 @@ export function useAdmin() {
   const getEmailHistory = useCallback(async () => {
     const res = await authFetch("/api/admin/email/history");
     if (!res.ok) throw new Error("Failed to fetch email history");
+    return res.json();
+  }, [authFetch]);
+
+  const syncAudience = useCallback(async () => {
+    const res = await authFetch("/api/admin/email/sync-audience", {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to sync audience");
     return res.json();
   }, [authFetch]);
 
@@ -180,6 +220,8 @@ export function useAdmin() {
     getEmailSegments,
     previewEmail,
     sendEmails,
+    sendTestEmail,
     getEmailHistory,
+    syncAudience,
   };
 }

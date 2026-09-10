@@ -33,6 +33,7 @@ const PRODUCT_ITEMS = [
 const NAV_LINKS = [
   { id: "product", label: "Product", hasDropdown: true },
   { id: "how-it-works", label: "How it Works", hasDropdown: false },
+  { id: "examples", label: "Examples", hasDropdown: false, href: "/examples" },
   { id: "blog", label: "Blog", hasDropdown: false, href: "/blog" },
   { id: "feedback", label: "Feedback", hasDropdown: false },
   { id: "contact", label: "Contact", hasDropdown: false },
@@ -210,6 +211,7 @@ const Navbar = () => {
               key={link.id}
               href={link.href}
               className={styles.mobileNavLink}
+              onClick={() => setMobileMenuOpen(false)}
             >
               {link.label}
             </a>

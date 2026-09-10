@@ -328,7 +328,7 @@
 }
 
 /* ─── Responsive ─── */
-@media (max-width: 900px) {
+@media (max-width: 1120px) {
     .navLinks {
         display: none;
     }
@@ -372,6 +372,12 @@
     .navBadge {
         width: 130px;
         margin-right: 0.75rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .cta {
+        display: none;
     }
 }
 

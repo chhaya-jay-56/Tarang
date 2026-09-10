@@ -17,6 +17,7 @@ const FOOTER_LINKS = [
   {
     title: "Resources",
     links: [
+      { label: "Examples", href: "/examples" },
       { label: "Blog", href: "/blog" },
     ],
   },

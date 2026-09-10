@@ -139,3 +139,99 @@
         margin: 0;
     }
 }
+
+/* Demo and examples CTAs */
+.ctaWrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.demoButton,
+.examplesButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.35rem;
+    border-radius: 100px;
+    font-family: 'Agrandir', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.demoButton {
+    color: #050505;
+    background: var(--accent-color);
+    box-shadow: 0 5px 22px rgba(190, 242, 2, 0.16);
+}
+
+.examplesButton {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.playIcon {
+    display: grid;
+    width: 1.25rem;
+    height: 1.25rem;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--accent-color);
+    background: #050505;
+}
+
+.playIcon svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-left: 1px;
+}
+
+.buttonArrow {
+    font-size: 1.1em;
+    line-height: 1;
+    transition: transform 0.25s ease;
+}
+
+.demoButton:hover,
+.examplesButton:hover {
+    transform: translateY(-2px);
+}
+
+.demoButton:hover {
+    box-shadow: 0 9px 30px rgba(190, 242, 2, 0.28);
+}
+
+.examplesButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.demoButton:hover .buttonArrow,
+.examplesButton:hover .buttonArrow {
+    transform: translateX(3px);
+}
+
+.demoButton:focus-visible,
+.examplesButton:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 4px;
+}
+
+@media (max-width: 480px) {
+    .ctaWrapper {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .demoButton,
+    .examplesButton {
+        width: min(100%, 20rem);
+        padding: 0.85rem 1rem;
+    }
+}

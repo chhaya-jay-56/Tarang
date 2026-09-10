@@ -167,6 +167,51 @@
   margin-top: 0.25rem;
 }
 
+/* ─── Mode Toggle ─── */
+
+.modeToggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.modeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: var(--background);
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.modeBtn:hover {
+  color: var(--foreground);
+  background: hsl(var(--primary-hsl, 270 70% 55%) / 0.06);
+}
+
+.modeBtnActive {
+  background: hsl(var(--primary-hsl, 270 70% 55%) / 0.15);
+  color: var(--primary);
+}
+
+/* HTML mode textarea — larger with monospace font */
+.composerTextareaHtml {
+  min-height: 300px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre;
+  tab-size: 2;
+}
+
 /* ─── Segment Picker ─── */
 
 .segmentPicker {
@@ -260,6 +305,38 @@
   font-size: 0.75rem;
 }
 
+/* ─── Resend Audience Sync ─── */
+
+.syncDesc {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}
+
+.syncLink {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.syncLink:hover {
+  text-decoration: underline;
+}
+
+.syncResult {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: hsl(140 60% 50% / 0.1);
+  border: 1px solid hsl(140 60% 50% / 0.25);
+  border-radius: 8px;
+  color: hsl(140 60% 65%);
+  font-size: 0.8125rem;
+}
+
+.syncErrors {
+  color: hsl(35 90% 60%);
+}
+
 /* ─── Preview Modal ─── */
 
 .previewFrame {
@@ -317,4 +394,14 @@
   .historyType {
     display: none;
   }
+
+  .modeToggle {
+    width: 100%;
+  }
+
+  .modeBtn {
+    flex: 1;
+    justify-content: center;
+  }
 }
+

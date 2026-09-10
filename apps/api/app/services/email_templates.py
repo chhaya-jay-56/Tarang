@@ -11,6 +11,7 @@
 #   - Mobile-friendly: max-width 600px, large tap targets
 # ─────────────────────────────────────────────────────────────────────────────
 
+import re
 from typing import Optional
 
 # ── Shared layout wrapper ──
@@ -72,14 +73,6 @@ def _wrap_email(content: str) -> str:
     <tr>
       <td align="center" style="padding:40px 20px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
-          <!-- Logo -->
-          <tr>
-            <td style="padding-bottom:32px;">
-              <a href="{LANDING_URL}" style="text-decoration:none;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.02em;">
-                🎵 Tarang
-              </a>
-            </td>
-          </tr>
           <!-- Content -->
           <tr>
             <td style="color:#e0e0e0;font-size:15px;line-height:1.7;">
@@ -307,27 +300,93 @@ def credit_grant(
 
 # ── Template: Custom email (admin-composed) ──
 
+def render_template_placeholders(
+    text: str,
+    name: str = "",
+    credit_balance: int = 0,
+    email: str = "",
+) -> str:
+    """Safely replace common template variables in email subject or body.
+
+    Handles {{first_name}}, {{ name }}, {name}, {{credit_balance}}, {{email}}, etc.
+    Case-insensitive, whitespace-tolerant, and does not throw any KeyError or ValueError.
+    """
+    if not text:
+        return ""
+
+    first_name = (name.split()[0] if name else "there").capitalize()
+    full_name = name or first_name
+    balance_str = f"{credit_balance:,}"
+
+    patterns = [
+        (r"\{\{\s*first_name\s*\}\}", first_name),
+        (r"\{\{\s*firstName\s*\}\}", first_name),
+        (r"\{first_name\}", first_name),
+        (r"\{\{\s*name\s*\}\}", first_name),
+        (r"\{name\}", first_name),
+        (r"\{\{\s*full_name\s*\}\}", full_name),
+        (r"\{\{\s*fullName\s*\}\}", full_name),
+        (r"\{full_name\}", full_name),
+        (r"\{\{\s*credit_balance\s*\}\}", balance_str),
+        (r"\{\{\s*creditBalance\s*\}\}", balance_str),
+        (r"\{\{\s*credits\s*\}\}", balance_str),
+        (r"\{credit_balance\}", balance_str),
+        (r"\{credits\}", balance_str),
+        (r"\{\{\s*email\s*\}\}", email or "jaychhaya3489@gmail.com"),
+        (r"\{email\}", email or "jaychhaya3489@gmail.com"),
+        (r"\{\{\s*unsubscribe_url\s*\}\}", FEEDBACK_URL),
+        (r"\{\{\s*unsubscribe\s*\}\}", FEEDBACK_URL),
+        (r"\{\{\s*year\s*\}\}", "2026"),
+    ]
+
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+
+    return result
+
+
+def _is_raw_html(text: str) -> bool:
+    """Detect if the body is a full HTML document (not just inline text)."""
+    if not text:
+        return False
+    stripped = text.strip().lower()
+    if stripped.startswith("\ufeff"):
+        stripped = stripped[1:].strip()
+    if stripped.startswith("<!doctype") or stripped.startswith("<html") or stripped.startswith("<?xml"):
+        return True
+    if "<html" in stripped[:500] or "<body" in stripped[:500] or "<!doctype" in stripped[:500]:
+        return True
+    if "</head>" in stripped or "</body>" in stripped or "</html>" in stripped:
+        return True
+    return False
+
+
 def custom_email(
     name: str,
     credit_balance: int,
     subject: str,
     body_text: str,
+    email: str = "",
 ) -> tuple[str, str]:
     """Returns (subject, html_body) for admin-composed custom email.
 
-    Supports placeholders: {name}, {credit_balance} in both subject and body.
+    Supports placeholders: {{first_name}}, {name}, {{credit_balance}}, {{email}}, etc.
+    If the body is a full HTML document, it's used as-is (no wrapper).
+    If it's plain text, it's wrapped in the standard Tarang email layout.
     """
-    first_name = name.split()[0] if name else "there"
-
-    # Replace placeholders
-    rendered_subject = subject.replace("{name}", first_name).replace(
-        "{credit_balance}", f"{credit_balance:,}"
+    rendered_subject = render_template_placeholders(
+        subject, name=name, credit_balance=credit_balance, email=email
     )
-    rendered_body = body_text.replace("{name}", first_name).replace(
-        "{credit_balance}", f"{credit_balance:,}"
+    rendered_body = render_template_placeholders(
+        body_text, name=name, credit_balance=credit_balance, email=email
     )
 
-    # Convert newlines to <br> for HTML
+    # Raw HTML mode: use the HTML as-is, no wrapping
+    if _is_raw_html(body_text):
+        return rendered_subject, rendered_body
+
+    # Plain text mode: convert newlines to <br> and wrap in layout
     html_body = rendered_body.replace("\n", "<br>")
 
     content = f"""
@@ -337,3 +396,4 @@ def custom_email(
     """
 
     return rendered_subject, _wrap_email(content)
+
