@@ -373,15 +373,15 @@
     }
     
     .navBadge {
-        width: 125px;
+        width: 140px;
         margin-right: 0.75rem;
     }
 }
 
 @media (max-width: 600px) {
     .navBadge {
-        width: 108px;
-        margin-right: 0.5rem;
+        width: 140px;
+        margin-right: 0.6rem;
     }
 }
 
@@ -399,8 +399,8 @@
     }
 
     .navBadge {
-        width: 90px;
-        margin-right: 0.35rem;
+        width: 135px;
+        margin-right: 0.5rem;
     }
 
     .mobileMenu {
@@ -423,7 +423,7 @@
 
 @media (max-width: 360px) {
     .navBadge {
-        width: 78px;
-        margin-right: 0.25rem;
+        width: 100px;
+        margin-right: 0.35rem;
     }
 }
