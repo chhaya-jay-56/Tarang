@@ -238,6 +238,9 @@
 
 .navBadge {
     width: 157px;
+    height: auto;
+    display: block;
+    flex-shrink: 0;
     margin-right: 1rem;
     transition: width 0.3s ease;
 }
@@ -370,14 +373,15 @@
     }
     
     .navBadge {
-        width: 130px;
+        width: 125px;
         margin-right: 0.75rem;
     }
 }
 
 @media (max-width: 600px) {
-    .cta {
-        display: none;
+    .navBadge {
+        width: 108px;
+        margin-right: 0.5rem;
     }
 }
 
@@ -392,6 +396,11 @@
 
     .betaBadge {
         font-size: 0.85rem;
+    }
+
+    .navBadge {
+        width: 90px;
+        margin-right: 0.35rem;
     }
 
     .mobileMenu {
@@ -409,5 +418,12 @@
     .mobileCta {
         font-size: 0.9rem;
         padding: 0.7rem 1.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .navBadge {
+        width: 78px;
+        margin-right: 0.25rem;
     }
 }

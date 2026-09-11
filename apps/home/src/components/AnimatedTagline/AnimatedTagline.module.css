@@ -8,7 +8,7 @@
     font-size: clamp(1.1rem, 2.5vw, 1.6rem);
     color: rgba(255, 255, 255, 0.6);
     max-width: 700px;
-    margin: 0 auto 3rem;
+    margin: 0 auto 1.25rem;
     line-height: 1.6;
     letter-spacing: -0.01em;
     text-align: center;
@@ -38,7 +38,7 @@
 @media (max-width: 768px) {
     .tagline {
         font-size: clamp(0.95rem, 3.5vw, 1.2rem);
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         max-width: 90%;
     }
 }
@@ -46,7 +46,7 @@
 @media (max-width: 480px) {
     .tagline {
         font-size: 0.95rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.85rem;
         line-height: 1.5;
     }
 }
