@@ -197,14 +197,6 @@ export function useAdmin() {
     return res.json();
   }, [authFetch]);
 
-  const syncAudience = useCallback(async () => {
-    const res = await authFetch("/api/admin/email/sync-audience", {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error("Failed to sync audience");
-    return res.json();
-  }, [authFetch]);
-
   return {
     listUsers,
     searchUsers,
@@ -222,6 +214,5 @@ export function useAdmin() {
     sendEmails,
     sendTestEmail,
     getEmailHistory,
-    syncAudience,
   };
 }

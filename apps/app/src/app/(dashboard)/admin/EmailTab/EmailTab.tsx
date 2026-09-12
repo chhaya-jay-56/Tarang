@@ -103,9 +103,6 @@ export default function EmailTab({ admin }: { admin: ReturnType<typeof useAdmin>
         onSent={(msg) => { setSendResult(msg); fetchData(); }}
       />
 
-      {/* Resend Audience Sync */}
-      <AudienceSync admin={admin} />
-
       {/* Send History */}
       <EmailHistory history={history} />
     </div>
@@ -256,8 +253,9 @@ function CustomComposer({
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
-  const [testEmail, setTestEmail] = useState("jaychhaya3489@gmail.com");
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+
+  const ADMIN_TEST_EMAIL = "jaychhaya3489@gmail.com";
 
   const handlePreview = useCallback(async () => {
     if (!body.trim()) {
@@ -283,62 +281,22 @@ function CustomComposer({
       alert("Please enter email body or HTML before sending a test");
       return;
     }
-    if (!testEmail || !testEmail.includes("@")) {
-      alert("Please enter a valid test recipient email address");
-      return;
-    }
     setSendingTest(true);
     try {
       await admin.sendTestEmail(
-        testEmail.trim(),
+        ADMIN_TEST_EMAIL,
         "custom",
         subject.trim() || "Tarang Email Preview",
         body
       );
-      alert(`✅ Test email successfully sent to ${testEmail}!\n\nPlease check your inbox to verify rendering, styling, and deliverability.`);
+      alert(`✅ Test email successfully sent to ${ADMIN_TEST_EMAIL}!\n\nPlease check your inbox to verify rendering and deliverability.`);
     } catch (err: any) {
       alert(`❌ Test send failed: ${err?.message || "Check console"}`);
       console.error(err);
     } finally {
       setSendingTest(false);
     }
-  }, [admin, testEmail, subject, body]);
-
-  const handleDryRun = useCallback(async () => {
-    if (!body.trim()) {
-      alert("Please enter email body or HTML before running a dry run");
-      return;
-    }
-    try {
-      const result = await admin.sendEmails(
-        segment,
-        "custom",
-        true,
-        subject.trim() || "Tarang Email",
-        body,
-        undefined,
-        testEmail.trim()
-      );
-
-      let msg = "📋 DRY RUN & VERIFICATION REPORT\n\n";
-      if (result.test_email?.sent) {
-        msg += `✅ Real test email sent to: ${testEmail}\n(Check your inbox now to verify!)\n\n`;
-      } else if (result.test_email && !result.test_email.sent) {
-        msg += `⚠️ Test email send error: ${result.test_email.error}\n\n`;
-      }
-      msg += `Target segment: "${segment}" (${result.sent_count} users would receive this)\n\n`;
-      if (result.recipients && result.recipients.length > 0) {
-        msg += `Sample recipients:\n${result.recipients.slice(0, 8).map((r: { email: string }) => `• ${r.email}`).join("\n")}`;
-        if (result.recipients.length > 8) {
-          msg += `\n...and ${result.recipients.length - 8} more`;
-        }
-      }
-      alert(msg);
-    } catch (err: any) {
-      alert(`Dry run failed: ${err?.message || "Check console"}`);
-      console.error(err);
-    }
-  }, [admin, segment, subject, body, testEmail]);
+  }, [admin, subject, body]);
 
   const handleSend = useCallback(async () => {
     if (!subject.trim() || !body.trim()) {
@@ -346,7 +304,7 @@ function CustomComposer({
       return;
     }
     const count = segments?.[segment]?.count ?? 0;
-    if (!confirm(`Send custom email to ${count} users in "${segment}" segment?\n\nMake sure you have tested with Dry Run first!`)) {
+    if (!confirm(`Send custom email to ${count} users in "${segment}" segment?\n\nMake sure you have tested with Self Test first!`)) {
       return;
     }
 
@@ -443,33 +401,6 @@ function CustomComposer({
             </span>
           </div>
 
-          {/* Test / Dry Run Email Address */}
-          <div className={styles.composerField}>
-            <span className={styles.composerLabel}>🧪 Dry Run &amp; Test Recipient</span>
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
-              <input
-                className={styles.composerInput}
-                style={{ maxWidth: "340px" }}
-                placeholder="jaychhaya3489@gmail.com"
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                id="custom-email-test-address"
-              />
-              <button
-                type="button"
-                className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
-                onClick={handleSendTest}
-                disabled={sendingTest || !body.trim()}
-                id="custom-email-send-test-btn"
-              >
-                {sendingTest ? "Sending Test..." : `Send Test to Me`}
-              </button>
-            </div>
-            <span className={styles.composerHint}>
-              Sends a real test email via Resend to this address so you can inspect fonts, colors, and layout directly in your inbox.
-            </span>
-          </div>
-
           {/* Actions */}
           <div className={styles.composerActions}>
             <button
@@ -482,11 +413,11 @@ function CustomComposer({
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
-              onClick={handleDryRun}
-              disabled={!body.trim()}
-              id="custom-email-dryrun"
+              onClick={handleSendTest}
+              disabled={sendingTest || !body.trim()}
+              id="custom-email-selftest"
             >
-              📋 Dry Run &amp; Verify
+              {sendingTest ? "Sending Test..." : "🧪 Self Test"}
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
@@ -550,68 +481,6 @@ function EmailHistory({ history }: { history: HistoryEntry[] }) {
   );
 }
 
-
-// ── Resend Audience Sync ──
-
-function AudienceSync({ admin }: { admin: ReturnType<typeof useAdmin> }) {
-  const [syncing, setSyncing] = useState(false);
-  const [result, setResult] = useState<{
-    synced: number;
-    errors: number;
-    total_users: number;
-    audience_name: string;
-  } | null>(null);
-
-  const handleSync = useCallback(async () => {
-    if (!confirm("Sync all active users to Resend Audience? This enables open/click tracking from the Resend dashboard.")) {
-      return;
-    }
-    setSyncing(true);
-    try {
-      const data = await admin.syncAudience();
-      setResult(data);
-    } catch (err) {
-      alert("Audience sync failed. Check console.");
-      console.error(err);
-    } finally {
-      setSyncing(false);
-    }
-  }, [admin]);
-
-  return (
-    <div className={adminStyles.section}>
-      <div className={adminStyles.sectionHeader}>
-        <span className={adminStyles.sectionTitle}>📋 Resend Audience Sync</span>
-      </div>
-      <div className={adminStyles.sectionBody}>
-        <p className={styles.syncDesc}>
-          Push all active users to a Resend Audience for direct broadcasting from{" "}
-          <a href="https://resend.com/audiences" target="_blank" rel="noopener noreferrer" className={styles.syncLink}>
-            resend.com/audiences
-          </a>.
-          Enables open rate &amp; click tracking per email.
-        </p>
-
-        <button
-          className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
-          onClick={handleSync}
-          disabled={syncing}
-          id="sync-audience-btn"
-        >
-          {syncing ? "Syncing..." : "Sync Users to Resend"}
-        </button>
-
-        {result && (
-          <div className={styles.syncResult}>
-            ✅ Synced <strong>{result.synced}</strong> of {result.total_users} users to
-            &ldquo;{result.audience_name}&rdquo;
-            {result.errors > 0 && <span className={styles.syncErrors}> ({result.errors} errors)</span>}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 
 // ── Preview Modal ──

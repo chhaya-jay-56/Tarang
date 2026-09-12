@@ -23,14 +23,6 @@ const Contact = () => {
             </p>
 
             <div className={styles.contactMethods}>
-              <a href="mailto:jaychhaya3489@gmail.com" className={styles.method}>
-                <span className={styles.methodIcon}>✉️</span>
-                <div>
-                  <span className={styles.methodLabel}>Email</span>
-                  <span className={styles.methodValue}>jaychhaya3489@gmail.com</span>
-                </div>
-              </a>
-              
               <a href="https://www.linkedin.com/in/jaychhaya56" target="_blank" rel="noopener noreferrer" className={styles.method}>
                 <span className={styles.methodIcon}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
