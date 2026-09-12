@@ -39,15 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           changeFrequency: "weekly",
           priority: 0.8,
         });
-        // Also add root slug URL for RobinRank backlink verification matching
-        routes.push({
-          url: `${baseUrl}/${article.slug}`,
-          lastModified: article.published_at
-            ? new Date(article.published_at)
-            : new Date(),
-          changeFrequency: "weekly",
-          priority: 0.8,
-        });
       }
     }
   } catch (error) {

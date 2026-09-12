@@ -67,10 +67,35 @@ const FAQ_ITEMS = [
     q: "Does Tarang support regional Indian languages like Gujarati or Marathi?",
     a: `Yes. Tarang supports a wide range of regional Indian languages including ${INDIAN_LANGUAGES.slice(0, 10).join(", ")}, and more. This is a key differentiator — most global voice cloning tools do not offer this level of Indian language coverage.`,
   },
+  {
+    q: "Can I monetize YouTube videos and audiobooks created with Tarang voiceovers?",
+    a: "Yes. Voices generated on Tarang are commercially cleared for YouTube channels, podcasts, audiobooks, and games. Tarang's expressive synthesis avoids repetitive, robotic cadences, complying fully with YouTube's authentic content and monetization policies.",
+  },
+  {
+    q: "How does Tarang prevent pitch drift and volume clipping across long-form scripts?",
+    a: "Unlike traditional TTS engines that process isolated sentences and suffer from volume drops and tonal drift, Tarang's neural model evaluates multi-sentence context. It maintains consistent speaker identity, natural breathing intervals, and dynamic emotional prosody from start to finish.",
+  },
+  {
+    q: "What makes Tarang different from traditional text-to-speech platforms?",
+    a: "Tarang uses context-aware neural synthesis to eliminate clause-boundary loudness clipping, vocal fatigue, and robotic inflection across long narratives without requiring manual SSML tags, backed by deep multilingual and regional voice modeling.",
+  },
 ];
 
 const SupportedLanguages = () => {
   const sectionRef = useReveal<HTMLElement>();
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_ITEMS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
 
   return (
     <section
@@ -78,6 +103,10 @@ const SupportedLanguages = () => {
       className={styles.section}
       ref={sectionRef}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <div className={styles.container}>
         <div className="reveal">
           <span className={styles.badge}>LANGUAGES</span>

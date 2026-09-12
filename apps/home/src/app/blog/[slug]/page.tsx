@@ -7,6 +7,7 @@ import {
   generateExcerpt,
 } from "@/lib/robinrank";
 import { renderMarkdownToHtml } from "@/lib/markdown";
+import { buildBlogJsonLd } from "@/lib/seo";
 import Navbar from "@/components/Navbar/Navbar";
 import Background from "@/components/Background/Background";
 import Footer from "@/components/Footer/Footer";
@@ -77,25 +78,7 @@ export default async function ArticlePage({ params }: PageProps) {
     : null;
 
   const htmlContent = renderMarkdownToHtml(article.content || "", article.title);
-
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description:
-      article.meta_description ||
-      article.excerpt ||
-      generateExcerpt(article.content || ""),
-    ...(article.featured_image && { image: article.featured_image }),
-    ...(date && { datePublished: date }),
-    ...(article.updated_at && { dateModified: article.updated_at }),
-    publisher: {
-      "@type": "Organization",
-      name: "Tarang",
-      url: SITE_URL,
-    },
-    mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
-  };
+  const blogSchemas = buildBlogJsonLd(article, slug, SITE_URL);
 
   return (
     <>
@@ -105,7 +88,7 @@ export default async function ArticlePage({ params }: PageProps) {
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchemas) }}
       />
 
       <main className={styles.articlePage} id="blog-article">

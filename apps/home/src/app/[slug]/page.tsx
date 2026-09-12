@@ -1,4 +1,4 @@
-import { redirect, notFound } from "next/navigation";
+import { permanentRedirect, notFound } from "next/navigation";
 import { fetchArticleBySlug } from "@/lib/robinrank";
 
 interface PageProps {
@@ -12,8 +12,8 @@ export default async function CatchAllSlugPage({ params }: PageProps) {
   const article = await fetchArticleBySlug(slug);
 
   if (article) {
-    // Redirect to the canonical /blog/[slug] path
-    redirect(`/blog/${slug}`);
+    // Permanent redirect (HTTP 308/301) to the canonical /blog/[slug] path to consolidate PageRank
+    permanentRedirect(`/blog/${slug}`);
   }
 
   // Otherwise 404

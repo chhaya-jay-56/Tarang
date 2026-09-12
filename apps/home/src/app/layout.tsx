@@ -83,45 +83,6 @@ const softwareAppSchema = {
   },
 };
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "Does Tarang support Hindi voice cloning?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. Tarang fully supports Hindi voice cloning and text-to-speech. You can clone your voice in Hindi or convert any text to natural Hindi speech using AI. Hindi is one of Tarang's flagship languages with high-quality output.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What languages does Tarang support for text to speech?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Tarang supports text-to-speech and voice cloning in over 100 languages, including English, Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Spanish, French, German, Japanese, Chinese, Korean, Arabic, and many more.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Can I clone my voice and speak in a different language?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. Tarang supports cross-lingual voice cloning. You can record your voice in one language and generate speech in any of 100+ supported languages while preserving your voice's unique characteristics, tone, and emotional quality.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Does Tarang support regional Indian languages like Gujarati or Marathi?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. Tarang supports a wide range of regional Indian languages including Gujarati, Marathi, Tamil, Telugu, Bengali, Kannada, Malayalam, Odia, Panjabi, Urdu, Assamese, Konkani, Dogri, Manipuri, Santali, Kashmiri, Sindhi, Bodo, Maithili, and more. This is a key differentiator — most global voice cloning tools do not offer this level of Indian language coverage.",
-      },
-    },
-  ],
-};
-
 const itemListSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
@@ -152,7 +113,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([organizationSchema, webSiteSchema, softwareAppSchema, faqSchema, itemListSchema]),
+            __html: JSON.stringify([organizationSchema, webSiteSchema, softwareAppSchema, itemListSchema]),
           }}
         />
       </head>
