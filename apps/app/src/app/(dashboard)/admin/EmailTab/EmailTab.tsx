@@ -50,7 +50,13 @@ const SEGMENT_INFO: Record<SegmentKey, { icon: string; name: string; desc: strin
 
 // ── Main EmailTab Component ──
 
-export default function EmailTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+export default function EmailTab({
+  admin,
+  refreshTrigger,
+}: {
+  admin: ReturnType<typeof useAdmin>;
+  refreshTrigger?: number;
+}) {
   const [segments, setSegments] = useState<Record<string, SegmentData> | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +80,7 @@ export default function EmailTab({ admin }: { admin: ReturnType<typeof useAdmin>
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return <div className={adminStyles.loadingState}>Loading email dashboard...</div>;

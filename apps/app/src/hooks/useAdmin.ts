@@ -1,7 +1,7 @@
 "use client";
 
 import { useApiClient } from "@/lib/api";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 /**
  * Hook for admin API operations.
@@ -197,22 +197,42 @@ export function useAdmin() {
     return res.json();
   }, [authFetch]);
 
-  return {
-    listUsers,
-    searchUsers,
-    updateCreditLimit,
-    bulkReassign,
-    getConfig,
-    updateConfig,
-    getOverview,
-    getTopSpenders,
-    getServiceUsage,
-    getIdleUsers,
-    getFeedbacks,
-    getEmailSegments,
-    previewEmail,
-    sendEmails,
-    sendTestEmail,
-    getEmailHistory,
-  };
+  return useMemo(
+    () => ({
+      listUsers,
+      searchUsers,
+      updateCreditLimit,
+      bulkReassign,
+      getConfig,
+      updateConfig,
+      getOverview,
+      getTopSpenders,
+      getServiceUsage,
+      getIdleUsers,
+      getFeedbacks,
+      getEmailSegments,
+      previewEmail,
+      sendEmails,
+      sendTestEmail,
+      getEmailHistory,
+    }),
+    [
+      listUsers,
+      searchUsers,
+      updateCreditLimit,
+      bulkReassign,
+      getConfig,
+      updateConfig,
+      getOverview,
+      getTopSpenders,
+      getServiceUsage,
+      getIdleUsers,
+      getFeedbacks,
+      getEmailSegments,
+      previewEmail,
+      sendEmails,
+      sendTestEmail,
+      getEmailHistory,
+    ]
+  );
 }

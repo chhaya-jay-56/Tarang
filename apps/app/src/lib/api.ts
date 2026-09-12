@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -89,5 +89,5 @@ export function useApiClient() {
     return await getToken();
   }, [getToken]);
 
-  return { authFetch, getAuthToken };
+  return useMemo(() => ({ authFetch, getAuthToken }), [authFetch, getAuthToken]);
 }

@@ -61,10 +61,33 @@ function AdminDashboard() {
   const admin = useAdmin();
   const [activeTab, setActiveTab] = useState<TabKey>("users");
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchOverview = useCallback(async () => {
+    try {
+      const data = await admin.getOverview();
+      setOverview(data);
+    } catch (err) {
+      console.error("Failed to fetch admin overview:", err);
+    }
+  }, [admin]);
 
   useEffect(() => {
-    admin.getOverview().then(setOverview).catch(console.error);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    fetchOverview();
+  }, [fetchOverview, refreshTrigger]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchOverview();
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchOverview]);
 
   return (
     <div className={styles.adminPage}>
@@ -74,6 +97,16 @@ function AdminDashboard() {
           <h1 className={styles.title}>Admin Dashboard</h1>
           <p className={styles.subtitle}>Manage users, credits, and platform configuration</p>
         </div>
+        <button
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Refresh dashboard data"
+          id="admin-refresh-btn"
+        >
+          <span className={refreshing ? styles.spin : ""}>🔄</span>
+          <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
+        </button>
       </div>
 
       {/* Overview Stats */}
@@ -106,11 +139,11 @@ function AdminDashboard() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "users" && <UsersTab admin={admin} />}
-      {activeTab === "config" && <ConfigTab admin={admin} />}
-      {activeTab === "insights" && <InsightsTab admin={admin} />}
-      {activeTab === "feedback" && <FeedbackTab admin={admin} />}
-      {activeTab === "email" && <EmailTab admin={admin} />}
+      {activeTab === "users" && <UsersTab admin={admin} refreshTrigger={refreshTrigger} />}
+      {activeTab === "config" && <ConfigTab admin={admin} refreshTrigger={refreshTrigger} />}
+      {activeTab === "insights" && <InsightsTab admin={admin} refreshTrigger={refreshTrigger} />}
+      {activeTab === "feedback" && <FeedbackTab admin={admin} refreshTrigger={refreshTrigger} />}
+      {activeTab === "email" && <EmailTab admin={admin} refreshTrigger={refreshTrigger} />}
     </div>
   );
 }
@@ -128,7 +161,13 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 // ── Users Tab ──
 
-function UsersTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+function UsersTab({
+  admin,
+  refreshTrigger,
+}: {
+  admin: ReturnType<typeof useAdmin>;
+  refreshTrigger?: number;
+}) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -165,7 +204,7 @@ function UsersTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, [page, search, refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBulkReassign = useCallback(async () => {
     const limit = parseInt(bulkLimit);
@@ -453,12 +492,19 @@ function EditCreditModal({
 
 // ── Config Tab ──
 
-function ConfigTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+function ConfigTab({
+  admin,
+  refreshTrigger,
+}: {
+  admin: ReturnType<typeof useAdmin>;
+  refreshTrigger?: number;
+}) {
   const [configs, setConfigs] = useState<ConfigEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    setLoading(true);
     admin
       .getConfig()
       .then((data: { configs: ConfigEntry[] }) => {
@@ -471,7 +517,7 @@ function ConfigTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = useCallback(
     async (key: string) => {
@@ -528,7 +574,13 @@ function ConfigTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
 
 // ── Insights Tab ──
 
-function InsightsTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+function InsightsTab({
+  admin,
+  refreshTrigger,
+}: {
+  admin: ReturnType<typeof useAdmin>;
+  refreshTrigger?: number;
+}) {
   const [topSpenders, setTopSpenders] = useState<AdminUser[]>([]);
   const [serviceUsage, setServiceUsage] = useState<
     { service: string; total_credits: number; num_transactions: number }[]
@@ -537,6 +589,7 @@ function InsightsTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
       admin.getTopSpenders(),
       admin.getServiceUsage(),
@@ -549,7 +602,7 @@ function InsightsTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className={styles.loadingState}>Loading insights...</div>;
 
@@ -637,16 +690,23 @@ function InsightsTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
 
 // ── Feedback Tab ──
 
-function FeedbackTab({ admin }: { admin: ReturnType<typeof useAdmin> }) {
+function FeedbackTab({
+  admin,
+  refreshTrigger,
+}: {
+  admin: ReturnType<typeof useAdmin>;
+  refreshTrigger?: number;
+}) {
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     admin.getFeedbacks()
       .then(setFeedbacks)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className={styles.loadingState}>Loading feedback...</div>;
 
