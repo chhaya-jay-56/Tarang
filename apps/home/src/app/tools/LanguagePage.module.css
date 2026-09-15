@@ -1,0 +1,296 @@
+/* ─── Language-Specific Landing Pages ─── */
+/* Shared by /tools/ai-voice-generator-{hindi,tamil,bengali,marathi} */
+
+.page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+.content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 11rem 5% 4rem;
+    animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Header ─── */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent-color);
+    background: rgba(190, 242, 2, 0.07);
+    border: 1px solid rgba(190, 242, 2, 0.15);
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.25rem;
+}
+
+.title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin: 0 0 1.25rem;
+    letter-spacing: -0.03em;
+}
+
+.title em {
+    color: var(--accent-color);
+    font-style: italic;
+    text-shadow: 0 0 26px rgba(190, 242, 2, 0.15);
+}
+
+.description {
+    font-size: 1.08rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 680px;
+    margin: 0 0 2.5rem;
+}
+
+.description strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ─── Section headings ─── */
+
+.sectionTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 4rem 0 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Steps ─── */
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.step {
+    padding: 1.75rem 1.5rem;
+    background: rgba(10, 10, 14, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.step:hover {
+    border-color: rgba(190, 242, 2, 0.25);
+    transform: translateY(-2px);
+}
+
+.stepNum {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(190, 242, 2, 0.1);
+    border: 1px solid rgba(190, 242, 2, 0.25);
+    color: var(--accent-color);
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.stepLabel {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem;
+}
+
+.stepText {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* ─── Matrix section ─── */
+
+.matrixSection {
+    margin-top: 1.5rem;
+}
+
+/* ─── Video link ─── */
+
+.videoLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2.5rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: 14px;
+    background: rgba(10, 10, 14, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.videoLink:hover {
+    border-color: rgba(190, 242, 2, 0.3);
+    transform: translateY(-2px);
+}
+
+.videoLink span {
+    color: var(--accent-color);
+}
+
+/* ─── Features list ─── */
+
+.featuresList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.featuresList li {
+    padding: 1rem 1.25rem;
+    background: rgba(10, 10, 14, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    padding-left: 2.5rem;
+    position: relative;
+    transition: border-color 0.2s ease;
+}
+
+.featuresList li::before {
+    content: "✓";
+    position: absolute;
+    left: 1rem;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.featuresList li:hover {
+    border-color: rgba(190, 242, 2, 0.15);
+}
+
+/* ─── CTA ─── */
+
+.cta {
+    margin-top: 4rem;
+    padding: 3rem 2rem;
+    background: rgba(15, 15, 20, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    margin-bottom: 4rem;
+}
+
+.ctaTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.8rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem;
+}
+
+.ctaText {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem;
+    line-height: 1.6;
+}
+
+.ctaButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2rem;
+    border-radius: 100px;
+    background: var(--accent-color);
+    color: #050505;
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 20px rgba(190, 242, 2, 0.2);
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(190, 242, 2, 0.35);
+}
+
+/* ─── Animation ─── */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+    .content {
+        padding: 9rem 4% 3rem;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+    }
+
+    .featuresList {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 2rem;
+    }
+
+    .cta {
+        padding: 2rem 1.25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .content {
+        animation: none;
+    }
+
+    .step:hover,
+    .ctaButton:hover {
+        transform: none;
+    }
+}

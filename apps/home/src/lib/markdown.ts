@@ -7,8 +7,10 @@ import { marked } from "marked";
 export function renderMarkdownToHtml(content: string, articleTitle?: string): string {
   if (!content) return "";
 
+  // Normalize Windows line endings to prevent hydration mismatches
+  let cleanedContent = content.replace(/\r\n/g, "\n");
+
   // Remove leading duplicate H1 heading if it mirrors the article title
-  let cleanedContent = content;
   if (articleTitle) {
     const escapedTitle = articleTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const h1Regex = new RegExp(`^\\s*#\\s+${escapedTitle}\\s*\\n+`, "i");

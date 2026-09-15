@@ -53,7 +53,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       url: `${SITE_URL}/blog/${slug}`,
       ...(article.featured_image && {
-        images: [{ url: article.featured_image }],
+        images: [
+          {
+            url: article.featured_image.startsWith("http")
+              ? article.featured_image
+              : `${SITE_URL}${article.featured_image}`,
+          },
+        ],
       }),
     },
   };
@@ -128,6 +134,7 @@ export default async function ArticlePage({ params }: PageProps) {
           <article
             className={styles.articleContent}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
+            suppressHydrationWarning
           />
 
           {/* CTA */}

@@ -66,7 +66,11 @@ export function buildBlogJsonLd(
         article.meta_description ||
         article.excerpt ||
         generateExcerpt(article.content || ""),
-      ...(article.featured_image && { image: article.featured_image }),
+      ...(article.featured_image && {
+        image: article.featured_image.startsWith("http")
+          ? article.featured_image
+          : `${siteUrl}${article.featured_image}`,
+      }),
       ...(date && { datePublished: date }),
       ...(article.updated_at && { dateModified: article.updated_at }),
       author: {

@@ -9,7 +9,14 @@ export const metadata: Metadata = {
   title: "Tarang | AI Voice Creation, Voice Cloning & TTS in 100+ Languages",
   description:
     "Tarang supports AI voice creation, voice cloning, and text-to-speech (TTS) in 100+ languages. Clone your voice and speak any language instantly.",
-  keywords: ["voice cloning", "TTS", "voice creation", "100+ languages", "AI voice", "text to speech"],
+  keywords: [
+    "ai voice generator free", "ai voice clone", "ai voice generator",
+    "voice cloning", "text to speech", "TTS", "ai voice generation",
+    "ai voice generator hindi", "ai voice generator tamil",
+    "ai voice generator bengali", "ai voice generator marathi",
+    "ai voice generator free indian", "free voice generator online",
+    "voice cloning 100+ languages", "AI voice", "voice creation",
+  ],
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
 
@@ -96,6 +103,16 @@ const itemListSchema = {
   })),
 };
 
+const speakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "Tarang — AI Voice Platform",
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", ".hero-description"],
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -113,7 +130,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([organizationSchema, webSiteSchema, softwareAppSchema, itemListSchema]),
+            __html: JSON.stringify([organizationSchema, webSiteSchema, softwareAppSchema, itemListSchema, speakableSchema]),
           }}
         />
       </head>

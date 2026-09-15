@@ -5,11 +5,13 @@
  * 1. Webhook pushing (receives auto-published articles via /api/webhooks/robinrank)
  * 2. REST API pulling (fetches from RobinRank API using ROBINRANK_API_KEY)
  * 3. Multi-tier persistence: Redis -> Filesystem (/tmp/robinrank_articles.json) -> Memory Map
+ * 4. Local articles defined directly in the codebase (always available)
  */
 
 import { Redis } from "@upstash/redis";
 import fs from "fs";
 import path from "path";
+import { localArticles } from "./localArticles";
 
 const ROBINRANK_API_URL = "https://www.robinrank.ai/api/v1/articles";
 const REDIS_KEY = "robinrank:articles";
@@ -257,6 +259,13 @@ export async function fetchArticles(): Promise<RobinRankArticle[]> {
   memoryCache.forEach((raw, slug) => {
     const norm = normalizeArticle(raw);
     mergedMap.set(slug, norm);
+  });
+
+  // 5. Add local articles defined in the codebase (always available)
+  localArticles.forEach((article) => {
+    if (article.slug && !mergedMap.has(article.slug)) {
+      mergedMap.set(article.slug, article);
+    }
   });
 
   let articles = Array.from(mergedMap.values());

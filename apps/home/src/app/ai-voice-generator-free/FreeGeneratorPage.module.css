@@ -1,0 +1,538 @@
+/* ─── Free AI Voice Generator Landing Page ─── */
+
+.page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+/* ─── Hero ─── */
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 11rem 5% 5rem;
+    max-width: 960px;
+    margin: 0 auto;
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.heroBadges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent-color);
+    background: rgba(190, 242, 2, 0.07);
+    border: 1px solid rgba(190, 242, 2, 0.15);
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+}
+
+.heroTitle {
+    margin: 0 0 1.75rem;
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+}
+
+.heroTitle em {
+    color: var(--accent-color);
+    font-style: italic;
+    text-shadow: 0 0 30px rgba(190, 242, 2, 0.15);
+}
+
+.heroDescription {
+    max-width: 680px;
+    margin: 0 0 2.5rem;
+    font-size: 1.12rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.heroDescription strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.heroCtas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.25rem;
+}
+
+.ctaPrimary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    border-radius: 100px;
+    background: var(--accent-color);
+    color: #050505;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 20px rgba(190, 242, 2, 0.2);
+}
+
+.ctaPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(190, 242, 2, 0.35);
+}
+
+.ctaSecondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    border-radius: 100px;
+    background: transparent;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.ctaSecondary:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.trustRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+}
+
+/* ─── Sections (shared) ─── */
+
+.section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 5% 0;
+}
+
+.sectionHeader {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.sectionTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin: 0 0 0.85rem;
+}
+
+.sectionTitle em {
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+.sectionSubtitle {
+    font-size: 1.02rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+/* ─── Video Demo ─── */
+
+.videoWrapper {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #050505;
+    object-fit: cover;
+}
+
+/* ─── How It Works Steps ─── */
+
+.stepsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.stepCard {
+    padding: 2rem 1.75rem;
+    background: rgba(10, 10, 14, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.stepCard:hover {
+    border-color: rgba(190, 242, 2, 0.25);
+    transform: translateY(-3px);
+}
+
+.stepNumber {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(190, 242, 2, 0.1);
+    border: 1px solid rgba(190, 242, 2, 0.25);
+    color: var(--accent-color);
+    font-family: 'JetBrains Mono Variable', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+}
+
+.stepTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem;
+}
+
+.stepDescription {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ─── Features ─── */
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.featureCard {
+    padding: 2.25rem 2rem;
+    background: rgba(10, 10, 14, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.featureCard:hover {
+    border-color: rgba(190, 242, 2, 0.2);
+    transform: translateY(-3px);
+}
+
+.featureIcon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.featureTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0 0 0.65rem;
+}
+
+.featureDescription {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ─── Voice Cloning Highlight ─── */
+
+.highlightCard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding: 3rem;
+    background: rgba(10, 10, 14, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.highlightBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.highlightTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin: 0 0 1.25rem;
+}
+
+.highlightTitle em {
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+.highlightDescription {
+    font-size: 0.96rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 1.5rem;
+}
+
+.highlightList {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.highlightList li {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.highlightList li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.highlightVideo {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Languages ─── */
+
+.languageGrid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.languageChip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.85rem 1.25rem;
+    background: rgba(10, 10, 14, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    min-width: 110px;
+    transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.languageChip:hover {
+    border-color: rgba(190, 242, 2, 0.3);
+    transform: translateY(-2px);
+}
+
+.languageName {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.languageScript {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.moreChip {
+    background: rgba(190, 242, 2, 0.06);
+    border-color: rgba(190, 242, 2, 0.15);
+}
+
+.moreChip .languageName {
+    color: var(--accent-color);
+}
+
+/* ─── Bottom CTA ─── */
+
+.bottomCta {
+    max-width: 820px;
+    margin: 6rem auto 0;
+    padding: 4rem 2.5rem;
+    text-align: center;
+    background: rgba(15, 15, 20, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    margin-bottom: 4rem;
+}
+
+.bottomCtaTitle {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0 0 1rem;
+}
+
+.bottomCtaText {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ─── Animations ─── */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 900px) {
+    .stepsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .highlightCard {
+        grid-template-columns: 1fr;
+        padding: 2rem 1.5rem;
+    }
+
+    .highlightVideo {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 9rem 4% 3rem;
+    }
+
+    .featuresGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .heroCtas {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .ctaPrimary,
+    .ctaSecondary {
+        justify-content: center;
+    }
+
+    .section {
+        padding: 3.5rem 4% 0;
+    }
+
+    .bottomCta {
+        margin-left: 4%;
+        margin-right: 4%;
+        padding: 3rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .heroTitle {
+        font-size: 2.3rem;
+    }
+
+    .heroBadges {
+        gap: 0.4rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.7rem;
+    }
+
+    .trustRow {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .languageChip {
+        min-width: 90px;
+        padding: 0.65rem 0.9rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero {
+        animation: none;
+    }
+
+    .stepCard:hover,
+    .featureCard:hover,
+    .languageChip:hover,
+    .ctaPrimary:hover {
+        transform: none;
+    }
+}
