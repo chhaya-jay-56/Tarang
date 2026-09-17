@@ -1,5 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /sentry-example-page
+Disallow: /api/sentry-example-api
+Disallow: /monitoring
 
-# AI crawler-readable summary available at /llms.txt
-# Sitemap: https://trytarang.app/sitemap.xml
+# Sitemap
+Sitemap: https://trytarang.app/sitemap.xml
+
+# AI crawler-readable summary
+# See /llms.txt

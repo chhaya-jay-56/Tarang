@@ -7,6 +7,26 @@ const nextConfig: NextConfig = {
   // Required for monorepo: tells Next.js where the workspace root is
   // so Vercel packages serverless functions correctly
   outputFileTracingRoot: path.join(__dirname, "../../"),
+  async redirects() {
+    return [
+      // Deleted language pages → redirect to Hindi (preserve link equity)
+      {
+        source: "/tools/ai-voice-generator-marathi",
+        destination: "/tools/ai-voice-generator-hindi",
+        permanent: true,
+      },
+      {
+        source: "/tools/ai-voice-generator-tamil",
+        destination: "/tools/ai-voice-generator-hindi",
+        permanent: true,
+      },
+      {
+        source: "/tools/ai-voice-generator-bengali",
+        destination: "/tools/ai-voice-generator-hindi",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

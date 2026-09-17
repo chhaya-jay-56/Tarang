@@ -12,10 +12,9 @@ export const metadata: Metadata = {
   keywords: [
     "ai voice generator free", "ai voice clone", "ai voice generator",
     "voice cloning", "text to speech", "TTS", "ai voice generation",
-    "ai voice generator hindi", "ai voice generator tamil",
-    "ai voice generator bengali", "ai voice generator marathi",
-    "ai voice generator free indian", "free voice generator online",
-    "voice cloning 100+ languages", "AI voice", "voice creation",
+    "ai voice generator hindi", "ai voice generator free indian",
+    "free voice generator online", "voice cloning 100+ languages",
+    "AI voice", "voice creation",
   ],
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },

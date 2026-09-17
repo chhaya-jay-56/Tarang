@@ -53,6 +53,16 @@ const FAQ_ITEMS = [
     answer:
       "Yes — sign up and get 10,000 free credits. Hindi generation uses the same credit rate as English — no premium charge for Indian languages.",
   },
+  {
+    question: "How does Tarang handle Hindi schwa deletion?",
+    answer:
+      "Hindi has complex schwa deletion rules — the inherent 'a' vowel in Devanagari consonants is sometimes silent (e.g., 'राम' is 'Raam' not 'Raama'). Tarang's Hindi model was trained on native speech data to handle schwa deletion automatically, producing pronunciation that matches how native speakers actually talk.",
+  },
+  {
+    question: "Does Tarang support other Indian languages besides Hindi?",
+    answer:
+      "Yes — Tarang supports Tamil, Bengali, Marathi, Telugu, Gujarati, Kannada, Malayalam, and many more Indian languages with native pronunciation. Hindi is our most popular Indian language, but all regional languages use the same high-quality neural models.",
+  },
 ];
 
 const faqSchema = {
@@ -125,13 +135,32 @@ export default function HindiPage() {
           {/* Features */}
           <h2 className={styles.sectionTitle}>Hindi Voice Features</h2>
           <ul className={styles.featuresList}>
-            <li>Native Devanagari pronunciation</li>
-            <li>Hinglish code-switching support</li>
+            <li>Native Devanagari pronunciation with automatic schwa deletion</li>
+            <li>Hinglish code-switching support (Hindi-English mix)</li>
             <li>Voice cloning from 10-second samples</li>
             <li>Male and female voice profiles</li>
             <li>Emotional delivery (formal, conversational)</li>
             <li>Studio-quality 24kHz audio output</li>
+            <li>Proper nasalization (अनुस्वार) and aspirated consonants</li>
+            <li>Also supports Tamil, Bengali, Marathi, Telugu, and 100+ languages</li>
           </ul>
+
+          {/* Why Hindi TTS is unique */}
+          <h2 className={styles.sectionTitle}>
+            Why Hindi AI Voice Generation Is Different
+          </h2>
+          <p className={styles.description}>
+            Hindi presents unique challenges for AI speech synthesis that most
+            global TTS engines get wrong. <strong>Schwa deletion</strong> — the
+            inherent &apos;a&apos; vowel in Devanagari is often silent, and rules
+            vary by word position and regional dialect.
+            {" "}<strong>Nasalization</strong> (अनुनासिक) changes meaning entirely
+            (हँस vs हंस). <strong>Retroflex consonants</strong> (ट, ठ, ड, ढ)
+            require precise tongue positioning that English models approximate
+            poorly. Tarang&apos;s Hindi model was trained on native speaker datasets
+            to handle all of these correctly — not by mapping Hindi sounds to
+            English phonemes.
+          </p>
 
           {/* Language matrix */}
           <h2 className={styles.sectionTitle}>
@@ -140,6 +169,11 @@ export default function HindiPage() {
           <div className={styles.matrixSection}>
             <LanguageMatrix highlight="Hindi" />
           </div>
+
+          {/* Cross-link to free generator */}
+          <Link href="/ai-voice-generator-free" className={styles.videoLink}>
+            🌍 Explore all 100+ supported languages <span>→</span>
+          </Link>
 
           {/* Video link */}
           <Link href="/examples" className={styles.videoLink}>
