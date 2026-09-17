@@ -101,6 +101,12 @@ export function useAdmin() {
     return res.json();
   }, [adminFetch]);
 
+  const getMonthlyUsage = useCallback(async () => {
+    const res = await adminFetch("/insights/monthly-usage");
+    if (!res.ok) throw new Error("Failed to fetch monthly usage");
+    return res.json();
+  }, [adminFetch]);
+
   const getFeedbacks = useCallback(async () => {
     const res = await authFetch("/api/feedback/");
     if (!res.ok) throw new Error("Failed to fetch feedbacks");
@@ -209,6 +215,7 @@ export function useAdmin() {
       getTopSpenders,
       getServiceUsage,
       getIdleUsers,
+      getMonthlyUsage,
       getFeedbacks,
       getEmailSegments,
       previewEmail,
@@ -227,6 +234,7 @@ export function useAdmin() {
       getTopSpenders,
       getServiceUsage,
       getIdleUsers,
+      getMonthlyUsage,
       getFeedbacks,
       getEmailSegments,
       previewEmail,

@@ -7,6 +7,7 @@ interface CreditData {
   creditBalance: number;
   planType: string;
   planCreditsTotal: number;
+  monthlyUsage: number;
 }
 
 // PLAN_TOTALS removed — credit_limit now comes from the backend per-user.
@@ -57,6 +58,7 @@ export function useCredits() {
           creditBalance: json.credit_balance ?? 0,
           planType,
           planCreditsTotal: creditLimit > 0 ? creditLimit : DEFAULT_CREDIT_LIMIT,
+          monthlyUsage: json.monthly_usage ?? 0,
         };
         globalLastFetchTime = Date.now();
         setError(null);
@@ -87,6 +89,7 @@ export function useCredits() {
     credits: data?.creditBalance ?? 0,
     planType: data?.planType ?? "free",
     totalCredits: data?.planCreditsTotal ?? 1500,
+    monthlyUsage: data?.monthlyUsage ?? 0,
     isLoading,
     error,
     refetch: () => fetchCredits(true),

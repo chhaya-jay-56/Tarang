@@ -61,13 +61,18 @@ function AdminDashboard() {
   const admin = useAdmin();
   const [activeTab, setActiveTab] = useState<TabKey>("users");
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
+  const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOverview = useCallback(async () => {
     try {
-      const data = await admin.getOverview();
-      setOverview(data);
+      const [overviewData, monthlyData] = await Promise.all([
+        admin.getOverview(),
+        admin.getMonthlyUsage(),
+      ]);
+      setOverview(overviewData);
+      setMonthlyUsage(monthlyData.monthly_credits_used ?? 0);
     } catch (err) {
       console.error("Failed to fetch admin overview:", err);
     }
@@ -121,6 +126,10 @@ function AdminDashboard() {
           <StatCard
             label="Credits Used"
             value={overview.total_credits_used?.toLocaleString()}
+          />
+          <StatCard
+            label="Monthly Usage"
+            value={monthlyUsage !== null ? monthlyUsage.toLocaleString() : "—"}
           />
         </div>
       )}

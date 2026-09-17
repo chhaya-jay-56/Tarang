@@ -70,6 +70,18 @@ async def lifespan(app: FastAPI):
         logger.info("Signal handlers not available (Windows dev), skipping")
 
     logger.info("🚀 Tarang API starting — schema managed by Alembic")
+
+    # ── Auto monthly credit refresh ──
+    # On startup, check if this month's credit refresh has been performed.
+    # If not, reset all users' balances to their credit_limit.
+    try:
+        from app.database import AsyncSessionLocal
+        from app.services.credit_refresh import check_and_run_monthly_refresh
+        async with AsyncSessionLocal() as db:
+            await check_and_run_monthly_refresh(db)
+    except Exception as e:
+        logger.error("⚠️ Monthly refresh check failed on startup: %s", e)
+
     yield
     # Gracefully close all pooled asyncpg connections to avoid
     # CancelledError / TimeoutError on shutdown.

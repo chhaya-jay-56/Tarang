@@ -6,10 +6,10 @@ import styles from "./CreditBar.module.css";
 
 /**
  * Credit pill in the TopBar. Shows remaining credits + plan badge.
- * Clicks to expand a usage panel with upgrade/buy CTAs.
+ * Clicks to expand a usage panel with monthly usage info.
  */
 export function CreditBar() {
-  const { credits, planType, totalCredits, isLoading } = useCredits();
+  const { credits, planType, totalCredits, monthlyUsage, isLoading } = useCredits();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -20,6 +20,7 @@ export function CreditBar() {
 
   const formattedCredits = credits.toLocaleString("en-US");
   const formattedTotal = totalCredits.toLocaleString("en-US");
+  const formattedMonthlyUsage = monthlyUsage.toLocaleString("en-US");
 
   const handleToggle = useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -92,7 +93,18 @@ export function CreditBar() {
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className={styles.usageLabel}>credits remaining this month</span>
+            <span className={styles.usageLabel}>
+              {formattedTotal} monthly free credits
+            </span>
+          </div>
+
+          {/* Monthly usage info */}
+          <div className={styles.usageSection}>
+            <div className={styles.usageNumbers}>
+              <span className={styles.usageCurrent}>{formattedMonthlyUsage}</span>
+              <span className={styles.usageSeparator}>credits</span>
+            </div>
+            <span className={styles.usageLabel}>used this month</span>
           </div>
 
           {/* CTAs */}

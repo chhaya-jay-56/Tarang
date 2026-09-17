@@ -5,18 +5,20 @@
 # which verifies both JWT auth AND users.is_admin flag.
 #
 # ENDPOINT GROUPS:
-#   /api/admin/users/*     — search, list, view, edit user credit limits
-#   /api/admin/config/*    — read/write app_config table
-#   /api/admin/insights/*  — top spenders, service usage, idle users, overview
+#   /api/admin/users/*       — search, list, view, edit user credit limits
+#   /api/admin/config/*      — read/write app_config table
+#   /api/admin/insights/*    — top spenders, service usage, idle users, overview, monthly-usage
 #   /api/admin/bulk-reassign — batch credit limit updates
+#   /api/admin/monthly-refresh — refresh all users' credits (monthly reset)
 # ─────────────────────────────────────────────────────────────────────────────
 
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select, update, func, case, text
+from sqlalchemy import select, update, func, case, text, extract
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
@@ -330,7 +332,12 @@ async def insights_overview(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """High-level platform stats."""
+    """High-level platform stats.
+
+    Credits Used is computed from the credit_transactions ledger (all-time
+    deductions), NOT from credit_limit - credit_balance. This ensures that
+    reassigning credits doesn't wipe the usage count.
+    """
     total_result = await db.execute(select(func.count()).select_from(User))
     total_users = total_result.scalar()
 
@@ -345,12 +352,11 @@ async def insights_overview(
     )
     total_credits_issued = credits_issued_result.scalar()
 
+    # All-time credits consumed — from the immutable ledger, not derived
     credits_used_result = await db.execute(
         select(
-            func.coalesce(
-                func.sum(User.credit_limit - User.credit_balance), 0
-            )
-        ).select_from(User)
+            func.coalesce(func.sum(CreditTransaction.amount), 0)
+        ).where(CreditTransaction.txn_type == TxnType.deduction)
     )
     total_credits_used = credits_used_result.scalar()
 
@@ -461,6 +467,56 @@ async def idle_users(
         "threshold_pct": threshold_pct,
         "days_old": days_old,
     }
+
+
+@router.get("/insights/monthly-usage")
+async def monthly_usage_overview(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Total credits consumed in the current calendar month (all users)."""
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    result = await db.execute(
+        select(
+            func.coalesce(func.sum(CreditTransaction.amount), 0)
+        ).where(
+            CreditTransaction.txn_type == TxnType.deduction,
+            CreditTransaction.created_at >= month_start,
+        )
+    )
+    monthly_used = result.scalar()
+
+    return {
+        "monthly_credits_used": monthly_used,
+        "month": now.strftime("%B %Y"),
+        "month_start": month_start.isoformat(),
+    }
+
+
+# ── Monthly Credit Refresh ───────────────────────────────────────────────────
+
+@router.post("/monthly-refresh")
+async def trigger_monthly_refresh(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually trigger the monthly credit refresh for all users.
+
+    Resets every user's credit_balance to their credit_limit.
+    Logs a top_up transaction for each user who receives credits.
+    Records the refresh timestamp in app_config.
+    """
+    from app.services.credit_refresh import refresh_all_users_credits
+    result = await refresh_all_users_credits(db)
+
+    logger.info(
+        "📝 Admin triggered monthly refresh: refreshed=%s users, by=%s",
+        result["users_refreshed"], admin.clerk_user_id,
+    )
+
+    return result
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
