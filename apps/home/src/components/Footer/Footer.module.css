@@ -114,54 +114,44 @@
 
 .brandingText {
     font-family: 'Instrument Serif', serif;
-    font-size: clamp(5rem, 16vw, 15rem);
+    font-size: clamp(4.5rem, 15vw, 14rem);
     font-weight: 400;
     font-style: italic;
     text-transform: uppercase;
-    line-height: 0.8;
+    line-height: 0.85;
     text-align: center;
     display: inline-block;
     letter-spacing: -0.01em;
     cursor: default;
 
-    /* Gradient text fill — animated sweep */
+    /* Professional left-to-right light shine */
     color: transparent;
     background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.08) 0%,
-        rgba(120, 40, 255, 0.5) 20%,
-        rgba(190, 242, 2, 0.6) 40%,
-        rgba(255, 255, 255, 0.9) 50%,
-        rgba(190, 242, 2, 0.6) 60%,
-        rgba(120, 40, 255, 0.5) 80%,
-        rgba(255, 255, 255, 0.08) 100%
+        105deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.12) 40%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.12) 60%,
+        rgba(255, 255, 255, 0.12) 100%
     );
-    background-size: 300% 100%;
+    background-size: 250% 100%;
     -webkit-background-clip: text;
     background-clip: text;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
 
-    animation: brandingSweep 6s ease-in-out infinite;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: leftToRightShine 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    transition: opacity 0.3s ease;
 }
 
 .brandingText:hover {
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25);
-    filter: drop-shadow(0 0 30px rgba(120, 40, 255, 0.4))
-            drop-shadow(0 0 60px rgba(190, 242, 2, 0.2));
-    transform: scale(1.02);
-    animation-duration: 2s;
+    opacity: 0.95;
 }
 
-@keyframes brandingSweep {
+@keyframes leftToRightShine {
     0% {
-        background-position: 100% 50%;
+        background-position: 180% 0;
     }
-    50% {
-        background-position: 0% 50%;
-    }
-    100% {
-        background-position: 100% 50%;
+    70%, 100% {
+        background-position: -40% 0;
     }
 }
 
