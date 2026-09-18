@@ -6,10 +6,10 @@ import styles from "./CreditBar.module.css";
 
 /**
  * Credit pill in the TopBar. Shows remaining credits + plan badge.
- * Clicks to expand a usage panel with monthly usage info.
+ * Clicks to expand a usage panel with upgrade/buy CTAs.
  */
 export function CreditBar() {
-  const { credits, planType, totalCredits, monthlyUsage, isLoading } = useCredits();
+  const { credits, planType, totalCredits, isLoading } = useCredits();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -20,7 +20,6 @@ export function CreditBar() {
 
   const formattedCredits = credits.toLocaleString("en-US");
   const formattedTotal = totalCredits.toLocaleString("en-US");
-  const formattedMonthlyUsage = monthlyUsage.toLocaleString("en-US");
 
   const handleToggle = useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -93,18 +92,25 @@ export function CreditBar() {
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className={styles.usageLabel}>
-              {formattedTotal} monthly free credits
-            </span>
+            <span className={styles.usageLabel}>credits remaining this month</span>
           </div>
 
-          {/* Monthly usage info */}
-          <div className={styles.usageSection}>
-            <div className={styles.usageNumbers}>
-              <span className={styles.usageCurrent}>{formattedMonthlyUsage}</span>
-              <span className={styles.usageSeparator}>credits</span>
-            </div>
-            <span className={styles.usageLabel}>used this month</span>
+          {/* Next Refresh Notice */}
+          <div className={styles.refreshNotice}>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={styles.refreshNoticeIcon}
+            >
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            <span className={styles.refreshNoticeText}>Credits refresh next month</span>
           </div>
 
           {/* CTAs */}

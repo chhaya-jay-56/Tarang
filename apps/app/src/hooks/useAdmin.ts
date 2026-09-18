@@ -101,12 +101,6 @@ export function useAdmin() {
     return res.json();
   }, [adminFetch]);
 
-  const getMonthlyUsage = useCallback(async () => {
-    const res = await adminFetch("/insights/monthly-usage");
-    if (!res.ok) throw new Error("Failed to fetch monthly usage");
-    return res.json();
-  }, [adminFetch]);
-
   const getFeedbacks = useCallback(async () => {
     const res = await authFetch("/api/feedback/");
     if (!res.ok) throw new Error("Failed to fetch feedbacks");
@@ -203,6 +197,22 @@ export function useAdmin() {
     return res.json();
   }, [authFetch]);
 
+  // ── Manual Credit Refresh ──
+
+  const refreshAllCredits = useCallback(async () => {
+    const res = await adminFetch("/refresh-all-credits", {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to refresh credits");
+    return res.json();
+  }, [adminFetch]);
+
+  const getCreditRefreshStatus = useCallback(async () => {
+    const res = await adminFetch("/refresh-status");
+    if (!res.ok) throw new Error("Failed to fetch refresh status");
+    return res.json();
+  }, [adminFetch]);
+
   return useMemo(
     () => ({
       listUsers,
@@ -215,13 +225,14 @@ export function useAdmin() {
       getTopSpenders,
       getServiceUsage,
       getIdleUsers,
-      getMonthlyUsage,
       getFeedbacks,
       getEmailSegments,
       previewEmail,
       sendEmails,
       sendTestEmail,
       getEmailHistory,
+      refreshAllCredits,
+      getCreditRefreshStatus,
     }),
     [
       listUsers,
@@ -234,13 +245,14 @@ export function useAdmin() {
       getTopSpenders,
       getServiceUsage,
       getIdleUsers,
-      getMonthlyUsage,
       getFeedbacks,
       getEmailSegments,
       previewEmail,
       sendEmails,
       sendTestEmail,
       getEmailHistory,
+      refreshAllCredits,
+      getCreditRefreshStatus,
     ]
   );
 }

@@ -5,11 +5,10 @@
 # which verifies both JWT auth AND users.is_admin flag.
 #
 # ENDPOINT GROUPS:
-#   /api/admin/users/*       — search, list, view, edit user credit limits
-#   /api/admin/config/*      — read/write app_config table
-#   /api/admin/insights/*    — top spenders, service usage, idle users, overview, monthly-usage
+#   /api/admin/users/*     — search, list, view, edit user credit limits
+#   /api/admin/config/*    — read/write app_config table
+#   /api/admin/insights/*  — top spenders, service usage, idle users, overview
 #   /api/admin/bulk-reassign — batch credit limit updates
-#   /api/admin/monthly-refresh — refresh all users' credits (monthly reset)
 # ─────────────────────────────────────────────────────────────────────────────
 
 import logging
@@ -18,7 +17,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select, update, func, case, text, extract
+from sqlalchemy import select, update, func, case, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
@@ -31,6 +30,18 @@ from app.utils.admin_auth import get_admin_user
 logger = logging.getLogger("tarang.admin")
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+# ── Tester accounts to exclude from credit/insight calculations ──────────────
+# These users are internal testers whose transactions skew real usage stats.
+TESTER_NAMES = ["nisarg parmar", "jay chhaya", "mr dark yt"]
+
+
+def _tester_user_ids(db_query_base):
+    """Build a subquery returning user IDs of known testers (matched by name, case-insensitive)."""
+    return (
+        select(User.id)
+        .where(func.lower(User.name).in_(TESTER_NAMES))
+    ).scalar_subquery()
 
 
 # ── Request/Response schemas ─────────────────────────────────────────────────
@@ -325,6 +336,82 @@ async def update_config(
     return {"key": key, "old_value": old_value, "new_value": body.value}
 
 
+# ── Manual Credit Refresh ──────────────────────────────────────────────────
+
+@router.post("/refresh-all-credits")
+async def refresh_all_credits(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Manually reset all users' credit_balance to their credit_limit.
+    Only modifies users whose balance < limit.
+    Audit log is saved solely in app_config (no extra transaction rows).
+    """
+    result = await db.execute(
+        select(User).where(
+            User.credit_limit > 0,
+            User.credit_balance < User.credit_limit,
+        )
+    )
+    users = result.scalars().all()
+
+    refreshed_count = 0
+    for u in users:
+        u.credit_balance = u.credit_limit
+        refreshed_count += 1
+
+    # Record audit log in app_config
+    now = datetime.now(timezone.utc).isoformat()
+    admin_identifier = admin.email or admin.name or admin.clerk_user_id
+
+    entries = {
+        "last_credit_refresh_at": now,
+        "last_credit_refresh_by": admin_identifier,
+        "last_credit_refresh_count": str(refreshed_count),
+    }
+
+    for key, val in entries.items():
+        cfg_res = await db.execute(select(AppConfig).where(AppConfig.key == key))
+        cfg = cfg_res.scalar_one_or_none()
+        if cfg:
+            cfg.value = val
+            cfg.updated_by = admin.clerk_user_id
+        else:
+            db.add(AppConfig(key=key, value=val, updated_by=admin.clerk_user_id))
+
+    await db.commit()
+
+    logger.info(
+        "🔄 Manual credit refresh: %s users refreshed by %s at %s",
+        refreshed_count, admin_identifier, now,
+    )
+
+    return {
+        "users_refreshed": refreshed_count,
+        "refreshed_at": now,
+        "refreshed_by": admin_identifier,
+    }
+
+
+@router.get("/refresh-status")
+async def get_refresh_status(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get the latest manual credit refresh audit info from app_config."""
+    keys = ["last_credit_refresh_at", "last_credit_refresh_by", "last_credit_refresh_count"]
+    result = await db.execute(select(AppConfig).where(AppConfig.key.in_(keys)))
+    configs = {c.key: c.value for c in result.scalars().all()}
+
+    count_val = configs.get("last_credit_refresh_count")
+    return {
+        "last_refresh_at": configs.get("last_credit_refresh_at"),
+        "last_refresh_by": configs.get("last_credit_refresh_by"),
+        "last_refresh_count": int(count_val) if count_val and count_val.isdigit() else 0,
+    }
+
+
 # ── Insights ─────────────────────────────────────────────────────────────────
 
 @router.get("/insights/overview")
@@ -334,16 +421,23 @@ async def insights_overview(
 ):
     """High-level platform stats.
 
-    Credits Used is computed from the credit_transactions ledger (all-time
-    deductions), NOT from credit_limit - credit_balance. This ensures that
-    reassigning credits doesn't wipe the usage count.
+    - active_users: count of users who have at least 1 deduction transaction
+      (i.e. actually used Tarang at least once).
+    - total_credits_used: sum of deduction amounts excluding tester accounts.
     """
     total_result = await db.execute(select(func.count()).select_from(User))
     total_users = total_result.scalar()
 
+    # Active users = users who have at least 1 deduction transaction
+    tester_ids_sub = (
+        select(User.id).where(func.lower(User.name).in_(TESTER_NAMES))
+    )
     active_result = await db.execute(
-        select(func.count()).select_from(User)
-        .where(User.credit_balance < User.credit_limit)
+        select(func.count(func.distinct(CreditTransaction.user_id)))
+        .where(
+            CreditTransaction.txn_type == TxnType.deduction,
+            CreditTransaction.user_id.notin_(tester_ids_sub),
+        )
     )
     active_users = active_result.scalar()
 
@@ -352,11 +446,15 @@ async def insights_overview(
     )
     total_credits_issued = credits_issued_result.scalar()
 
-    # All-time credits consumed — from the immutable ledger, not derived
+    # Credits used = sum of deduction amounts, excluding tester accounts
     credits_used_result = await db.execute(
         select(
             func.coalesce(func.sum(CreditTransaction.amount), 0)
-        ).where(CreditTransaction.txn_type == TxnType.deduction)
+        )
+        .where(
+            CreditTransaction.txn_type == TxnType.deduction,
+            CreditTransaction.user_id.notin_(tester_ids_sub),
+        )
     )
     total_credits_used = credits_used_result.scalar()
 
@@ -374,10 +472,13 @@ async def top_spenders(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Top users by credits consumed."""
+    """Top users by credits consumed (excludes tester accounts)."""
     result = await db.execute(
         select(User)
-        .where(User.credit_limit > 0)
+        .where(
+            User.credit_limit > 0,
+            func.lower(User.name).notin_(TESTER_NAMES),
+        )
         .order_by((User.credit_limit - User.credit_balance).desc())
         .limit(limit)
     )
@@ -402,14 +503,20 @@ async def service_usage(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Credits consumed per service type (from credit_transactions)."""
+    """Credits consumed per service type, excluding tester accounts."""
+    tester_ids_sub = (
+        select(User.id).where(func.lower(User.name).in_(TESTER_NAMES))
+    )
     result = await db.execute(
         select(
             func.coalesce(CreditTransaction.service_type, "unknown").label("service"),
             func.sum(CreditTransaction.amount).label("total_credits"),
             func.count().label("num_transactions"),
         )
-        .where(CreditTransaction.txn_type == TxnType.deduction)
+        .where(
+            CreditTransaction.txn_type == TxnType.deduction,
+            CreditTransaction.user_id.notin_(tester_ids_sub),
+        )
         .group_by(CreditTransaction.service_type)
         .order_by(func.sum(CreditTransaction.amount).desc())
     )
@@ -437,7 +544,7 @@ async def idle_users(
 ):
     """Users who signed up >N days ago but used less than X% of credits.
 
-    These are candidates for credit reallocation.
+    These are candidates for credit reallocation. Excludes tester accounts.
     """
     cutoff = func.now() - text(f"interval '{days_old} days'")
 
@@ -447,6 +554,7 @@ async def idle_users(
             User.credit_limit > 0,
             User.created_at < cutoff,
             (User.credit_limit - User.credit_balance) < (threshold_pct / 100.0 * User.credit_limit),
+            func.lower(User.name).notin_(TESTER_NAMES),
         )
         .order_by(User.created_at.asc())
         .limit(limit)
@@ -467,56 +575,6 @@ async def idle_users(
         "threshold_pct": threshold_pct,
         "days_old": days_old,
     }
-
-
-@router.get("/insights/monthly-usage")
-async def monthly_usage_overview(
-    admin: User = Depends(get_admin_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Total credits consumed in the current calendar month (all users)."""
-    now = datetime.now(timezone.utc)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    result = await db.execute(
-        select(
-            func.coalesce(func.sum(CreditTransaction.amount), 0)
-        ).where(
-            CreditTransaction.txn_type == TxnType.deduction,
-            CreditTransaction.created_at >= month_start,
-        )
-    )
-    monthly_used = result.scalar()
-
-    return {
-        "monthly_credits_used": monthly_used,
-        "month": now.strftime("%B %Y"),
-        "month_start": month_start.isoformat(),
-    }
-
-
-# ── Monthly Credit Refresh ───────────────────────────────────────────────────
-
-@router.post("/monthly-refresh")
-async def trigger_monthly_refresh(
-    admin: User = Depends(get_admin_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Manually trigger the monthly credit refresh for all users.
-
-    Resets every user's credit_balance to their credit_limit.
-    Logs a top_up transaction for each user who receives credits.
-    Records the refresh timestamp in app_config.
-    """
-    from app.services.credit_refresh import refresh_all_users_credits
-    result = await refresh_all_users_credits(db)
-
-    logger.info(
-        "📝 Admin triggered monthly refresh: refreshed=%s users, by=%s",
-        result["users_refreshed"], admin.clerk_user_id,
-    )
-
-    return result
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

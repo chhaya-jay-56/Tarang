@@ -246,6 +246,31 @@
     opacity: 0.7;
 }
 
+/* ─── Refresh Notice ─── */
+.refreshNotice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.refreshNoticeIcon {
+    color: var(--muted-foreground);
+    opacity: 0.75;
+    flex-shrink: 0;
+}
+
+.refreshNoticeText {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    letter-spacing: 0.01em;
+}
+
 /* ─── Panel Actions ─── */
 .panelActions {
     display: flex;

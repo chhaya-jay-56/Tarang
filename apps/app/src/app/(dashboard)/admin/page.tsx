@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useAdmin } from "@/hooks/useAdmin";
 import styles from "./admin.module.css";
 import EmailTab from "./EmailTab/EmailTab";
+import ManualCreditRefresh from "./ManualCreditRefresh/ManualCreditRefresh";
 
 // ── Types ──
 
@@ -61,18 +62,13 @@ function AdminDashboard() {
   const admin = useAdmin();
   const [activeTab, setActiveTab] = useState<TabKey>("users");
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
-  const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOverview = useCallback(async () => {
     try {
-      const [overviewData, monthlyData] = await Promise.all([
-        admin.getOverview(),
-        admin.getMonthlyUsage(),
-      ]);
-      setOverview(overviewData);
-      setMonthlyUsage(monthlyData.monthly_credits_used ?? 0);
+      const data = await admin.getOverview();
+      setOverview(data);
     } catch (err) {
       console.error("Failed to fetch admin overview:", err);
     }
@@ -127,10 +123,6 @@ function AdminDashboard() {
             label="Credits Used"
             value={overview.total_credits_used?.toLocaleString()}
           />
-          <StatCard
-            label="Monthly Usage"
-            value={monthlyUsage !== null ? monthlyUsage.toLocaleString() : "—"}
-          />
         </div>
       )}
 
@@ -142,7 +134,7 @@ function AdminDashboard() {
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ""}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : tab === "insights" ? "Insights" : tab === "feedback" ? "Feedback" : "📧 Email"}
+            {tab === "users" ? "User Management" : tab === "config" ? "App Config" : tab === "insights" ? "Insights" : tab === "feedback" ? "Feedback" : "Email"}
           </button>
         ))}
       </div>
@@ -309,6 +301,7 @@ function UsersTab({
                   <tr>
                     <th>User</th>
                     <th>Credits</th>
+                    <th>Used</th>
                     <th>Plan</th>
                     <th>Joined</th>
                     <th>Actions</th>
@@ -336,6 +329,11 @@ function UsersTab({
                               />
                             </div>
                           </div>
+                        </td>
+                        <td>
+                          <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                            {used.toLocaleString()}
+                          </span>
                         </td>
                         <td>
                           <span className={`${styles.badge} ${u.is_admin ? styles.badgeAdmin : styles.badgeFree}`}>
@@ -544,10 +542,12 @@ function ConfigTab({
   if (loading) return <div className={styles.loadingState}>Loading config...</div>;
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Application Configuration</span>
-      </div>
+    <>
+      <ManualCreditRefresh admin={admin} />
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTitle}>Application Configuration</span>
+        </div>
       <div className={styles.sectionBody}>
         <div className={styles.configGrid}>
           {configs.map((c) => (
@@ -578,6 +578,7 @@ function ConfigTab({
         </div>
       </div>
     </div>
+  </>
   );
 }
 

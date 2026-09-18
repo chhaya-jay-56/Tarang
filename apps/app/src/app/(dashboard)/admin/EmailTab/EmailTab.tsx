@@ -31,21 +31,20 @@ type SegmentKey = "never_used" | "used_once" | "all";
 
 const TEMPLATE_CONFIG: {
   type: EmailType;
-  icon: string;
   name: string;
   segment: SegmentKey;
   desc: string;
 }[] = [
-  { type: "onboarding_nudge", icon: "🎙️", name: "Onboarding Nudge", segment: "never_used", desc: "Your credits are waiting — clone your voice" },
-  { type: "re_engagement", icon: "🔄", name: "Re-engagement", segment: "used_once", desc: "Here's what else Tarang can do" },
-  { type: "feedback_ask", icon: "💬", name: "Feedback Ask", segment: "all", desc: "What feature do you wish existed?" },
-  { type: "credit_grant", icon: "🎁", name: "Credit Grant", segment: "all", desc: "You just got free credits" },
+  { type: "onboarding_nudge", name: "Onboarding Nudge", segment: "never_used", desc: "Your credits are waiting — clone your voice" },
+  { type: "re_engagement", name: "Re-engagement", segment: "used_once", desc: "Here's what else Tarang can do" },
+  { type: "feedback_ask", name: "Feedback Ask", segment: "all", desc: "What feature do you wish existed?" },
+  { type: "credit_grant", name: "Credit Grant", segment: "all", desc: "You just got free credits" },
 ];
 
-const SEGMENT_INFO: Record<SegmentKey, { icon: string; name: string; desc: string }> = {
-  never_used: { icon: "🔴", name: "Never Used", desc: "Signed up, zero credits spent" },
-  used_once: { icon: "🟡", name: "Used Once", desc: "Used credits, inactive 7+ days" },
-  all: { icon: "🟢", name: "All Users", desc: "Everyone with credits allocated" },
+const SEGMENT_INFO: Record<SegmentKey, { name: string; desc: string }> = {
+  never_used: { name: "Never Used", desc: "Signed up, zero credits spent" },
+  used_once: { name: "Used Once", desc: "Used credits, inactive 7+ days" },
+  all: { name: "All Users", desc: "Everyone with credits allocated" },
 };
 
 // ── Main EmailTab Component ──
@@ -124,7 +123,7 @@ function SegmentOverview({ segments }: { segments: Record<string, SegmentData> |
   return (
     <div className={adminStyles.section}>
       <div className={adminStyles.sectionHeader}>
-        <span className={adminStyles.sectionTitle}>📊 User Segments</span>
+        <span className={adminStyles.sectionTitle}>User Segments</span>
       </div>
       <div className={adminStyles.sectionBody}>
         <div className={styles.segmentGrid}>
@@ -133,7 +132,6 @@ function SegmentOverview({ segments }: { segments: Record<string, SegmentData> |
             const data = segments[key];
             return (
               <div key={key} className={styles.segmentCard}>
-                <div className={styles.segmentIcon}>{info.icon}</div>
                 <div className={styles.segmentName}>{info.name}</div>
                 <div className={styles.segmentCount}>{data?.count ?? 0}</div>
                 <div className={styles.segmentDesc}>{info.desc}</div>
@@ -183,7 +181,7 @@ function TemplateCards({
     setSending(emailType);
     try {
       const result = await admin.sendEmails(segment, emailType);
-      onSent(`✅ Sent ${result.sent_count} emails (${result.skipped_count} skipped — already received)`);
+      onSent(`Sent ${result.sent_count} emails (${result.skipped_count} skipped — already received)`);
     } catch (err) {
       alert("Failed to send emails. Check console.");
       console.error(err);
@@ -196,13 +194,12 @@ function TemplateCards({
     <>
       <div className={adminStyles.section}>
         <div className={adminStyles.sectionHeader}>
-          <span className={adminStyles.sectionTitle}>⚡ Quick Send Templates</span>
+          <span className={adminStyles.sectionTitle}>Quick Send Templates</span>
         </div>
         <div className={adminStyles.sectionBody}>
           <div className={styles.templateGrid}>
             {TEMPLATE_CONFIG.map((t) => (
               <div key={t.type} className={styles.templateCard}>
-                <div className={styles.templateIcon}>{t.icon}</div>
                 <div className={styles.templateName}>{t.name}</div>
                 <div className={styles.templateSegment}>
                   Segment: {SEGMENT_INFO[t.segment].name} ({segments?.[t.segment]?.count ?? 0})
@@ -295,9 +292,9 @@ function CustomComposer({
         subject.trim() || "Tarang Email Preview",
         body
       );
-      alert(`✅ Test email successfully sent to ${ADMIN_TEST_EMAIL}!\n\nPlease check your inbox to verify rendering and deliverability.`);
+      alert(`Test email successfully sent to ${ADMIN_TEST_EMAIL}!\n\nPlease check your inbox to verify rendering and deliverability.`);
     } catch (err: any) {
-      alert(`❌ Test send failed: ${err?.message || "Check console"}`);
+      alert(`Test send failed: ${err?.message || "Check console"}`);
       console.error(err);
     } finally {
       setSendingTest(false);
@@ -317,7 +314,7 @@ function CustomComposer({
     setSending(true);
     try {
       const result = await admin.sendEmails(segment, "custom", false, subject, body);
-      onSent(`✅ Custom email sent to ${result.sent_count} users`);
+      onSent(`Custom email sent to ${result.sent_count} users`);
       setSubject("");
       setBody("");
     } catch (err: any) {
@@ -332,7 +329,7 @@ function CustomComposer({
     <>
       <div className={adminStyles.section}>
         <div className={adminStyles.sectionHeader}>
-          <span className={adminStyles.sectionTitle}>✍️ Custom Email</span>
+          <span className={adminStyles.sectionTitle}>Custom Email</span>
         </div>
         <div className={adminStyles.sectionBody}>
           {/* Segment Picker */}
@@ -345,7 +342,7 @@ function CustomComposer({
                   className={`${styles.segmentChip} ${segment === key ? styles.segmentChipActive : ""}`}
                   onClick={() => setSegment(key)}
                 >
-                  {SEGMENT_INFO[key].icon} {SEGMENT_INFO[key].name} ({segments?.[key]?.count ?? 0})
+                  {SEGMENT_INFO[key].name} ({segments?.[key]?.count ?? 0})
                 </button>
               ))}
             </div>
@@ -359,13 +356,13 @@ function CustomComposer({
                 className={`${styles.modeBtn} ${!isHtmlMode ? styles.modeBtnActive : ""}`}
                 onClick={() => setIsHtmlMode(false)}
               >
-                📝 Plain Text
+                Plain Text
               </button>
               <button
                 className={`${styles.modeBtn} ${isHtmlMode ? styles.modeBtnActive : ""}`}
                 onClick={() => setIsHtmlMode(true)}
               >
-                🧑‍💻 HTML
+                HTML
               </button>
             </div>
           </div>
@@ -415,7 +412,7 @@ function CustomComposer({
               disabled={!body.trim()}
               id="custom-email-preview"
             >
-              👁️ Preview
+              Preview
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnSecondary}`}
@@ -423,7 +420,7 @@ function CustomComposer({
               disabled={sendingTest || !body.trim()}
               id="custom-email-selftest"
             >
-              {sendingTest ? "Sending Test..." : "🧪 Self Test"}
+              {sendingTest ? "Sending Test..." : "Self Test"}
             </button>
             <button
               className={`${adminStyles.btn} ${adminStyles.btnPrimary}`}
@@ -431,7 +428,7 @@ function CustomComposer({
               disabled={sending || !subject.trim() || !body.trim()}
               id="custom-email-send"
             >
-              {sending ? "Sending Broadcast..." : `🚀 Send to ${segments?.[segment]?.count ?? 0} users`}
+              {sending ? "Sending Broadcast..." : `Send to ${segments?.[segment]?.count ?? 0} users`}
             </button>
           </div>
         </div>
@@ -461,7 +458,7 @@ function EmailHistory({ history }: { history: HistoryEntry[] }) {
   return (
     <div className={adminStyles.section}>
       <div className={adminStyles.sectionHeader}>
-        <span className={adminStyles.sectionTitle}>📬 Send History</span>
+        <span className={adminStyles.sectionTitle}>Send History</span>
       </div>
       <div className={adminStyles.sectionBody}>
         {history.length === 0 ? (
@@ -533,7 +530,7 @@ function PreviewModal({
               onClick={onSendTest}
               id="preview-send-test-btn"
             >
-              🧪 Send Test to Me
+              Send Test to Me
             </button>
           ) : <div />}
           <button

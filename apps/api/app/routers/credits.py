@@ -1,5 +1,14 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# WHY THIS FILE EXISTS:
+# Provides a GET endpoint for the frontend CreditBar to fetch the current
+# user's credit balance and plan information. Kept minimal — just a read
+# endpoint. Credit mutations happen in individual service routers (TTS,
+# separation, etc.) which deduct credits atomically.
+#
+# FLOW: CreditBar component → useCredits hook → GET /api/credits/balance
+# ─────────────────────────────────────────────────────────────────────────────
+
 import logging
-from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -7,7 +16,6 @@ from sqlalchemy import select, func
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.app_config import AppConfig
-from app.models.credit_transaction import CreditTransaction, TxnType
 
 logger = logging.getLogger("tarang.credits")
 
@@ -20,15 +28,13 @@ async def get_credit_balance(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Returns the authenticated user's credit balance, plan info, and monthly usage.
+    Returns the authenticated user's credit balance and plan info.
 
     Response:
         {
             "credit_balance": 8420,
-            "credit_limit": 10000,
             "plan_type": "premium",
-            "email": "jay@example.com",
-            "monthly_usage": 1580
+            "email": "jay@example.com"
         }
     """
     result = await db.execute(
@@ -39,27 +45,11 @@ async def get_credit_balance(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Monthly usage: sum of deductions in the current calendar month
-    now = datetime.now(timezone.utc)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    monthly_result = await db.execute(
-        select(
-            func.coalesce(func.sum(CreditTransaction.amount), 0)
-        ).where(
-            CreditTransaction.user_id == user.id,
-            CreditTransaction.txn_type == TxnType.deduction,
-            CreditTransaction.created_at >= month_start,
-        )
-    )
-    monthly_usage = monthly_result.scalar()
-
     return {
         "credit_balance": user.credit_balance,
         "credit_limit": user.credit_limit,
         "plan_type": user.plan_type,
         "email": user.email,
-        "monthly_usage": monthly_usage,
     }
 
 

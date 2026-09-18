@@ -17,7 +17,7 @@ const FEATURES = [
   {
     number: "02",
     title: "Voice Cloning",
-    desc: "Create ultra-realistic vocal replicas from just a few seconds of audio. Our advanced neural networks capture subtle nuances, accents, and emotional inflections, giving you studio-quality clones perfectly tailored for scalable content generation.",
+    desc: "Clone any voice from a few seconds of audio. Studio-quality, accent-aware replicas.",
     visual: "clone",
     creditCost: "~200 credits/min",
   },
